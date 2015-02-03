@@ -27,6 +27,12 @@
     <ClInclude Include="cameraWrapper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="fingers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="menuUI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -36,6 +42,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="cameraWrapper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="menuUI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fingers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

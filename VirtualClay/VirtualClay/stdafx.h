@@ -12,16 +12,15 @@
 #include <Leap.h>
 #include <LeapMath.h>
 #include "Mudbox\mudbox.h"
-
+#include "stdlib.h"
 	
 
 class VirtualClay {
     Q_DECLARE_TR_FUNCTIONS(VirtualClay);
-
 public:
-	static void Initializer();
-	
-	static void Execute();   // Execute 
+	static void Initializer(void);
+	static void Cleanup(void);
+	static void Execute(void);   // Execute 
 	
 };
 

@@ -1,5 +1,5 @@
-#ifndef CAMERA_WRAPPER
-#define CAMERA_WRAPPER
+#ifndef CAMERA_WRAPPER_H_
+#define CAMERA_WRAPPER_H_
 #include "stdafx.h"
 
 namespace mb = mudbox;
@@ -18,6 +18,8 @@ class cameraWrapper {
     void addCameraToScene(void);
     void setAim(mb::Vector v);
     void setTNode(void);
+    int getID();
+    QString getName();
 };
 
 #endif

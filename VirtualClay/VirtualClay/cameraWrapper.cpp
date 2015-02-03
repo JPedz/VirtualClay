@@ -12,6 +12,16 @@ cameraWrapper::cameraWrapper(QString name) {
 mb::Camera *cameraWrapper::getCamera(void) {
   return cam;
 }
+
+int cameraWrapper::getID(void) {
+  return cam->ID();
+}
+
+QString cameraWrapper::getName(void) {
+  return cam->Name();
+}
+
+
 mb::GroupNode *cameraWrapper::getGNode(void) {
   return cam_GNode;
 }
