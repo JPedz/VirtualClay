@@ -11,7 +11,7 @@ class Fingers {
     void Fingers::BuildGeo(void);
 
   public:
-    Fingers(void);
+    Fingers(menuUI *mu);
     mb::Vector Fingers::GetPos(void);
     void Fingers::SetPos(mb::Vector v);
     void Fingers::SetRot(mb::Vector r);

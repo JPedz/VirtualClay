@@ -19,6 +19,7 @@ void VirtualClay::Cleanup(void) {
     mb::Node *n = mb::Node::ByID(860);
     QString s = n->ID();
 	  mb::Kernel()->Interface()->HUDMessageShow(s);
+	  
     n->~Node();
 }
 

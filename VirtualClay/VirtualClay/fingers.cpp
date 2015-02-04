@@ -1,7 +1,9 @@
 #include "stdafx.h"
 #include "fingers.h"
+#include "menuUI.h"
 
-Fingers::Fingers() {
+Fingers::Fingers(menuUI *mu) {
+
 }
 
 

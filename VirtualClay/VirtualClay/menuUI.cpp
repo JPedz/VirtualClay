@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "menuUI.h"
 #include "cameraWrapper.h"
+#include "fingers.h"
 
 menuUI::menuUI(void) {
   ID_List.reserve(2);
@@ -13,9 +14,10 @@ void menuUI::Execute() {
   L_Cam->addCameraToScene();
   R_Cam->addCameraToScene();
   QString s = QString::number(L_Cam->getID());
-  
-	mb::Kernel()->Interface()->HUDMessageShow(s);
-  
+  ID_List[0] = L_Cam->getID();
+  ID_List[1] = R_Cam->getID();
+  mb::Kernel()->Interface()->HUDMessageShow(s);
+  Fingers *finger = new Fingers(this);
   mb::Node *n = mb::Node::ByID(L_Cam->getID());
   mb::Kernel()->Interface()->HUDMessageShow(n->DisplayName());
 
@@ -29,7 +31,7 @@ void menuUI::Execute() {
   R_Cam->setTNode();
   L_Cam->setTranslation(mb::Vector(+200.0f,200.0f,500.0f));
   R_Cam->setTranslation(mb::Vector(-200.0f,200.0f,500.0f));
-	mb::Kernel()->ViewPort()->Redraw();
+  mb::Kernel()->ViewPort()->Redraw();
 }
 
 void menuUI::addToIDList(int ID){
