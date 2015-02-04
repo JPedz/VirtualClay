@@ -47,3 +47,7 @@ void cameraWrapper::setTranslation(mb::Vector v) {
   //cam_TNode = cam_GNode->Transformation();
   cam_TNode->SetPosition(v);
 }
+
+void cameraWrapper::selectPoints(mb::Vector v) {
+
+}

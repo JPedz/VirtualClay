@@ -20,6 +20,7 @@ class cameraWrapper {
     void setTNode(void);
     int getID();
     QString getName();
+    void selectPoints(mb::Vector v);
 };
 
 #endif

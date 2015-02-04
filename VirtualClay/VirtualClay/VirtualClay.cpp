@@ -4,13 +4,14 @@
 #include "stdafx.h"
 #include "cameraWrapper.h"
 #include "menuUI.h"
-
+IMPLEMENT_CLASS (menuUI,mb::Node,"menuUI");
 namespace mb = mudbox;
 MB_PLUGIN( "VirtualClay", "CameraCreator", "James Pedlingham", "URL", VirtualClay::Initializer);
 
 void VirtualClay::Initializer(void) {
-  mb::Kernel()->Interface()->AddCallbackMenuItem( mb::Interface::menuPlugins, QString::null, QObject::tr("TurnOn"), VirtualClay::Execute);
-  mb::Kernel()->Interface()->AddCallbackMenuItem( mb::Interface::menuPlugins, QString::null, QObject::tr("TurnOff"),VirtualClay::Cleanup);
+  //mb::Kernel()->Interface()->AddCallbackMenuItem( mb::Interface::menuPlugins, QString::null, QObject::tr("TurnOn"), VirtualClay::Execute);
+  //mb::Kernel()->Interface()->AddCallbackMenuItem( mb::Interface::menuPlugins, QString::null, QObject::tr("TurnOff"),VirtualClay::Cleanup);
+  mb::Kernel()->Interface()->AddClassMenuItem(mb::Interface::menuPlugins,"Leap Motion",menuUI::StaticClass(),QObject::tr("Initialise"));
 }
 
 
@@ -36,10 +37,6 @@ void VirtualClay::Execute(void) {
   mb::Transformation *nd = mb::CreateInstance<mb::Transformation>();
   nd->SetPosition(mb::Vector(0.0,0.0,0.0));
   nd->SetDisplayName("NEWNODE");
-
-
-
-  
   
   L_Cam->setAim(mb::Vector(0,0,0));
   R_Cam->setAim(mb::Vector(0,0,0));
