@@ -21,6 +21,7 @@ class cameraWrapper {
     int getID();
     QString getName();
     void selectPoints(mb::Vector v);
+    void deleteCam(void);
 };
 
 #endif

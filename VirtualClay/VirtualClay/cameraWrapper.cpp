@@ -51,3 +51,7 @@ void cameraWrapper::setTranslation(mb::Vector v) {
 void cameraWrapper::selectPoints(mb::Vector v) {
 
 }
+
+void cameraWrapper::deleteCam(void) {
+  delete cam_TNode;
+}

@@ -12,14 +12,14 @@
 #include <Leap.h>
 #include <LeapMath.h>
 #include "Mudbox\mudbox.h"
-#include "stdlib.h"
+#include <vector>
 	
 
-class VirtualClay {
+class VirtualClay: mudbox::Node {
+  DECLARE_CLASS
     Q_DECLARE_TR_FUNCTIONS(VirtualClay);
 public:
 	static void Initializer(void);
-	static void Cleanup(void);
 	static void Execute(void);   // Execute 
 	
 };

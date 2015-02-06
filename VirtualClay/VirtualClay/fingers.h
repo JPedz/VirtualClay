@@ -1,6 +1,10 @@
 #ifndef FINGERS_H_
 #define FINGERS_H_
 #include "stdafx.h"
+#include "menuUI.h"
+#include "qmenu.h"
+#include "qmainwindow.h"
+#include "qmenubar.h"
 namespace mb = mudbox;
 
 class Fingers {
@@ -15,7 +19,7 @@ class Fingers {
     mb::Vector Fingers::GetPos(void);
     void Fingers::SetPos(mb::Vector v);
     void Fingers::SetRot(mb::Vector r);
-    
+    int Fingers::ImportGeo(void);
 };
 
 
