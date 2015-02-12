@@ -1,17 +1,14 @@
 #include "stdafx.h"
-#include "fingers.h"
+#include "Leap_Fingers.h"
 
 namespace mb = mudbox;
 
-Fingers::Fingers(menuUI *mu) {
-  mu->addToIDList(2000);
+Leap_Fingers::Leap_Fingers() {
 }
 
 //http://around-the-corner.typepad.com/adn/2013/06/accessing-unsubdivide-functionality-from-a-mudbox-plug-in.html
 //Import Geo returns ID of sphere made.
-int Fingers::ImportGeo(void) {
-  
-  
+int Leap_Fingers::ImportGeo(void) {
   int sphereID = 0;
   mb::Node *nodes = mb::Node::First();
   QMenu *m_create = mb::Kernel()->Interface()->DropDownMenu(mb::Interface::ddmCreate);
@@ -69,6 +66,11 @@ int Fingers::ImportGeo(void) {
       mesh_A->activate (QAction::Trigger) ;
     }
   }
+
+  ////Maybe try:
+  //TODO:
+  //mb::TreeNode *pnodes = mb::Kernel()->Scene()->FirstChild();
+  //for(pnodes ; pnodes ; pnodes->NextSibling()) {}
   for(nodes = mb::Node::First() ; nodes ; nodes = nodes->Next()) {
     //REMEMBER THIS SEARCHES THROUGH ALL NODES,
     // CURVES, TOOLS (brushes etc..) and scene nodes.
@@ -78,13 +80,16 @@ int Fingers::ImportGeo(void) {
     if(nodes->IsKindOf(mb::Transformation::StaticClass())) {
       mb::Transformation *sphere  = dynamic_cast<mb::Transformation *>(nodes);
       MB_SAFELY(sphere) {
+        //TODO: If unique sphere and not one from before.
         QString s_Name = sphere->Name();
         if(sphere->Name() != NULL) {
           //if(sphere->Name().compare(QString("sphere")))
           if(s_Name.indexOf( "sphere" ) != -1) {
             sphere_t_list_after.push_back(sphere);
             sphere->SetScale(mb::Vector(0.3f,0.3f,0.6f));
+            TNode = sphere;
             sphereID = sphere->ID();
+            ID = sphereID;
             mb::Kernel()->Log(QString("Sphere During")+sphere->Name()+" "+QString::number(nodes->ID())+"\n");
  
             sphere->SetName("Finger"+QString::number(sphereID));
@@ -97,13 +102,30 @@ int Fingers::ImportGeo(void) {
   for(int i = 0; i < sphere_t_list_after.size() ; i++ ) {
     mb::Kernel()->Log(QString("SphereAfter")+sphere_t_list_after.at(i)->Name()+"\n");
   }
-
+  mblog("\nreturning after creation\n")
   return sphereID;
 }
 
-void Fingers::BuildGeo() {
+mb::Transformation * Leap_Fingers::getTNode() {
+  return TNode;
+}
+
+void Leap_Fingers::SetPos(mb::Vector v) {
+  if(TNode != NULL)
+    TNode->SetPosition(v);
+}
+
+void Leap_Fingers::SetRot(mb::Vector v) {
+  if(TNode != NULL)
+    TNode->SetRotation(v);
+}
+
+void Leap_Fingers::SetScale(mb::Vector v) {
+  if(TNode != NULL)
+    TNode->SetScale(v);
+}
+
+void Leap_Fingers::BuildGeo() {
   ImportGeo();
-  //mb::Scene::LoadData *ld = new mb::Scene::LoadData();
-  //ld->Merge();
 
 }

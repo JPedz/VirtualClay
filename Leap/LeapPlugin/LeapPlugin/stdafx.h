@@ -6,36 +6,20 @@
 #pragma once
 
 #include "targetver.h"
-
-#include <stdio.h>
-#include <tchar.h>
-#include <Leap.h>
-#include <LeapMath.h>
+#include "stdio.h"
 #include "Mudbox\mudbox.h"
 #include <vector>
-#include "util.h"
-#include "ID_List.h"
-#define mblog(a) mudbox::Kernel()->Log(a);
-//
-//#define max(a,b) (a > b) ? a : b
-//#define min(a,b) (a < b) ? a : b
+#include "Leap.h"
+#include "LeapListener.h"
 
-class VirtualClay: mudbox::Node {
+
+class LeapPlugin : mudbox::Node{
   DECLARE_CLASS
-    Q_DECLARE_TR_FUNCTIONS(VirtualClay);
 public:
 	static void Initializer(void);
 	static void Execute(void);   // Execute 
 	
 };
-
-
-
-
-
-
-
-
 
 
 // TODO: reference additional headers your program requires here

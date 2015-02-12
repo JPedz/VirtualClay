@@ -11,6 +11,7 @@ class cameraWrapper {
     mb::GroupNode *cam_GNode;
   public:
     cameraWrapper(QString name);
+    cameraWrapper(int id);
     mb::Camera *getCamera(void);
     mb::Transformation *getTNode(void);
     mb::GroupNode *getGNode(void);

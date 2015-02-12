@@ -3,15 +3,15 @@
 
 #include "stdafx.h"
 #include "cameraWrapper.h"
-#include "menuUI.h"
-IMPLEMENT_CLASS (VirtualClay,mb::Node,"menuUI");
+#include "MenuUI.h"
+IMPLEMENT_CLASS (VirtualClay,mb::Node,"MenuUI");
 namespace mb = mudbox;
 MB_PLUGIN( "VirtualClay", "CameraCreator", "James Pedlingham", "URL", VirtualClay::Initializer);
 
 void VirtualClay::Initializer(void) {
   //mb::Kernel()->Interface()->AddCallbackMenuItem( mb::Interface::menuPlugins, QString::null, QObject::tr("TurnOn"), VirtualClay::Execute);
   //mb::Kernel()->Interface()->AddCallbackMenuItem( mb::Interface::menuPlugins, QString::null, QObject::tr("TurnOff"),VirtualClay::Cleanup);
-  mb::Kernel()->Interface()->AddClassMenuItem(mb::Interface::menuPlugins,"Leap Motion",menuUI::StaticClass(),"Instatiate");
+  mb::Kernel()->Interface()->AddClassMenuItem(mb::Interface::menuCreate,"Leap Motion",MenuUI::StaticClass(),"Instatiate");
 }
 
 void VirtualClay::Execute(void) {

@@ -1,55 +1,38 @@
 #include "stdafx.h"
-#include "menuUI.h"
+#include "MenuUI.h"
 #include "cameraWrapper.h"
-#include "fingers.h"
+#include "Leap_Fingers.h"
+#include "Leap_Hand.h"
+#include "Leap_Updater.h"
+#include "ID_List.h"
 
-IMPLEMENT_CLASS( menuUI, mb::Node, "menuUI" );
-menuUI::menuUI(void) {
-  mb::Kernel()->Interface()->MessageBox(mb::Interface::MessageBoxType::msgInformation,"Test Title", "Some string",2,0);
-  menuUI::Execute();
+IMPLEMENT_CLASS( MenuUI, mb::Node, "MenuUI" );
+MenuUI::MenuUI(void) {
+  idList = new ID_List();
+  MenuUI::Execute();
 }
 
 
 
-void menuUI::Execute() {
+void MenuUI::Execute() {
   cameraWrapper *L_Cam = new cameraWrapper("L_HandCam");
   cameraWrapper *R_Cam = new cameraWrapper("R_HandCam");
-  L_Cam->addCameraToScene();
-  R_Cam->addCameraToScene();
-  QString s = QString::number(L_Cam->getID());
-  addToIDList(L_Cam->getID());
-  addToIDList(R_Cam->getID());
-  mb::Kernel()->Interface()->HUDMessageShow(s);
-  Fingers *finger = new Fingers(this);
-  finger->ImportGeo();
-  size_t k = ID_List.size();
-  mb::Kernel()->Interface()->SetStatus(mudbox::Interface::stNormal,QString::number(ID_List.at(k-1)));
-  //mb::Kernel()->Interface()->HUDMessageShow(QString::number(ID_List.at(0)));
-  //mb::Node *n = mb::Node::ByID(L_Cam->getID());
-  //mb::Kernel()->Interface()->HUDMessageShow(n->DisplayName());
-
-  //mb::Transformation *nd = mb::CreateInstance<mb::Transformation>();
-  //nd->SetPosition(mb::Vector(0.0,0.0,0.0));
-  //nd->SetDisplayName("NEWNODE");
-  
-  L_Cam->setAim(mb::Vector(0,0,0));
-  R_Cam->setAim(mb::Vector(0,0,0));
+  idList->storeHandCamID(L_Cam->getID(),l);
+  idList->storeHandCamID(R_Cam->getID(),r);
+  Leap_Hand *hand_l = new Leap_Hand(idList,l);
+  Leap_Hand *hand_r = new Leap_Hand(idList,r);
+  Leap_Updater *lU = new Leap_Updater(hand_l,hand_r);
   L_Cam->setTNode();
   R_Cam->setTNode();
   L_Cam->setTranslation(mb::Vector(+200.0f,200.0f,500.0f));
   R_Cam->setTranslation(mb::Vector(-200.0f,200.0f,500.0f));
-
+  L_Cam->setAim(mb::Vector(0,0,0));
+  R_Cam->setAim(mb::Vector(0,0,0));
 
   mb::Kernel()->ViewPort()->Redraw();
+  //MeshOps *mOp = new MeshOps();
+  //mOp->pickObj();
 }
 
-void menuUI::addToIDList(int ID){
-  ID_List.push_back(ID);
-  mb::Kernel()->Interface()->HUDMessageShow(QString::number(ID_List.at(0)));
-}
-
-std::vector<int> menuUI::getIDList(void) {
-  return ID_List;
-}
 
 
