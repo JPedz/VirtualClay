@@ -1,23 +1,21 @@
 #ifndef MENU_UI_H
 #define MENU_UI_H
 #include "stdafx.h"
+#include "MeshOps.h"
 
 
 namespace mb = mudbox;
-class menuUI : public mb::Node {
+class MenuUI : public mb::Node {
   DECLARE_CLASS
-  Q_DECLARE_TR_FUNCTIONS(menuUI);
+  Q_DECLARE_TR_FUNCTIONS(MenuUI);
   size_t sizeer;
-  std::vector<int> ID_List;
+  ID_List *idList;
 public:
-  menuUI();
-  int staticClass();
+  MenuUI();
 	void Cleanup(void);
 	void Execute(void);   // Execute 
   void addToIDList(int ID);
-  std::vector<int> getIDList(void);
-
-
+  QList<int> getIDList(void);
 };
 
 #endif

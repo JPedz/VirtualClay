@@ -44,7 +44,7 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v110</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -78,6 +78,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <TargetExt>.mp</TargetExt>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -109,7 +110,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(MUDBOX_SDK_DIR)\lib;$(LEAP_SDK_DIR)\lib\x64\;C:\Program Files\Autodesk\Mudbox 2015\SDK\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Leap.lib;Leapd.lib;MudboxFramework.lib;QtCore4.lib;QtGui4.lib;QtScript4.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Leapd.lib;MudboxFramework.lib;QtCore4.lib;QtGui4.lib;QtScript4.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName).mp</OutputFile>
     </Link>
   </ItemDefinitionGroup>
@@ -137,14 +138,17 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_USRDLL;FILEEVENTHANDLER_EXPORTS;MB_USE_QT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(MUDBOX_SDK_DIR)\include;$(LEAP_SDK_DIR)\include\;C:\Program Files\Autodesk\Mudbox 2015\SDK\include\QtCore;C:\Program Files\Autodesk\Mudbox 2015\SDK\include\QtGui;C:\Program Files\Autodesk\Mudbox 2015\SDK\include\QtOpenGL;C:\Program Files\Autodesk\Mudbox 2015\SDK\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>$(MUDBOX_SDK_DIR)\lib;$(LEAP_SDK_DIR)\lib\x64\;C:\Program Files\Autodesk\Mudbox 2015\SDK\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Leap.lib;QtGui4.lib;MudboxFramework.lib;QtCore4.lib;QtScript4.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -152,15 +156,28 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cameraWrapper.h" />
-    <ClInclude Include="fingers.h" />
+    <ClInclude Include="Leap_Fingers.h" />
+    <ClInclude Include="Leap_Hand.h" />
+    <ClInclude Include="util.h" />
+    <ClInclude Include="ID_List.h" />
+    <ClInclude Include="Leap_Listener.h" />
+    <ClInclude Include="Leap_Reader.h" />
+    <ClInclude Include="Leap_Updater.h" />
     <ClInclude Include="menuUI.h" />
+    <ClInclude Include="MeshOps.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cameraWrapper.cpp" />
-    <ClCompile Include="fingers.cpp" />
+    <ClCompile Include="Leap_Fingers.cpp" />
+    <ClCompile Include="ID_List.cpp" />
+    <ClCompile Include="Leap_Hand.cpp" />
+    <ClCompile Include="Leap_Listener.cpp" />
+    <ClCompile Include="Leap_Reader.cpp" />
+    <ClCompile Include="Leap_Updater.cpp" />
     <ClCompile Include="menuUI.cpp" />
+    <ClCompile Include="MeshOps.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -168,6 +185,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="VirtualClay.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

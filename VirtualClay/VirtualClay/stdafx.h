@@ -13,7 +13,12 @@
 #include <LeapMath.h>
 #include "Mudbox\mudbox.h"
 #include <vector>
-	
+#include "util.h"
+#include "ID_List.h"
+#define mblog(a) mudbox::Kernel()->Log(a);
+//
+//#define max(a,b) (a > b) ? a : b
+//#define min(a,b) (a < b) ? a : b
 
 class VirtualClay: mudbox::Node {
   DECLARE_CLASS

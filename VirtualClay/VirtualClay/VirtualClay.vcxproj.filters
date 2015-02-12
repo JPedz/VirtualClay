@@ -27,10 +27,31 @@
     <ClInclude Include="cameraWrapper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="fingers.h">
+    <ClInclude Include="menuUI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="menuUI.h">
+    <ClInclude Include="MeshOps.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Leap_Updater.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Leap_Reader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Leap_Listener.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ID_List.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Leap_Hand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Leap_Fingers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -47,8 +68,29 @@
     <ClCompile Include="menuUI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="fingers.cpp">
+    <ClCompile Include="MeshOps.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Leap_Updater.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Leap_Reader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Leap_Listener.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ID_List.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Leap_Hand.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Leap_Fingers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
 </Project>
