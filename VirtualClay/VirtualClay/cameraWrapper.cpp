@@ -20,6 +20,14 @@ int cameraWrapper::getID(void) {
 QString cameraWrapper::getName(void) {
   return cam->Name();
 }
+//
+//complicated schematics for all of the functions i need to implement.
+//
+//	layers, selecting brushes
+//
+//fire off an email to aardman.
+//
+
 
 
 mb::GroupNode *cameraWrapper::getGNode(void) {
