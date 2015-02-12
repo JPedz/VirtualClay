@@ -110,7 +110,16 @@ mb::Vector Leap_Reader::getDirection_L(void) {
 }
 
 mb::Vector Leap_Reader::getDirection_R(void) {
-  return mb::Vector(hand_r.palmNormal().yaw(),hand_r.palmNormal().pitch()+PI/2,hand_r.palmNormal().roll())*RAD_TO_DEG;
+ // http://stackoverflow.com/questions/26555040/yaw-pitch-and-roll-to-glmrotate
+  float x,y,z;
+  float yaw,roll,pitch;
+  yaw = hand_r.palmNormal().yaw();
+  roll = hand_r.palmNormal().roll();
+  pitch = hand_r.palmNormal().pitch();
+  x = cos(yaw)*cos(pitch);
+  y = sin(yaw)*cos(pitch);
+  z = sin(pitch);
+  return mb::Vector(x,y,z)*RAD_TO_DEG;
 }
 
 mb::Vector Leap_Reader::getPosition_L(void) {
