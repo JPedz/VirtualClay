@@ -39,7 +39,7 @@ void Leap_Reader::updateAll(void) {
 
 void Leap_Reader::HandSetup(Frame &f) {
   HandList hands = f.hands();
-  mblog("\nHandCount: "+QString::number(hands.count())+"\n");
+ // mblog("\nHandCount: "+QString::number(hands.count())+"\n");
   //Reconfigure these to ensure that the hand with the greatest confidence chooses
   // which is 'left' and which is right.
   if(hands.count() > 1) {
@@ -110,7 +110,6 @@ mb::Vector Leap_Reader::getFingerDirection_L(fingerEnum fn) {
   directions = LeapDirectionToMudbox(b.direction());
   return directions;
 }
-#include "LeapMath.h"
 
 mb::Vector Leap_Reader::getFingerDirection_R(fingerEnum fn) {
   Finger f;

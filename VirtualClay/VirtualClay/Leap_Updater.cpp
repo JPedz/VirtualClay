@@ -17,7 +17,6 @@ Leap_Updater::Leap_Updater(ID_List *idl,Leap_Hand *l,Leap_Hand *r)
 
 mb::Vector Leap_Updater::fitToCameraSpace() {
   int camID = idList->getViewCam();
-  mblog(QString::number(camID));
   cameraWrapper *viewCam = new cameraWrapper(camID);
   mb::Vector camPos = viewCam->getPosision();
   mb::Vector pO = mb::Vector(0,250,600);
@@ -46,7 +45,7 @@ void Leap_Updater::OnEvent(const mb::EventGate &cEvent) {
       hand_r->SetFingerPos(fingerEnum(i),cameraPivot + leapReader->getFingerPosition_R(fingerEnum (i)));
       hand_r->SetFingerRot(fingerEnum(i),leapReader->getFingerDirection_R(fingerEnum(i)));
       hand_l->RotateAroundPivot(fingerEnum(i),mb::Vector(0,180,0),cameraPivot);
-      hand_r->RotateAroundPivot(fingerEnum(i),mb::Vector(0,180,0),cameraPivot);
+      //hand_r->RotateAroundPivot(fingerEnum(i),mb::Vector(0,180,0),cameraPivot);
     }
   }
 }

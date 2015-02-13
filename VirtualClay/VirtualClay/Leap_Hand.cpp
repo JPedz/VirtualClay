@@ -68,6 +68,7 @@ void Leap_Hand::SetVisi(bool vis) {
 
 
 void Leap_Hand::RotateAroundPivot(fingerEnum f,mb::Vector a,mb::Vector pivot) {
+  mblog("Finger: "+QString::number(f)+"\n");
   fingers.at(f)->RotateAroundPivot(a,pivot);
 }
 
