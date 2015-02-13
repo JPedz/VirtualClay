@@ -29,5 +29,7 @@ public:
   mb::Vector getFingerDirection_R(fingerEnum fn);
   mb::Vector getFingerPosition_L(fingerEnum fn);
   mb::Vector getFingerPosition_R(fingerEnum fn);
+  bool Leap_Reader::isFist(LR lr);
+  bool Leap_Reader::isVisible(LR lr);
 };
 

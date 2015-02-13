@@ -3,7 +3,6 @@
 class ID_List {
   //Stores the ID's for all of the nodes.
   //TODO: on close store these values somewhere.
-  int viewCam;
   std::vector<int> HandCamList;
   std::vector<int> FingerList;
   std::vector<int> HandList;

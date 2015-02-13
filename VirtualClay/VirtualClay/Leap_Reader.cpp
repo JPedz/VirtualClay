@@ -4,7 +4,7 @@
 using namespace Leap;
 
 Leap_Reader::Leap_Reader(void) {
-  handvisi.resize(2,TRUE);
+  handvisi.resize(2,false);
   controller.addListener(listener); 
   QTime *t = new QTime();
   t->start();
@@ -42,6 +42,42 @@ void Leap_Reader::HandSetup(Frame &f) {
   mblog("\nHandCount: "+QString::number(hands.count())+"\n");
   //Reconfigure these to ensure that the hand with the greatest confidence chooses
   // which is 'left' and which is right.
+  if(hands.count() > 1) {
+    if(hands.leftmost().confidence() >= hands.rightmost().confidence()) {
+      if(hands.leftmost().isLeft()) {
+        hand_l = hands.leftmost();
+        hand_r = hands.rightmost();
+      } else {
+        hand_r = hands.leftmost();
+        hand_l = hands.rightmost();
+      }
+    } else {
+      if(hands.rightmost().isRight()) {
+          hand_l = hands.leftmost();
+          hand_r = hands.rightmost();
+        } else {
+          hand_r = hands.leftmost();
+          hand_l = hands.rightmost();
+        }
+    }
+    handvisi.at(0) = true;
+    handvisi.at(1) = true;
+  } else {
+    if(hands.count() == 1) {
+      if(hands.leftmost().isLeft()) {
+        hand_l = hands.leftmost();
+        handvisi.at(0) = true;
+        handvisi.at(1) = false;
+      } else {
+        hand_r = hands.leftmost();
+        handvisi.at(0) = false;
+        handvisi.at(1) = true;
+      }
+    } else {
+      handvisi.at(0) = false;
+      handvisi.at(1) = false;
+    }
+  }/*
   if(hands.leftmost().isLeft()) {
     hand_l = hands.leftmost();
   } else if(hands.rightmost().isLeft()) {
@@ -54,7 +90,7 @@ void Leap_Reader::HandSetup(Frame &f) {
   } else {
     hand_r = hands.rightmost();
     hand_l = hands.leftmost();
-  }
+  }*/
 }
 
 mb::Vector Leap_Reader::LeapDirectionToMudbox(Leap::Vector dir) {
@@ -93,7 +129,7 @@ mb::Vector Leap_Reader::getFingerPosition_L(fingerEnum fn) {
   f = hand_l.fingers().fingerType(Finger::Type(fn))[0];
 //  mudbox::Kernel()->Interface()->SetStatus(mudbox::Interface::stNormal,"Finger Pos"+QString::number(fn)+": "+
 //      QString::number(f.stabilizedTipPosition().x)+" "+QString::number(f.stabilizedTipPosition().y)+" "+QString::number(f.stabilizedTipPosition().z));  
-  return mb::Vector(f.stabilizedTipPosition().x,f.stabilizedTipPosition().y,f.stabilizedTipPosition().z);
+  return mb::Vector(f.tipPosition().x,f.tipPosition().y,f.tipPosition().z);
 }
 
 mb::Vector Leap_Reader::getFingerPosition_R(fingerEnum fn) {
@@ -102,7 +138,7 @@ mb::Vector Leap_Reader::getFingerPosition_R(fingerEnum fn) {
   f = hand_r.fingers().fingerType(Finger::Type(fn))[0];
 //  mudbox::Kernel()->Interface()->SetStatus(mudbox::Interface::stNormal,"Finger Pos"+QString::number(fn)+": "+
 //      QString::number(f.stabilizedTipPosition().x)+" "+QString::number(f.stabilizedTipPosition().y)+" "+QString::number(f.stabilizedTipPosition().z));  
-  return mb::Vector(f.stabilizedTipPosition().x,f.stabilizedTipPosition().y,f.stabilizedTipPosition().z);
+  return mb::Vector(f.tipPosition().x,f.tipPosition().y,f.tipPosition().z);
 }
 
 mb::Vector Leap_Reader::getDirection_L(void) {
@@ -119,7 +155,7 @@ mb::Vector Leap_Reader::getDirection_R(void) {
   x = cos(yaw)*cos(pitch);
   y = sin(yaw)*cos(pitch);
   z = sin(pitch);
-  return mb::Vector(x,y,z)*RAD_TO_DEG;
+  return mb::Vector(yaw,pitch,roll)*RAD_TO_DEG;
 }
 
 mb::Vector Leap_Reader::getPosition_L(void) {
@@ -130,6 +166,22 @@ mb::Vector Leap_Reader::getPosition_R(void) {
   return mb::Vector(hand_r.palmPosition().x,hand_r.palmPosition().y,hand_r.palmPosition().z);
 }
 
+bool Leap_Reader::isFist(LR lr) {
+  Frame f;
+  switch(lr) {
+    case(l):
+      return hand_l.grabStrength();
+      break;
+    case(r):
+      return hand_r.grabStrength();
+      break;
+  }
+}
+
+
+bool Leap_Reader::isVisible(LR lr) {
+  return handvisi.at(lr);
+}
 
 void Leap_Reader::updateDirection(Frame &f) {
   HandSetup(f);

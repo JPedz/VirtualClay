@@ -32,6 +32,13 @@ QString cameraWrapper::getName(void) {
   return cam->Name();
 }
 
+mb::Vector cameraWrapper::getForward(void) {
+  return cam->Forward();
+}
+
+mb::Vector cameraWrapper::getPosision() {
+  return cam_TNode->Position();
+}
 
 mb::GroupNode *cameraWrapper::getGNode(void) {
   return cam_GNode;

@@ -24,6 +24,7 @@ public:
   void SetVisi(bool vis);
   void SetFingerPos(fingerEnum fn,mb::Vector v);
   void SetFingerRot(fingerEnum fn,mb::Vector v);
+  void RotateAroundPivot(fingerEnum fn,mb::Vector a,mb::Vector pivot);
 //TODO: 
 //Set IndexFinger to Thumb Rot and pos
 
