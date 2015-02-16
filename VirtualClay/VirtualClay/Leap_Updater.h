@@ -11,7 +11,8 @@ class Leap_Updater : public mb::Node {
   void setDir(mudbox::Vector dir);
   Leap_Hand *hand_l;
   Leap_Hand *hand_r;
-  mb::Vector fitToCameraSpace();
+  mb::Vector fitToCameraSpace(cameraWrapper *viewCam);
+  mb::Vector rotateCamera(cameraWrapper *viewCam);
   mb::aevent frameEvent;
   Leap_Reader *leapReader;
 public:

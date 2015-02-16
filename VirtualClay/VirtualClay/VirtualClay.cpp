@@ -4,6 +4,8 @@
 #include "stdafx.h"
 #include "cameraWrapper.h"
 #include "MenuUI.h"
+
+
 IMPLEMENT_CLASS (VirtualClay,mb::Node,"MenuUI");
 namespace mb = mudbox;
 MB_PLUGIN( "VirtualClay", "CameraCreator", "James Pedlingham", "URL", VirtualClay::Initializer);

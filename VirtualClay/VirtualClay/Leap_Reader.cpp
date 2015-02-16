@@ -18,9 +18,11 @@ Leap_Reader::Leap_Reader(void) {
     mb::Kernel()->Interface()->SetStatus(mb::Interface::stNormal,"Leap Not Connected");
   }
   if(controller.isConnected()) {
+    isConnected =true;
     mb::Kernel()->Interface()->SetStatus(mb::Interface::stNormal,"Leap Connected Successfully");
     mblog("\n Leap Connected Successfully\n");
   } else {
+    isConnected =false;
     mblog("\n Leap not Connected\n");
   }
 }
@@ -32,8 +34,13 @@ Leap_Reader::~Leap_Reader(void)
 
 void Leap_Reader::updateAll(void) {
   if(controller.isConnected()) {
+    isConnected =true;
     Frame f = controller.frame();
     updateDirection(f);
+  } else {
+    handvisi.at(0) = false;
+    handvisi.at(1) = false;
+    isConnected =false;
   }
 }
 
@@ -42,6 +49,8 @@ void Leap_Reader::HandSetup(Frame &f) {
  // mblog("\nHandCount: "+QString::number(hands.count())+"\n");
   //Reconfigure these to ensure that the hand with the greatest confidence chooses
   // which is 'left' and which is right.
+  
+  ishands = true;
   if(hands.count() > 1) {
     if(hands.leftmost().confidence() >= hands.rightmost().confidence()) {
       if(hands.leftmost().isLeft()) {
@@ -76,6 +85,7 @@ void Leap_Reader::HandSetup(Frame &f) {
     } else {
       handvisi.at(0) = false;
       handvisi.at(1) = false;
+      ishands = false;
     }
   }/*
   if(hands.leftmost().isLeft()) {
@@ -169,14 +179,44 @@ bool Leap_Reader::isFist(LR lr) {
   Frame f;
   switch(lr) {
     case(l):
-      return hand_l.grabStrength();
+      if(hand_l.grabStrength() > 0.9) {
+        return true;
+      }
       break;
     case(r):
-      return hand_r.grabStrength();
+      if(hand_r.grabStrength() > 0.9) {
+        return true;
+      }
       break;
   }
+  return false;
 }
 
+
+mb::Vector Leap_Reader::rotateScene() {
+  //TODO:Smooth
+  if(isFist(l) && isFist(r)) {
+    return mb::Vector(0,0,0);
+  } else {
+    if(isFist(l)) {
+      mblog("Left is Fist\n");
+       float ang = hand_r.rotationAngle(controller.frame(1));
+       Leap::Vector rotAxis = hand_r.rotationAxis(controller.frame(1));
+       //return ang*mb::Vector(0, rotAxis.y, 0);
+       return ang*mb::Vector(rotAxis.x, rotAxis.y, rotAxis.z);
+    } else if(isFist(r)){
+      mblog("Right is Fist\n");
+       float ang = hand_l.rotationAngle(controller.frame(1));
+       Leap::Vector rotAxis = hand_l.rotationAxis(controller.frame(1));
+       //return ang*mb::Vector(0, rotAxis.y, 0);
+       return ang*mb::Vector(rotAxis.x, rotAxis.y, rotAxis.z);
+      //Inverses the left hand stuff
+    } else {
+      //no fist no rotation;
+      return mb::Vector(0,0,0);
+    }
+  }
+}
 
 bool Leap_Reader::isVisible(LR lr) {
   return handvisi.at(lr);

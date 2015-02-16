@@ -5,6 +5,7 @@
 #include "qmenu.h"
 #include "qmainwindow.h"
 #include "qmenubar.h"
+#include "util.h"
 namespace mb = mudbox;
 
 class Leap_Fingers {

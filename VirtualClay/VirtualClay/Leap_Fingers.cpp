@@ -73,13 +73,12 @@ void Leap_Fingers::SetRot(mb::Vector v) {
     TNode->SetRotation(v);
 }
 
-void Leap_Fingers::RotateAroundPivot(mb::Vector angle, mb::Vector pivot) {
+
+
+
+void Leap_Fingers::RotateAroundPivot(mb::Vector a, mb::Vector pivot) {
   if(TNode != NULL) {
-    mb::Vector storedPivot = TNode->Pivot();
-    TNode->SetPivot(pivot);
-    mblog("Pivots: "+QString::number(storedPivot.y)+" "+QString::number(pivot.y)+"\n");
-    TNode->SetRotation(angle);
-    TNode->SetPivot(storedPivot);
+    TNode->SetPosition(RotateVectorAroundPivot(TNode->Position(),pivot,a));
   }
 }
 
@@ -98,3 +97,30 @@ void Leap_Fingers::BuildGeo() {
   ImportGeo();
 
 }
+
+//Old rotation matrix stuff;
+//TODO: remove
+    //float s_x, s_y, s_z;
+    //s_x = TNode->Scale().x;
+    //s_y = TNode->Scale().y;
+    //s_z = TNode->Scale().z;
+    //float XD = pivot.x - x ;
+    //float YD = pivot.y-y;
+    //float ZD = pivot.z-z;
+
+    //float ZX = XD*cos(a.z) - YD*sin(a.z) - XD;
+    //float ZY = XD*sin(a.z) + YD*cos(a.z) - YD;
+
+    // float YX = (XD+ZX)*cos(a.y) - ZD*sin(a.y)- (XD+ZX);
+    // float YZ = (XD+ZX)*sin(a.y) + ZD*cos(a.y) - ZD;
+
+    // float XY = (YD+ZY)*cos(a.x)- (ZD+YZ)*sin(a.x) - (YD+ZY);
+    // float XZ = (YD+ZY)*sin(a.x) + (ZD+YZ)*cos(a.x)- (ZD+YZ);
+
+    // float XROTOFFSET = YX+ZX;
+    // float YROTOFFSET = ZY+XY;
+    // float ZROTOFFSET = XZ+YZ;
+    // 
+    // float newX = (x + XROTOFFSET);
+    // float newY = (y + YROTOFFSET);
+    // float newZ = (z + ZROTOFFSET);
