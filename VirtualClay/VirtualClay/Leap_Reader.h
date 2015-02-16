@@ -17,6 +17,8 @@ class Leap_Reader {
   mb::Vector Leap_Reader::LeapDirectionToMudbox(Leap::Vector dir);
   mb::Vector Leap_Reader::LeapPositionToMudbox(Leap::Vector dir);
 public:
+  bool isConnected;
+  bool ishands;
   Leap_Reader(void);
   ~Leap_Reader(void);
   Leap::Vector dir;
@@ -29,5 +31,8 @@ public:
   mb::Vector getFingerDirection_R(fingerEnum fn);
   mb::Vector getFingerPosition_L(fingerEnum fn);
   mb::Vector getFingerPosition_R(fingerEnum fn);
+  bool Leap_Reader::isFist(LR lr);
+  bool Leap_Reader::isVisible(LR lr);
+  mb::Vector Leap_Reader::rotateScene();
 };
 

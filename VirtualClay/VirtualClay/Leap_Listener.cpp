@@ -17,6 +17,7 @@ void Leap_Listener::onDisconnect(const Controller& controller) {
 
 void Leap_Listener::onFrame(const Controller& controller) {
   //Forces redraw of frame to trigger update on screen
-  mudbox::Kernel()->ViewPort()->Redraw();
+  if(controller.frame().hands().count() > 0)
+    mudbox::Kernel()->ViewPort()->Redraw();
   //mblog("RedrawFrame");
 }

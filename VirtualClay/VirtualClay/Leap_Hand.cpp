@@ -22,20 +22,26 @@ void Leap_Hand::AddHand(void) {
 
 void Leap_Hand::AddLeap_Fingers(void) {
   mblog("Leap_Fingers size:"+QString::number(fingers.size()));
-  fingers.at(INDEX) = new Leap_Fingers();
-  fingers.at(MIDDLE) = new Leap_Fingers();
-  fingers.at(RING) = new Leap_Fingers();
-  fingers.at(PINKY) = new Leap_Fingers();
-  fingers.at(THUMB) = new Leap_Fingers();
+  QString lOrR = "L_";
+  if(lr == r) {
+    lOrR = "R_";
+  }
+  fingers.at(INDEX) = new Leap_Fingers(lOrR+"Index");
+  fingers.at(MIDDLE) = new Leap_Fingers(lOrR+"Middle");
+  fingers.at(RING) = new Leap_Fingers(lOrR+"Ring");
+  fingers.at(PINKY) = new Leap_Fingers(lOrR+"Pinky");
+  fingers.at(THUMB) = new Leap_Fingers(lOrR+"Thumb");
   int id = -1;
   for(int i = 0; i < 5; i++) {
     id = fingers.at(i)->ImportGeo();
     idList->storeFingerID(id,fingerEnum(i),lr);
-    mblog("\nStoredFingerID\n");
     fingers.at(i)->SetPos(mb::Vector(i*20.0f,0.0f,0.0f));
     fingers.at(i)->SetScale(mb::Vector(0.1f,0.1f,0.1f));
   }
 }
+
+
+
 
 void Leap_Hand::SetFingerPos(fingerEnum f, mb::Vector v) {
   fingers.at(f)->SetPos(v);
@@ -55,6 +61,19 @@ void Leap_Hand::SetPos(mb::Vector v) {
 
 void Leap_Hand::SetVisi(bool vis) {
   TNode->SetVisible(vis);
+  for(int i = 0 ; i < fingers.size() ; i++) {
+    fingers.at(i)->SetVisi(vis);
+  }
+}
+
+
+void Leap_Hand::RotateAroundPivot(fingerEnum f,mb::Vector a,mb::Vector pivot) {
+  //mblog("Finger: "+QString::number(f)+"\n");
+  fingers.at(f)->RotateAroundPivot(a,pivot);
+}
+
+void Leap_Hand::RotateAroundPivot(mb::Vector a,mb::Vector pivot) {
+  palm->RotateAroundPivot(a,pivot);
 }
 
 Leap_Hand::~Leap_Hand(void)

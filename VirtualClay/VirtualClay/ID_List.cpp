@@ -3,7 +3,6 @@
 
 
 ID_List::ID_List(void) {
-  viewCam = -1;
   HandCamList.resize(2,-1);
   FingerList.resize(10,-1);
   HandList.resize(2,-1);
@@ -16,7 +15,7 @@ int ID_List::getHand(LR lr) {
   return HandList.at(lr);
 }
 int ID_List::getViewCam(void) {
-  return viewCam;
+  return mudbox::Kernel()->Scene()->ActiveCamera()->ID();
 }
 int ID_List::getCam(LR lr) {
   return HandCamList.at(lr);
@@ -36,10 +35,6 @@ void ID_List::storeFingerID(int ID,fingerEnum fn, LR lr) {
 
 void ID_List::storeHandCamID(int ID,LR lr) {
   HandCamList.at(lr) = ID;
-}
-
-void ID_List::storeViewCamID(int ID) {
-  viewCam = ID;
 }
 
 void ID_List::addTargetID(int ID) {

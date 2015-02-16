@@ -20,6 +20,7 @@
 //#define max(a,b) (a > b) ? a : b
 //#define min(a,b) (a < b) ? a : b
 
+
 class VirtualClay: mudbox::Node {
   DECLARE_CLASS
     Q_DECLARE_TR_FUNCTIONS(VirtualClay);

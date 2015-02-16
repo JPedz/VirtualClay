@@ -19,10 +19,12 @@ class cameraWrapper {
     void addCameraToScene(void);
     void setAim(mb::Vector v);
     void setTNode(void);
+    mb::Vector getPosision();
     int getID();
     QString getName();
     void selectPoints(mb::Vector v);
     void deleteCam(void);
+    mb::Vector getForward(void);
 };
 
 #endif
