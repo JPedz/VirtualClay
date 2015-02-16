@@ -55,8 +55,23 @@ int Leap_Fingers::ImportGeo(void) {
       }
     } 
   }
+  for(mb::Node *nodes = mb::Node::First() ; nodes ; nodes = nodes->Next()) {
+    if(nodes->IsKindOf(mb::Geometry::StaticClass())) {
+      mb::Geometry *geoPotential = dynamic_cast<mb::Geometry *>(nodes);
+      MB_SAFELY(geoPotential) {
+        QString s_GName = geoPotential->Name();
+        if(s_GName.indexOf( "Finger"+QString::number(ID) ) != -1) {
+          GeoNode = geoPotential;
+        }
+      }
+	  }
+  }
   mblog("\nreturning after creation\n")
   return ID;
+}
+
+void Leap_Fingers::changeMaterial() {
+
 }
 
 mb::Transformation * Leap_Fingers::getTNode() {

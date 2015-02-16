@@ -29,6 +29,7 @@ class Leap_Fingers {
     int Leap_Fingers::ImportGeo(void);
     void Leap_Fingers::SetVisi(bool visi);
     void Leap_Fingers::RotateAroundPivot(mb::Vector angle, mb::Vector pivot);
+    void Leap_Fingers::changeMaterial();
 };
 
 

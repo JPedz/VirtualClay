@@ -32,7 +32,7 @@ mb::Vector Leap_Updater::rotateCamera(cameraWrapper *viewCam) {
     //mb::Vector aimPoint = viewCam->getCamera()->Aim();
     mb::Vector aimPoint = fitToCameraSpace(viewCam);
     viewCam->getTNode()->AddRotation(sceneRotate);
-    return RotateVectorAroundPivot(camPos,mb::Vector(0,0,0),-RAD_TO_DEG*sceneRotate);
+	return RotateVectorAroundPivot(camPos,mb::Vector(0,0,0),-RAD_TO_DEG*sceneRotate);
 }
 
 void Leap_Updater::OnEvent(const mb::EventGate &cEvent) {
@@ -63,6 +63,7 @@ void Leap_Updater::OnEvent(const mb::EventGate &cEvent) {
         hand_l->RotateAroundPivot(fingerEnum(i),-1*camRot,cameraPivot);
         hand_r->RotateAroundPivot(fingerEnum(i),-1*camRot,cameraPivot);
       }
+
     }
   }
 }

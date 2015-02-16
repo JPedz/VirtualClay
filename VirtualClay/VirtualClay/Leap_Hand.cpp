@@ -17,7 +17,7 @@ void Leap_Hand::AddHand(void) {
   idList->storeHandID(id,lr);
   TNode = palm->getTNode();
   TNode->SetName("Palm"+QString::number(id));
-  palm->SetScale(mb::Vector(0.5f,0.2f,0.5f));
+  palm->SetScale(mb::Vector(0.2f,0.2f,0.2f));
 }
 
 void Leap_Hand::AddLeap_Fingers(void) {
