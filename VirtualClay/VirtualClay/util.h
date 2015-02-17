@@ -2,9 +2,13 @@
 #include "stdafx.h"
 enum LR {l,r}; //Left or Right
 enum fingerEnum {THUMB,INDEX,MIDDLE,RING,PINKY};
+#define mbstatus(a) mb::Kernel()->Interface()->SetStatus(mudbox::Interface::stNormal,a)
+
+
 
 namespace mb = mudbox;
 QString VectorToQStringLine(mudbox::Vector v);
+QString VectorToQString(mudbox::Vector v);
 mb::Matrix createRotateXMatrix(float b);
 mb::Matrix createRotateYMatrix(float b);
 mb::Matrix createRotateZMatrix(float b);

@@ -1,11 +1,16 @@
 #include "stdafx.h"
 #include "ID_List.h"
-
+#include "cameraWrapper.h"
 
 ID_List::ID_List(void) {
   HandCamList.resize(2,-1);
   FingerList.resize(10,-1);
   HandList.resize(2,-1);
+  viewCam = mudbox::Kernel()->Scene()->ActiveCamera()->ID();
+  
+  cameraWrapper *viewCam_tmp = new cameraWrapper(viewCam);
+  viewCam_tmp->getTNode()->SetRotation(mb::Vector(0,0,0));
+  viewCam_tmp->getTNode()->SetPosition(mb::Vector(0,0,800));
 }
 
 int ID_List::getFinger(fingerEnum fn,LR lr) {
@@ -15,7 +20,8 @@ int ID_List::getHand(LR lr) {
   return HandList.at(lr);
 }
 int ID_List::getViewCam(void) {
-  return mudbox::Kernel()->Scene()->ActiveCamera()->ID();
+  return viewCam;
+ // return mudbox::Kernel()->Scene()->ActiveCamera()->ID();
 }
 int ID_List::getCam(LR lr) {
   return HandCamList.at(lr);

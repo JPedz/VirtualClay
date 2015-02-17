@@ -7,6 +7,7 @@ class ID_List {
   std::vector<int> FingerList;
   std::vector<int> HandList;
   std::vector<int> currentTargets;
+  int viewCam;
 public:
   ID_List(void);
   int getFinger(fingerEnum fn,LR lr);

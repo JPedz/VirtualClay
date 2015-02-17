@@ -6,6 +6,10 @@ QString VectorToQStringLine(mudbox::Vector v) {
   return QString::number(v.x)+" "+QString::number(v.y)+" "+QString::number(v.z)+"\n";
 }
 
+QString VectorToQString(mudbox::Vector v) {
+  return QString::number(v.x)+" "+QString::number(v.y)+" "+QString::number(v.z)+" ";
+}
+
 mb::Matrix createRotateXMatrix(float a) {
   a = a * 3.14159265 /180;
   return mb::Matrix(1,0,0,0,0,cos(a),-sin(a),0,0,sin(a),cos(a),0,0,0,0,1);

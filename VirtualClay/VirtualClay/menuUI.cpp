@@ -30,8 +30,6 @@ void MenuUI::Execute() {
   R_Cam->setAim(mb::Vector(0,0,0));
 
   mb::Kernel()->ViewPort()->Redraw();
-  //MeshOps *mOp = new MeshOps();
-  //mOp->pickObj();
 }
 
 

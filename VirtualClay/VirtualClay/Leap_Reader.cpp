@@ -6,6 +6,7 @@ using namespace Leap;
 Leap_Reader::Leap_Reader(void) {
   handvisi.resize(2,false);
   controller.addListener(listener); 
+  controller.enableGesture(Leap::Gesture::TYPE_SCREEN_TAP);
   QTime *t = new QTime();
   t->start();
   while(!controller.isConnected()) {
@@ -37,6 +38,44 @@ void Leap_Reader::updateAll(void) {
     isConnected =true;
     Frame f = controller.frame();
     updateDirection(f);
+    isScreenTap = false;
+    Leap::GestureList gestures = f.gestures();
+    for(Leap::GestureList::const_iterator gl = gestures.begin(); gl != f.gestures().end(); gl++)
+    {
+       switch ((*gl).type()) {
+         case Leap::Gesture::TYPE_CIRCLE:
+            //Handle circle gestures
+            break;
+          case Leap::Gesture::TYPE_KEY_TAP:
+            //Handle key tap gestures
+            break;
+          case Leap::Gesture::TYPE_SCREEN_TAP:
+            switch ((*gl).state()) {
+              case Leap::Gesture::STATE_START:
+                //Handle starting gestures
+                break;
+              case Leap::Gesture::STATE_UPDATE:
+                //Handle continuing gestures
+                break;
+              case Leap::Gesture::STATE_STOP:
+                isScreenTap = true;
+                mb::Kernel()->Interface()->HUDMessageShow("GOT TAP GESTURE!!!");
+                //Handle ending gestures
+                break;
+              default:
+                //Handle unrecognized states
+                break;
+            }
+            //Handle screen tap gestures
+            break;
+        case Leap::Gesture::TYPE_SWIPE:
+            //Handle swipe gestures
+            break;
+        default:
+            //Handle unrecognized gestures
+            break;
+      }
+    }
   } else {
     handvisi.at(0) = false;
     handvisi.at(1) = false;
@@ -50,6 +89,7 @@ void Leap_Reader::HandSetup(Frame &f) {
   //Reconfigure these to ensure that the hand with the greatest confidence chooses
   // which is 'left' and which is right.
   
+  isGrabbing_L =false;
   ishands = true;
   if(hands.count() > 1) {
     if(hands.leftmost().confidence() >= hands.rightmost().confidence()) {
@@ -71,12 +111,18 @@ void Leap_Reader::HandSetup(Frame &f) {
     }
     handvisi.at(0) = true;
     handvisi.at(1) = true;
+    if(isFist(l)) {
+      isGrabbing_L =true;
+    }
   } else {
     if(hands.count() == 1) {
       if(hands.leftmost().isLeft()) {
         hand_l = hands.leftmost();
         handvisi.at(0) = true;
         handvisi.at(1) = false;
+        if(isFist(l)) {
+          isGrabbing_L =true;
+        }
       } else {
         hand_r = hands.leftmost();
         handvisi.at(0) = false;
@@ -151,20 +197,21 @@ mb::Vector Leap_Reader::getFingerPosition_R(fingerEnum fn) {
 }
 
 mb::Vector Leap_Reader::getDirection_L(void) {
-  return mb::Vector(hand_l.direction().yaw(),hand_l.direction().pitch(),hand_l.direction().roll()-PI)*RAD_TO_DEG;
+  float yaw,roll,pitch;
+  yaw = hand_l.direction().yaw();
+  roll = hand_l.palmNormal().roll();
+  pitch = hand_l.direction().pitch();
+  return mb::Vector(-pitch,yaw,-roll)*RAD_TO_DEG;
+  //return mb::Vector(hand_l.direction().yaw(),hand_l.direction().pitch(),hand_l.palmNormal().roll()-PI)*RAD_TO_DEG;
 }
 
 mb::Vector Leap_Reader::getDirection_R(void) {
  // http://stackoverflow.com/questions/26555040/yaw-pitch-and-roll-to-glmrotate
-  float x,y,z;
   float yaw,roll,pitch;
-  yaw = hand_r.palmNormal().yaw();
+  yaw = hand_r.direction().yaw();
   roll = hand_r.palmNormal().roll();
-  pitch = hand_r.palmNormal().pitch();
-  x = cos(yaw)*cos(pitch);
-  y = sin(yaw)*cos(pitch);
-  z = sin(pitch);
-  return mb::Vector(yaw,pitch,roll)*RAD_TO_DEG;
+  pitch = hand_r.direction().pitch();
+  return mb::Vector(-pitch,yaw,-roll)*RAD_TO_DEG;
 }
 
 mb::Vector Leap_Reader::getPosition_L(void) {
@@ -192,6 +239,14 @@ bool Leap_Reader::isFist(LR lr) {
   return false;
 }
 
+
+
+mb::Vector Leap_Reader::TestFunct() {
+  Leap::Vector wristPoint = hand_l.wristPosition();
+  Leap::Vector tripoint1 = hand_l.fingers().leftmost().jointPosition(Finger::JOINT_MCP);
+  Leap::Vector tripoint2 = hand_l.fingers().rightmost().jointPosition(Finger::JOINT_MCP);
+  return mb::Vector(0,0,0);
+}
 
 mb::Vector Leap_Reader::rotateScene() {
   //TODO:Smooth

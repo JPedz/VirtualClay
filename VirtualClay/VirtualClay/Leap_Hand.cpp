@@ -76,6 +76,11 @@ void Leap_Hand::RotateAroundPivot(mb::Vector a,mb::Vector pivot) {
   palm->RotateAroundPivot(a,pivot);
 }
 
+//
+//mb::Vector Leap_Hand::GetFingerPos(fingerEnum fn) {
+//  return fingers.at(fn)->GetPos();
+//}
+
 Leap_Hand::~Leap_Hand(void)
 {
 }
