@@ -110,7 +110,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(MUDBOX_SDK_DIR)\lib;$(LEAP_SDK_DIR)\lib\x64\;C:\Program Files\Autodesk\Mudbox 2015\SDK\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Leapd.lib;MudboxFramework.lib;QtCore4.lib;QtGui4.lib;QtScript4.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Leapd.lib;MudboxFramework.lib;QtCore4.lib;QtGui4.lib;QtScript4.lib;opengl32.lib;Cg.lib;CgGL.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName).mp</OutputFile>
     </Link>
   </ItemDefinitionGroup>
@@ -158,6 +158,8 @@
     <ClInclude Include="cameraWrapper.h" />
     <ClInclude Include="Leap_Fingers.h" />
     <ClInclude Include="Leap_Hand.h" />
+    <ClInclude Include="Leap_HUD.h" />
+    <ClInclude Include="SmoothMoveVertices.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="ID_List.h" />
     <ClInclude Include="Leap_Listener.h" />
@@ -173,11 +175,13 @@
     <ClCompile Include="Leap_Fingers.cpp" />
     <ClCompile Include="ID_List.cpp" />
     <ClCompile Include="Leap_Hand.cpp" />
+    <ClCompile Include="Leap_HUD.cpp" />
     <ClCompile Include="Leap_Listener.cpp" />
     <ClCompile Include="Leap_Reader.cpp" />
     <ClCompile Include="Leap_Updater.cpp" />
     <ClCompile Include="menuUI.cpp" />
     <ClCompile Include="MeshOps.cpp" />
+    <ClCompile Include="SmoothMoveVertices.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

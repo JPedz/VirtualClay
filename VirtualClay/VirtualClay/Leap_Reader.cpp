@@ -7,8 +7,13 @@ Leap_Reader::Leap_Reader(void) {
   handvisi.resize(2,false);
   controller.addListener(listener); 
   controller.enableGesture(Leap::Gesture::TYPE_SCREEN_TAP);
+  controller.enableGesture(Leap::Gesture::TYPE_SWIPE);
+  controller.config().setFloat("Gesture.Swipe.MinLength", 300.0);
+  controller.config().setFloat("Gesture.Swipe.MinVelocity", 1000.0);
+  //controller.enableGesture(Leap::Gesture::TYPE_CIRCLE);
   QTime *t = new QTime();
   t->start();
+  lastFrameID = controller.frame().id();
   while(!controller.isConnected()) {
     if(t->elapsed() > 5000)
        mb::Kernel()->Interface()->MessageBox(mb::Interface::msgInformation,
@@ -33,53 +38,87 @@ Leap_Reader::~Leap_Reader(void)
   controller.removeListener(listener);
 }
 
-void Leap_Reader::updateAll(void) {
+void Leap_Reader::SetScale(mb::Vector s) {
+  scale = s;
+}
+
+bool Leap_Reader::updateAll(void) {
   if(controller.isConnected()) {
     isConnected =true;
     Frame f = controller.frame();
-    updateDirection(f);
-    isScreenTap = false;
-    Leap::GestureList gestures = f.gestures();
-    for(Leap::GestureList::const_iterator gl = gestures.begin(); gl != f.gestures().end(); gl++)
-    {
-       switch ((*gl).type()) {
-         case Leap::Gesture::TYPE_CIRCLE:
-            //Handle circle gestures
-            break;
-          case Leap::Gesture::TYPE_KEY_TAP:
-            //Handle key tap gestures
-            break;
-          case Leap::Gesture::TYPE_SCREEN_TAP:
-            switch ((*gl).state()) {
-              case Leap::Gesture::STATE_START:
-                //Handle starting gestures
-                break;
-              case Leap::Gesture::STATE_UPDATE:
-                //Handle continuing gestures
-                break;
-              case Leap::Gesture::STATE_STOP:
-                isScreenTap = true;
-                mb::Kernel()->Interface()->HUDMessageShow("GOT TAP GESTURE!!!");
-                //Handle ending gestures
-                break;
-              default:
-                //Handle unrecognized states
-                break;
-            }
-            //Handle screen tap gestures
-            break;
-        case Leap::Gesture::TYPE_SWIPE:
-            //Handle swipe gestures
-            break;
-        default:
-            //Handle unrecognized gestures
-            break;
+    if(f.id() != lastFrameID) {
+      updateDirection(f);
+      isScreenTap = false;
+      isUndo = false;
+      isCircleCW = false;
+      Leap::GestureList gestures = f.gestures();
+      Leap::SwipeGesture swipeGesture = Leap::Gesture::invalid();
+      Leap::CircleGesture circleGesture = Leap::Gesture::invalid();
+      for(Leap::GestureList::const_iterator gl = gestures.begin(); gl != f.gestures().end(); gl++)
+      {
+         switch ((*gl).type()) {
+           case Leap::Gesture::TYPE_CIRCLE:
+             //http://doc.qt.io/qt-5/qtopengl-2dpainting-example.html
+              switch((*gl).state()) {
+                case Leap::Gesture::STATE_START:
+                  //Handle starting gestures
+                  break;
+                case Leap::Gesture::STATE_UPDATE:
+                  //Handle continuing gestures
+                  break;
+                case Leap::Gesture::STATE_STOP:
+                  circleGesture = CircleGesture(*gl);
+                  if(circleGesture.pointable().direction().angleTo(circleGesture.normal()) <= Leap::PI/2)
+                    isCircleCW = true;
+                  //Handle swipe gestures
+                  break;
+                default:
+                  break;
+              }
+              break;
+            case Leap::Gesture::TYPE_KEY_TAP:
+              //Handle key tap gestures
+              break;
+            case Leap::Gesture::TYPE_SCREEN_TAP:
+              switch ((*gl).state()) {
+                case Leap::Gesture::STATE_START:
+                  //Handle starting gestures
+                  break;
+                case Leap::Gesture::STATE_UPDATE:
+                  //Handle continuing gestures
+                  break;
+                case Leap::Gesture::STATE_STOP:
+                  isScreenTap = true;
+                  //Handle ending gestures
+                  break;
+                default:
+                  //Handle unrecognized states
+                  break;
+              }
+              //Handle screen tap gestures
+              break;
+          case Leap::Gesture::TYPE_SWIPE:
+              swipeGesture = SwipeGesture(*gl);
+              if(swipeGesture.direction().x < 0 )
+                isUndo = true;
+              //Handle swipe gestures
+              break;
+          default:
+              //Handle unrecognized gestures
+              break;
+        }
       }
+      lastFrameID = f.id();
+      return true;
+    } else {
+      mblog("Old frame\n");
+      return false;
     }
   } else {
     handvisi.at(0) = false;
     handvisi.at(1) = false;
     isConnected =false;
+    return false;
   }
 }
 
@@ -178,13 +217,22 @@ mb::Vector Leap_Reader::getFingerDirection_R(fingerEnum fn) {
 }
 
 
-mb::Vector Leap_Reader::getFingerPosition_L(fingerEnum fn) {
+std::vector<mb::Vector> Leap_Reader::getFingerPosition(fingerEnum fn,LR LOrR) {
   Finger f;
   Bone b;
-  f = hand_l.fingers().fingerType(Finger::Type(fn))[0];
+  if(LOrR == l)
+    f = hand_l.fingers().fingerType(Finger::Type(fn))[0];
+  else
+    f = hand_r.fingers().fingerType(Finger::Type(fn))[0];
 //  mudbox::Kernel()->Interface()->SetStatus(mudbox::Interface::stNormal,"Finger Pos"+QString::number(fn)+": "+
 //      QString::number(f.stabilizedTipPosition().x)+" "+QString::number(f.stabilizedTipPosition().y)+" "+QString::number(f.stabilizedTipPosition().z));  
-  return mb::Vector(f.tipPosition().x,f.tipPosition().y,f.tipPosition().z);
+  
+  std::vector<mb::Vector> fingerJoints(3);
+  fingerJoints.at(TIP) = scale*(mb::Vector(f.tipPosition().x,f.tipPosition().y,f.tipPosition().z));
+  fingerJoints.at(DIP) = scale*(mb::Vector(f.jointPosition(f.JOINT_DIP).x,f.jointPosition(f.JOINT_DIP).y,f.jointPosition(f.JOINT_DIP).z));
+  fingerJoints.at(PIP) = scale*(mb::Vector(f.jointPosition(f.JOINT_PIP).x,f.jointPosition(f.JOINT_PIP).y,f.jointPosition(f.JOINT_PIP).z));
+  //mblog("Finger Pos: "+VectorToQStringLine(fingerJoints.at(0)));
+  return fingerJoints;
 }
 
 mb::Vector Leap_Reader::getFingerPosition_R(fingerEnum fn) {
@@ -239,6 +287,19 @@ bool Leap_Reader::isFist(LR lr) {
   return false;
 }
 
+std::vector<bool> Leap_Reader::GetExtendedFingers(LR lOrR) {
+  std::vector<bool> extendedList(5);
+  if(lOrR == l) {
+    for(int i = 0 ; i < 5 ; i++) {
+      extendedList.at(i) = hand_l.fingers().fingerType(Finger::Type(i))[0].isExtended();
+    }
+  } else {
+    for(int i = 0 ; i < 5 ; i++) {
+      extendedList.at(i) = hand_r.fingers().fingerType(Finger::Type(i))[0].isExtended();
+    }
+  }
+  return extendedList;
+}
 
 
 mb::Vector Leap_Reader::TestFunct() {

@@ -30,6 +30,7 @@ class Leap_Fingers {
     void Leap_Fingers::SetVisi(bool visi);
     void Leap_Fingers::RotateAroundPivot(mb::Vector angle, mb::Vector pivot);
     void Leap_Fingers::changeMaterial();
+    mb::AxisAlignedBoundingBox GetBoundingBox();
 };
 
 

@@ -62,6 +62,7 @@ int Leap_Fingers::ImportGeo(void) {
         QString s_GName = geoPotential->Name();
         if(s_GName.indexOf( "Finger"+QString::number(ID) ) != -1) {
           GeoNode = geoPotential;
+          GeoNode->SetActiveLevel(GeoNode->HighestLevel());
         }
       }
 	  }
@@ -110,7 +111,15 @@ void Leap_Fingers::SetVisi(bool visi) {
 
 void Leap_Fingers::BuildGeo() {
   ImportGeo();
+}
 
+mb::AxisAlignedBoundingBox Leap_Fingers::GetBoundingBox() {
+  if(GeoNode != NULL) {
+    //mblog("Finger Volume:"+QString::number( GeoNode->HighestLevel()->BoundingBox(true).Volume())+"\n");
+    return GeoNode->HighestLevel()->BoundingBox(true);
+  } else {
+    return mb::AxisAlignedBoundingBox(TNode->Position(),1.0f);
+  }
 }
 
 //Old rotation matrix stuff;

@@ -1,5 +1,6 @@
 #pragma once
 #include "stdafx.h"
+enum jointEnum {TIP,DIP,PIP};
 enum LR {l,r}; //Left or Right
 enum fingerEnum {THUMB,INDEX,MIDDLE,RING,PINKY};
 #define mbstatus(a) mb::Kernel()->Interface()->SetStatus(mudbox::Interface::stNormal,a)
