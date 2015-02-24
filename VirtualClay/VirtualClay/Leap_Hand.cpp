@@ -21,7 +21,7 @@ void Leap_Hand::AddHand(void) {
   idList->storeHandID(id,lr);
   TNode = palm->getTNode();
   TNode->SetName("Palm"+QString::number(id));
-  palm->SetScale(mb::Vector(0.05f,0.05f,0.05f));
+  palm->SetScale(mb::Vector(0.07f,0.02f,0.07f));
 }
 
 void Leap_Hand::AddLeap_Fingers(void) {
@@ -73,8 +73,7 @@ void Leap_Hand::AddLeap_Fingers(void) {
         id = fings.at(i).at(j)->ImportGeo();
         idList->storeFingerID(id,fingerEnum(i),lr);
         //TODO: Store ID's
-        fings.at(i).at(j)->SetPos(mb::Vector(i*20.0f,0.0f,0.0f));
-        fings.at(i).at(j)->SetScale(mb::Vector(0.01f,0.01f,0.01f));
+        fings.at(i).at(j)->SetScale(mb::Vector(0.03f,0.03f,0.03f));
       }
     }
   }
@@ -139,20 +138,26 @@ void Leap_Hand::RotateAroundPivot(mb::Vector a,mb::Vector pivot) {
   palm->RotateAroundPivot(a,pivot);
 }
 
+mb::Vector Leap_Hand::GetRot() {
+  return palm->GetRot();
+}
 
 //
 //mb::Vector Leap_Hand::GetFingerPos(fingerEnum fn) {
 //  return fingers.at(fn)->GetPos();
 //}
 
-mb::AxisAlignedBoundingBox Leap_Hand::GetFingerBoundingBox(fingerEnum f) {
-  return fings.at(f).at(0)->GetBoundingBox();
+mb::AxisAlignedBoundingBox Leap_Hand::GetFingerBoundingBox(fingerEnum f, jointEnum j) {
+  return fings.at(f).at(j)->GetBoundingBox();
 }
 
 mb::Vector Leap_Hand::GetPos() {
   return TNode->Position();
 }
 
+mb::Vector Leap_Hand::GetFingerPos(fingerEnum f, jointEnum j) {
+  return fings.at(f).at(j)->GetPos();
+}
 Leap_Hand::~Leap_Hand(void)
 {
 }

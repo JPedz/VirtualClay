@@ -30,7 +30,9 @@ public:
   void Leap_Hand::RotateAroundPivot(jointEnum j,fingerEnum f,mb::Vector a,mb::Vector pivot);
   void RotateAroundPivot(fingerEnum fn,mb::Vector a,mb::Vector pivot);
   void RotateAroundPivot(mb::Vector a,mb::Vector pivot);
-  mb::AxisAlignedBoundingBox GetFingerBoundingBox(fingerEnum f);
+  mb::AxisAlignedBoundingBox GetFingerBoundingBox(fingerEnum f, jointEnum j = jointEnum(0));
+  mb::Vector Leap_Hand::GetFingerPos(fingerEnum f, jointEnum j = jointEnum(0));
+  mb::Vector Leap_Hand::GetRot();
 /*
   mb::Vector GetFingerPos(fingerEnum fn);*/
 //TODO: 

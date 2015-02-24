@@ -21,10 +21,11 @@ class Leap_Fingers {
   public:
     Leap_Fingers(void);
     Leap_Fingers(QString n);
-    mb::Vector Leap_Fingers::GetPos(void);
     mb::Transformation * Leap_Fingers::getTNode();
     void Leap_Fingers::SetPos(mb::Vector v);
+    mb::Vector Leap_Fingers::GetPos(void);
     void Leap_Fingers::SetRot(mb::Vector r);
+    mb::Vector Leap_Fingers::GetRot();
     void Leap_Fingers::SetScale(mb::Vector s);
     int Leap_Fingers::ImportGeo(void);
     void Leap_Fingers::SetVisi(bool visi);

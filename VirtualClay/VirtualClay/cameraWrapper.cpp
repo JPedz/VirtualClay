@@ -12,6 +12,7 @@ cameraWrapper::cameraWrapper(QString name) {
   }
   cam_GNode = dynamic_cast<mb::GroupNode *>(cam);
   cam_TNode = cam_GNode->Transformation();
+  cam_TNode->SetPosition(mb::Vector(2,0,0));
 }
 
 cameraWrapper::cameraWrapper(int id) {

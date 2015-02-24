@@ -13,8 +13,6 @@ class MeshOps {
   mb::Camera *curCam;
   bool checkUniqueInFaceList(int fi);
   bool checkUniqueInVertexList(int fi);
-  QList<mb::Vector> *vertexPositions;
-
   typedef struct VertexFaceInfo {
     int vI;
     std::vector<int> fI;
@@ -23,17 +21,22 @@ class MeshOps {
   typedef struct MidVertex {
     int vI;
     mb::Vector pos;
-  };
-  QList<int> *faces;
-  QList<int> *vertices;
-  QList<mb::SurfacePoint > *points;
+  } MidVertex;
   typedef struct VertexInfo {
     int vI;
     mb::Vector pos;
   } VertexInfo;
+  typedef struct VertexModifyInfo {
+    float strength;
+    int vI;
+  } VertexModifyInfo;
+  std::vector<int> *faces;
+  std::vector<VertexModifyInfo> *vertices;
+  std::vector<mb::SurfacePoint > *points;
   std::vector<std::vector<VertexInfo>> undoQueue;
   void StoreUndoQueue();
   void MeshOps::AddVFI(int vi, int fi);
+  MidVertex *midV;
 
 public:
   MeshOps();
@@ -41,8 +44,8 @@ public:
   void UndoLast();
   void SelectObject(cameraWrapper *viewCam, mb::Vector screenPos);
   void SelectFaces(QList<mb::Vector> &poly);
+  bool SelectFaces(mb::AxisAlignedBoundingBox box,float spreadDist = 0);
   bool SelectFaces();
-  bool MeshOps::SelectFaces(mb::AxisAlignedBoundingBox box);
   bool SelectFaces(mb::Vector centrePoint, float widthHeight, float dropOffRate);
   bool SelectFaces(mb::Vector centrePoint, float width, float height, float dropOffRate);
   //Select in a box with corners v1 and v2 (Z is ignored)
@@ -51,10 +54,10 @@ public:
                          QList<int> &faces, QList<int> &vertices);
   void addVertex(int fi);
   void setMesh(mb::Mesh *m);
-  void MeshOps::ChangeCamera(cameraWrapper *cam);
+  void ChangeCamera(cameraWrapper *cam);
   void MoveVertices(mb::Vector v);
-  bool MeshOps::CheckIntersection(mb::AxisAlignedBoundingBox box1);
-  void MeshOps::DeselectAllFaces();
+  bool CheckIntersection(mb::AxisAlignedBoundingBox box1);
+  void DeselectAllFaces();
 };
 
 #endif

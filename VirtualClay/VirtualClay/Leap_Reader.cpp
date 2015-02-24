@@ -8,9 +8,12 @@ Leap_Reader::Leap_Reader(void) {
   controller.addListener(listener); 
   controller.enableGesture(Leap::Gesture::TYPE_SCREEN_TAP);
   controller.enableGesture(Leap::Gesture::TYPE_SWIPE);
+  controller.enableGesture(Leap::Gesture::TYPE_CIRCLE);
   controller.config().setFloat("Gesture.Swipe.MinLength", 300.0);
   controller.config().setFloat("Gesture.Swipe.MinVelocity", 1000.0);
-  //controller.enableGesture(Leap::Gesture::TYPE_CIRCLE);
+  controller.config().setFloat("Gesture.Circle.MinRadius", 10.0);
+  controller.config().setFloat("Gesture.Circle.MinArc", 2.5*PI);
+  controller.config().save();
   QTime *t = new QTime();
   t->start();
   lastFrameID = controller.frame().id();
@@ -51,14 +54,22 @@ bool Leap_Reader::updateAll(void) {
       isScreenTap = false;
       isUndo = false;
       isCircleCW = false;
+      isCircleCCW = false;
       Leap::GestureList gestures = f.gestures();
       Leap::SwipeGesture swipeGesture = Leap::Gesture::invalid();
       Leap::CircleGesture circleGesture = Leap::Gesture::invalid();
+      Leap::HandList hl;
       for(Leap::GestureList::const_iterator gl = gestures.begin(); gl != f.gestures().end(); gl++)
       {
-         switch ((*gl).type()) {
-           case Leap::Gesture::TYPE_CIRCLE:
-             //http://doc.qt.io/qt-5/qtopengl-2dpainting-example.html
+        hl = (*gl).hands();
+        if(hl[0].isLeft())
+          gestureHand = l;
+        else
+          gestureHand = r;
+          switch ((*gl).type()) {
+            case Leap::Gesture::TYPE_CIRCLE:
+              //http://doc.qt.io/qt-5/qtopengl-2dpainting-example.html
+              if(gestureHand == r) {
               switch((*gl).state()) {
                 case Leap::Gesture::STATE_START:
                   //Handle starting gestures
@@ -68,35 +79,42 @@ bool Leap_Reader::updateAll(void) {
                   break;
                 case Leap::Gesture::STATE_STOP:
                   circleGesture = CircleGesture(*gl);
-                  if(circleGesture.pointable().direction().angleTo(circleGesture.normal()) <= Leap::PI/2)
+                  if(circleGesture.pointable().direction().angleTo(circleGesture.normal()) <= Leap::PI/2) {
+                    mblog("circle Radius: "+QString::number(circleGesture.radius())+"\n");
                     isCircleCW = true;
+                  }
+                  if(circleGesture.pointable().direction().angleTo(circleGesture.normal()) >= Leap::PI/2) {
+                    mblog("circle Radius: "+QString::number(circleGesture.radius())+"\n");
+                    isCircleCCW = true;
+                  }
                   //Handle swipe gestures
                   break;
                 default:
                   break;
               }
-              break;
-            case Leap::Gesture::TYPE_KEY_TAP:
-              //Handle key tap gestures
-              break;
-            case Leap::Gesture::TYPE_SCREEN_TAP:
-              switch ((*gl).state()) {
-                case Leap::Gesture::STATE_START:
-                  //Handle starting gestures
-                  break;
-                case Leap::Gesture::STATE_UPDATE:
-                  //Handle continuing gestures
-                  break;
-                case Leap::Gesture::STATE_STOP:
-                  isScreenTap = true;
-                  //Handle ending gestures
-                  break;
-                default:
-                  //Handle unrecognized states
-                  break;
-              }
-              //Handle screen tap gestures
-              break;
+            }
+            break;
+          case Leap::Gesture::TYPE_KEY_TAP:
+            //Handle key tap gestures
+            break;
+          case Leap::Gesture::TYPE_SCREEN_TAP:
+            switch ((*gl).state()) {
+              case Leap::Gesture::STATE_START:
+                //Handle starting gestures
+                break;
+              case Leap::Gesture::STATE_UPDATE:
+                //Handle continuing gestures
+                break;
+              case Leap::Gesture::STATE_STOP:
+                isScreenTap = true;
+                //Handle ending gestures
+                break;
+              default:
+                //Handle unrecognized states
+                break;
+            }
+            //Handle screen tap gestures
+            break;
           case Leap::Gesture::TYPE_SWIPE:
               swipeGesture = SwipeGesture(*gl);
               if(swipeGesture.direction().x < 0 )
@@ -111,7 +129,7 @@ bool Leap_Reader::updateAll(void) {
       lastFrameID = f.id();
       return true;
     } else {
-      mblog("Old frame\n");
+      //mblog("Old frame\n");
       return false;
     }
   } else {
@@ -250,7 +268,6 @@ mb::Vector Leap_Reader::getDirection_L(void) {
   roll = hand_l.palmNormal().roll();
   pitch = hand_l.direction().pitch();
   return mb::Vector(-pitch,yaw,-roll)*RAD_TO_DEG;
-  //return mb::Vector(hand_l.direction().yaw(),hand_l.direction().pitch(),hand_l.palmNormal().roll()-PI)*RAD_TO_DEG;
 }
 
 mb::Vector Leap_Reader::getDirection_R(void) {
@@ -310,28 +327,52 @@ mb::Vector Leap_Reader::TestFunct() {
 }
 
 mb::Vector Leap_Reader::rotateScene() {
-  //TODO:Smooth
-  if(isFist(l) && isFist(r)) {
-    return mb::Vector(0,0,0);
-  } else {
-    if(isFist(l)) {
-      mblog("Left is Fist\n");
-       float ang = hand_r.rotationAngle(controller.frame(1));
-       Leap::Vector rotAxis = hand_r.rotationAxis(controller.frame(1));
-       //return ang*mb::Vector(0, rotAxis.y, 0);
-       return ang*mb::Vector(rotAxis.x, rotAxis.y, rotAxis.z);
-    } else if(isFist(r)){
-      mblog("Right is Fist\n");
-       float ang = hand_l.rotationAngle(controller.frame(1));
-       Leap::Vector rotAxis = hand_l.rotationAxis(controller.frame(1));
-       //return ang*mb::Vector(0, rotAxis.y, 0);
-       return ang*mb::Vector(rotAxis.x, rotAxis.y, rotAxis.z);
-      //Inverses the left hand stuff
+
+  if(handvisi.at(l)) {
+    //Using Left Hand;
+    if(hand_l.rotationProbability(controller.frame(10)) > 0.6) {
+      float ang = hand_l.rotationAngle(controller.frame(1));
+      Leap::Vector rotAxis = hand_l.rotationAxis(controller.frame(1));
+      //return ang*mb::Vector(0, rotAxis.y, 0);
+      return ang*mb::Vector(rotAxis.x, rotAxis.y, rotAxis.z);
     } else {
-      //no fist no rotation;
-      return mb::Vector(0,0,0);
+      mblog("Left Hand Rotate Probability = "+QString::number(hand_l.rotationProbability(controller.frame(10))));
+    }
+  } else {
+    //Using Right Hand;
+    if(hand_r.rotationProbability(controller.frame(10)) > 0.6) {
+      float ang = hand_r.rotationAngle(controller.frame(1));
+      Leap::Vector rotAxis = hand_r.rotationAxis(controller.frame(1));
+      //return ang*mb::Vector(0, rotAxis.y, 0);
+      return ang*mb::Vector(rotAxis.x, rotAxis.y, rotAxis.z);
+    } else {
+      mblog("Right Hand Rotate Probability = "+QString::number(hand_r.rotationProbability(controller.frame(10))));
     }
   }
+  return mb::Vector(0,0,0);
+
+  //TODO:Smooth
+  //if(isFist(l) && isFist(r)) {
+  //  return mb::Vector(0,0,0);
+  //} else {
+  //  if(isFist(l)) {
+  //    mblog("Left is Fist\n");
+  //     float ang = hand_r.rotationAngle(controller.frame(1));
+  //     Leap::Vector rotAxis = hand_r.rotationAxis(controller.frame(1));
+  //     //return ang*mb::Vector(0, rotAxis.y, 0);
+  //     return ang*mb::Vector(rotAxis.x, rotAxis.y, rotAxis.z);
+  //  } else if(isFist(r)){
+  //    mblog("Right is Fist\n");
+  //     float ang = hand_l.rotationAngle(controller.frame(1));
+  //     Leap::Vector rotAxis = hand_l.rotationAxis(controller.frame(1));
+  //     //return ang*mb::Vector(0, rotAxis.y, 0);
+  //     return ang*mb::Vector(rotAxis.x, rotAxis.y, rotAxis.z);
+  //    //Inverses the left hand stuff
+  //  } else {
+  //    //no fist no rotation;
+  //    return mb::Vector(0,0,0);
+  //  }
+  //}
 }
 
 bool Leap_Reader::isVisible(LR lr) {

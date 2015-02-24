@@ -27,6 +27,8 @@ public:
   bool isGrabbing_R;
   bool isUndo;
   bool isCircleCW;
+  bool isCircleCCW;
+  LR gestureHand;
   Leap_Reader(void);
   ~Leap_Reader(void);
   Leap::Vector dir;

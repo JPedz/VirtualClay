@@ -14,8 +14,17 @@ public:
 	void Process( mb::ViewPortState & );
 	virtual QString Name( const mb::ClassDesc * ) const { return "HUD Filter"; };
 	void OnNodeEvent(const mb::Attribute &cAttribute, mb::NodeEventType eType);
+  mb::aenum menuChoice;
+  mb::Vector menuPosition;
+  void SetCentre(mb::Vector &c);
   private:
+  float cX;
+  float cY;
 	//mb::CGcontext m_CGContext;
-	mb::Texture* m_pResultTexture;
+	mb::Texture* menuMiddle;
+	mb::Texture* menuUp;
+	mb::Texture* menuRight;
+	mb::Texture* menuDown;
+	mb::Texture* menuLeft;
 };
 

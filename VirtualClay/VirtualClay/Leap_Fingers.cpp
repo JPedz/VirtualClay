@@ -89,12 +89,20 @@ void Leap_Fingers::SetRot(mb::Vector v) {
     TNode->SetRotation(v);
 }
 
+mb::Vector Leap_Fingers::GetRot() {
+  if(TNode != NULL)
+    return TNode->Rotation();
+}
 
+mb::Vector Leap_Fingers::GetPos() {
+  return TNode->Position();
+}
 
 
 void Leap_Fingers::RotateAroundPivot(mb::Vector a, mb::Vector pivot) {
   if(TNode != NULL) {
     TNode->SetPosition(RotateVectorAroundPivot(TNode->Position(),pivot,a));
+    TNode->SetRotation(TNode->Rotation()-a);
   }
 }
 
