@@ -7,6 +7,20 @@ Leap_Fingers::Leap_Fingers() {
   name = "";
 }
 
+
+void Leap_Fingers::SetMaterial() {
+   for(mb::Node *nodes = mb::Node::First() ; nodes ; nodes = nodes->Next()) {
+    //REMEMBER THIS SEARCHES THROUGH ALL NODES,
+    // CURVES, TOOLS (brushes etc..) and scene nodes.
+    if(nodes->IsKindOf(mb::Material::StaticClass())) {
+      mat = dynamic_cast<mb::Material *>(nodes);
+      MB_SAFELY(mat) {
+        mblog("Material: "+nodes->Name()+"\n");
+      }
+    }
+   }
+}
+
 Leap_Fingers::Leap_Fingers(QString n) {
   name = n;
 }
@@ -67,6 +81,7 @@ int Leap_Fingers::ImportGeo(void) {
       }
 	  }
   }
+  SetMaterial();
   mblog("\nreturning after creation\n")
   return ID;
 }
