@@ -158,6 +158,28 @@ mb::Vector Leap_Hand::GetPos() {
 mb::Vector Leap_Hand::GetFingerPos(fingerEnum f, jointEnum j) {
   return fings.at(f).at(j)->GetPos();
 }
+
+void Leap_Hand::UpdateCollisionPos(fingerEnum f, mb::Vector &pos, mb::Vector &pivot, mb::Vector &a) {
+  fings.at(f).at(0)->UpdateCollisionPos(pos,pivot,a);
+}
+
+void Leap_Hand::UpdateCollisionPos(mb::Vector &pos, mb::Vector &pivot, mb::Vector &a) {
+  palm->UpdateCollisionPos(pos,pivot,a);
+}
+
+mb::AxisAlignedBoundingBox Leap_Hand::getCollisionBox(fingerEnum f)  {
+  return fings.at(f).at(0)->GetCollisionBox();
+}
+
+mb::AxisAlignedBoundingBox Leap_Hand::getCollisionBox(mb::Vector &pos, mb::Vector &pivot, mb::Vector &a) {
+  mb::Vector fakePosVect = (RotateVectorAroundPivot(pos,pivot,a));
+  mblog("FakePosVect = "+VectorToQStringLine(fakePosVect));
+  return mb::AxisAlignedBoundingBox(fakePosVect,1.0f);
+}
+
+mb::AxisAlignedBoundingBox Leap_Hand::getCollisionBox() {
+  return palm->GetCollisionBox();
+}
 Leap_Hand::~Leap_Hand(void)
 {
 }

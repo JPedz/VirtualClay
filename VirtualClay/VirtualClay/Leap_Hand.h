@@ -33,6 +33,13 @@ public:
   mb::AxisAlignedBoundingBox GetFingerBoundingBox(fingerEnum f, jointEnum j = jointEnum(0));
   mb::Vector Leap_Hand::GetFingerPos(fingerEnum f, jointEnum j = jointEnum(0));
   mb::Vector Leap_Hand::GetRot();
+
+  //Collision Detection
+  void Leap_Hand::UpdateCollisionPos(fingerEnum f, mb::Vector &pos, mb::Vector &pivot, mb::Vector &a);
+  void Leap_Hand::UpdateCollisionPos(mb::Vector &pos, mb::Vector &pivot, mb::Vector &a);
+  mb::AxisAlignedBoundingBox Leap_Hand::getCollisionBox(mb::Vector &pos, mb::Vector &pivot, mb::Vector &a);
+  mb::AxisAlignedBoundingBox Leap_Hand::getCollisionBox(fingerEnum f);
+  mb::AxisAlignedBoundingBox Leap_Hand::getCollisionBox();
 /*
   mb::Vector GetFingerPos(fingerEnum fn);*/
 //TODO: 

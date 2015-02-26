@@ -13,9 +13,11 @@ class Leap_Fingers {
     QString name;
     mb::Node *Node;
     mb::Transformation *TNode;
+    mb::AxisAlignedBoundingBox *fakePos;//For Collision detection
     mb::GroupNode *GNode;
     mb::Geometry *GeoNode;
     mb::Mesh *MNode;
+    mb::Vector fakePosVect;
     void Leap_Fingers::BuildGeo(void);
     int ID;
   public:
@@ -32,6 +34,10 @@ class Leap_Fingers {
     void Leap_Fingers::RotateAroundPivot(mb::Vector angle, mb::Vector pivot);
     void Leap_Fingers::changeMaterial();
     mb::AxisAlignedBoundingBox GetBoundingBox();
+    
+    //Collision Detection
+    void UpdateCollisionPos(mb::Vector pos, mb::Vector pivot, mb::Vector a);
+    mb::AxisAlignedBoundingBox Leap_Fingers::GetCollisionBox();
 };
 
 

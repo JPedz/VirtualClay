@@ -68,7 +68,8 @@ bool MeshOps::SelectFaces(mb::AxisAlignedBoundingBox box,float spreadDist) {
     faces->clear();
     vertices->clear();
     points->clear();
-    p->SetMesh(pMesh);
+    //p->SetMesh(pMesh);
+    //p->SetTolerance(spreadDist);
     int fi;
     mb::SurfacePoint sp;
     mb::VertexAdjacency vA;
@@ -81,14 +82,20 @@ bool MeshOps::SelectFaces(mb::AxisAlignedBoundingBox box,float spreadDist) {
       faces->push_back(fi);
       addVertex(fi);
       //}
-      if(spreadDist != 0) {
-        vA = pMesh->VertexAdjacency(vertices->at(0).vI);
-        int aFI = vA.FaceIndex();
-        faces->push_back(aFI);
-        addVertex(aFI);
-      }
+      //if(spreadDist != 0) {
+      //  vA = pMesh->VertexAdjacency(vertices->at(0).vI);
+      //  int aFI = vA.FaceIndex();
+      //  faces->push_back(aFI);
+      //  addVertex(aFI);
+
     }
-    return true;
+    if(faces->size() > 0) {
+      for(int i = 0 ; i < faces->size() ; i++) {
+        mb::Kernel()->Log(QString::number(i)+" "+QString::number(faces->at(i))+"\n");
+        pMesh->SetFaceSelected(faces->at(i));
+      }
+      return true;
+    }
   } else {
     mblog("Error in: Select Faces, -Box- pMesh == NULL");
   }
@@ -105,6 +112,8 @@ bool MeshOps::SelectFaces(mb::Vector centrePoint, float widthHeight, float dropO
     faces->clear();
     vertices->clear();
     points->clear();
+    midV->pos = mb::Vector(0,0,0);
+    midV->vI = 0;
     mblog("SelectingBox\n");
     boxSelect(vS,vE);
     if(faces->size() > 0) {
@@ -122,11 +131,10 @@ bool MeshOps::SelectFaces(mb::Vector centrePoint, float widthHeight, float dropO
             vertices->at(i).strength = 0;
         }
       }
-
-      mbstatus("Selected Mesh: "+pMesh->Name());
-      int subDiv_I = MeshGeo->ActiveLevel()->Index();
-      MeshGeo->ChangeActiveLevel(MeshGeo->Level(subDiv_I));
+      
       MeshGeo->ContentChanged();
+      MeshGeo->ChangeActiveLevel(MeshGeo->LowestLevel());
+      MeshGeo->ChangeActiveLevel(MeshGeo->HighestLevel());
       mb::Kernel()->ViewPort()->Redraw();
       StoreUndoQueue();
       return true;

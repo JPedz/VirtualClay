@@ -331,8 +331,8 @@ mb::Vector Leap_Reader::rotateScene() {
   if(handvisi.at(l)) {
     //Using Left Hand;
     if(hand_l.rotationProbability(controller.frame(10)) > 0.6) {
-      float ang = hand_l.rotationAngle(controller.frame(1));
-      Leap::Vector rotAxis = hand_l.rotationAxis(controller.frame(1));
+      float ang = hand_l.rotationAngle(controller.frame(10));
+      Leap::Vector rotAxis = hand_l.rotationAxis(controller.frame(10));
       //return ang*mb::Vector(0, rotAxis.y, 0);
       return ang*mb::Vector(rotAxis.x, rotAxis.y, rotAxis.z);
     } else {
@@ -341,8 +341,8 @@ mb::Vector Leap_Reader::rotateScene() {
   } else {
     //Using Right Hand;
     if(hand_r.rotationProbability(controller.frame(10)) > 0.6) {
-      float ang = hand_r.rotationAngle(controller.frame(1));
-      Leap::Vector rotAxis = hand_r.rotationAxis(controller.frame(1));
+      float ang = hand_r.rotationAngle(controller.frame(10));
+      Leap::Vector rotAxis = hand_r.rotationAxis(controller.frame(10));
       //return ang*mb::Vector(0, rotAxis.y, 0);
       return ang*mb::Vector(rotAxis.x, rotAxis.y, rotAxis.z);
     } else {

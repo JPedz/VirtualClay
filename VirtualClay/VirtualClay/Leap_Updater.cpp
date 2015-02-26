@@ -23,6 +23,8 @@ Leap_Updater::Leap_Updater(ID_List *idl,Leap_Hand *l,Leap_Hand *r)
   menuDown = false;
   menuRight = false;
   menuUp = false;
+  collisionToggle = true;
+  thumbGrabModeToggle = true;
 }
 
 mb::Vector Leap_Updater::fitToCameraSpace() {
@@ -101,7 +103,7 @@ bool Leap_Updater::selectMesh(mb::Vector &camPos) {
 void Leap_Updater::MoveMesh() {
   mb::Vector currentHandPos = hand_l->GetPos();
   mb::Vector distanceDiff = currentHandPos - lastFrameHandPos;
-  if(distanceDiff.x > 20) {
+  if(distanceDiff.x > 10 || distanceDiff.y > 10 || distanceDiff.z > 10) {
     distanceDiff = mb::Vector(0,0,0);
   }
   //mblog("Moving Mesh currentHandPos: "+VectorToQString(currentHandPos)+
@@ -127,6 +129,32 @@ int Leap_Updater::countIntersectingFingers(LR lOrR) {
     }
   }
   return counter;
+}
+
+
+bool Leap_Updater::ThumbSelect() {  
+  mb::Vector thumbPos = hand_l->GetFingerPos(THUMB,TIP);
+  mb::Vector thumbProj = viewCam->getCamera()->Project(thumbPos);
+  hand_l->SetVisi(false);
+  mblog("Thumb Proj Pos = "+VectorToQStringLine(thumbProj));
+  mblog("Thumb Proj Pos Pixels = "+VectorToQStringLine(ScreenSpaceToPixels(thumbProj)));
+  if(!facesAreSelected && meshOp->SelectFaces(ScreenSpaceToPixels(thumbProj),10.0f,5)) {
+    facesAreSelected = true;
+  } else {
+    mb::Vector currentThumbPos = hand_l->GetFingerPos(THUMB,TIP);
+    mb::Vector distanceDiff = currentThumbPos - lastFrameThumbPos;
+    if(distanceDiff.x > 10 || distanceDiff.y > 10 || distanceDiff.z > 10) {
+      distanceDiff = mb::Vector(0,0,0);
+    }
+    //mblog("Moving Mesh currentHandPos: "+VectorToQString(currentHandPos)+
+    //  "lastFrameHandPos: "+VectorToQString(lastFrameHandPos)+
+    //  "DistanceDiff: "+VectorToQStringLine(distanceDiff));
+    meshOp->MoveVertices(distanceDiff);
+    lastFrameThumbPos = currentThumbPos;
+    mbstatus("Moving faces");
+    mblog("Moving Faces");
+  }
+  return true;
 }
 
 void Leap_Updater::SetHandAndFingerPositions(mb::Vector &camRot, mb::Vector &cameraPivot) {
@@ -157,18 +185,45 @@ void Leap_Updater::SetHandAndFingerPositions(mb::Vector &camRot, mb::Vector &cam
   hand_r->RotateAroundPivot(-1*camRot,cameraPivot);
 
   cameraWrapper *leftHand = new cameraWrapper(leftCamID);
-  leftHand->getTNode()->SetRotation(hand_l->GetRot()+mb::Vector(78,0,0));
+  leftHand->getTNode()->SetRotation(hand_l->GetRot()+mb::Vector(80,0,0));
   leftHand->getTNode()->SetPosition(hand_l->GetPos());
   //mblog("Setting finger positions\n");
+  bool leftColl = false;  
+  //mblog("Finger IntersectCount = "+QString::number(countIntersectingFingers(l))+"\n");
+  
+  //For Coll detection and replacement:
+  mb::Vector fingerPos_L = mb::Vector(0,0,0);
+  mb::Vector fingerPos_R = mb::Vector(0,0,0);
+  
   for(int i = 0 ; i < 5 ; i++) {
+    //Check for collisions
+    leftColl = false;
+    //hand_l->UpdateCollisionPos(fingerEnum(i),cameraPivot+leapReader->getFingerPosition(fingerEnum(i),l).at(0),-1*camRot,cameraPivot);
+    //if(meshOp->CheckIntersection(hand_l->getCollisionBox(cameraPivot+leapReader->getFingerPosition(fingerEnum(i),l).at(0),-1*camRot,cameraPivot))) {
+    //  mblog("Collision detected!\n");
+    //  leftColl = true;
+    //}
     for(int j = 0 ; j < 3 ; j++) {
       //TODO: Remove restriction to only fingerTips
         //#Code:111
       if(j == 0) {
+        fingerPos_L = hand_l->GetFingerPos(fingerEnum(i),jointEnum(j));
+        fingerPos_R = hand_r->GetFingerPos(fingerEnum(i),jointEnum(j));
         hand_l->SetFingerPos(jointEnum(j),fingerEnum(i),cameraPivot + leapReader->getFingerPosition(fingerEnum(i),l).at(j));
-        hand_r->SetFingerPos(jointEnum(j),fingerEnum(i),cameraPivot + leapReader->getFingerPosition(fingerEnum(i),r).at(j));
         hand_l->RotateAroundPivot(jointEnum(j),fingerEnum(i),-1*camRot,cameraPivot);
+
+        hand_r->SetFingerPos(jointEnum(j),fingerEnum(i),cameraPivot + leapReader->getFingerPosition(fingerEnum(i),r).at(j));
         hand_r->RotateAroundPivot(jointEnum(j),fingerEnum(i),-1*camRot,cameraPivot);
+        if(collisionToggle) {
+          if(meshOp->CheckIntersection(hand_l->GetFingerBoundingBox(fingerEnum(i),jointEnum(j)))) {
+            hand_l->SetFingerPos(jointEnum(j),fingerEnum(i),fingerPos_L);
+            //mblog("L Hand collision!\n");
+          }
+          if(meshOp->CheckIntersection(hand_r->GetFingerBoundingBox(fingerEnum(i),jointEnum(j)))) {
+            hand_r->SetFingerPos(jointEnum(j),fingerEnum(i),fingerPos_R);
+            //mblog("R Hand collision!\n");
+          }
+        }
       }
     }
     ////hand_l->SetFingerPos(fingerEnum(i),cameraPivot + leapReader->getFingerPosition(fingerEnum(i),l).at(0));
@@ -215,10 +270,20 @@ void Leap_Updater::MenuSettings() {
   }
   if(menuUp){
     menuFilter->SetVisible(false);
+    thumbGrabModeToggle = !thumbGrabModeToggle;
+    if(thumbGrabModeToggle)
+      mbhud("Thumb Grab Mode: On");
+    else
+      mbhud("Thumb Grab Mode: Off");
     inMenu = false; 
     menuUp = false;
   } else 
   if(menuRight) {
+    collisionToggle = !collisionToggle;
+    if(collisionToggle)
+      mbhud("Collision Mode: On");
+    else
+      mbhud("Collision Mode: Off");
     menuFilter->SetVisible(false);
     inMenu = false;
     menuRight = false;
@@ -283,7 +348,6 @@ void Leap_Updater::OnEvent(const mb::EventGate &cEvent) {
           //If Circle Clockwise
           if(leapReader->isCircleCW) {
             menuStartSpace = GetRelativeScreenSpaceFromWorldPos(hand_r->GetFingerPos(INDEX));
-            mbstatus("Got Clockwise Circle "+VectorToQString(menuStartSpace));
             menuFilter->SetCentre(menuStartSpace);
             menuFilter->SetVisible(true);
             inMenu = true;
@@ -298,17 +362,28 @@ void Leap_Updater::OnEvent(const mb::EventGate &cEvent) {
             mb::Kernel()->Interface()->HUDMessageShow("UNDO");
             meshOp->UndoLast(); 
           }
-          //If they are Grabbing
-          if(leapReader->isGrabbing_L ) {
-            Extrusion(cameraPivot);
-          } else {
-            if(facesAreSelected) {
-              meshOp->DeselectAllFaces();
+          if(thumbGrabModeToggle) {
+            if((meshOp->CheckIntersection(hand_l->GetFingerBoundingBox(THUMB,TIP)))) {
+              ThumbSelect();
+            } else {
+              if(facesAreSelected) {
+                meshOp->DeselectAllFaces();
+              }
+              facesAreSelected = false;
             }
-            firstmoveswitch = true;
-            facesAreSelected = false;
+          } else {
+          //If they are Grabbing and Thumb Toggle is Off
+            if(leapReader->isGrabbing_L ) {
+              Extrusion(cameraPivot);
+            } else {
+              if(facesAreSelected) {
+                meshOp->DeselectAllFaces();
+              }
+              firstmoveswitch = true;
+              facesAreSelected = false;
+            }
+            lastFrameHandPos == hand_l->GetPos();
           }
-          lastFrameHandPos == hand_l->GetPos();
         }
       }
     }

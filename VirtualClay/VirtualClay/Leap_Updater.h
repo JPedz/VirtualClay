@@ -20,6 +20,7 @@ class Leap_Updater : public mb::Node {
   Leap_Reader *leapReader;
   MeshOps *meshOp;
   mb::Vector lastFrameHandPos;
+  mb::Vector lastFrameThumbPos;
   void setDir(mudbox::Vector dir);
   void SetHandAndFingerPositions(mb::Vector &camRot, mb::Vector &camPivot);
   void getFingerScreenSpace(mb::Vector &camPos);
@@ -38,6 +39,9 @@ class Leap_Updater : public mb::Node {
   bool menuRight;
   bool menuDown;
   bool menuLeft;
+  bool collisionToggle;
+  bool thumbGrabModeToggle;
+  bool ThumbSelect();
   mb::Vector menuStartSpace;
   Leap_HUD *menuFilter;
 public:
