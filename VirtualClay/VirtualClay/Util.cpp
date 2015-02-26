@@ -30,7 +30,7 @@ mb::Matrix createTranslation(float x,float y, float z) {
 }
 
 
-mb::Vector RotateVectorAroundPivot(mb::Vector pos,mb::Vector pivot, mb::Vector rotation) {
+mb::Vector RotateVectorAroundPivot(mb::Vector &pos,mb::Vector &pivot, mb::Vector &rotation) {
   mb::Matrix t = createTranslation(-pivot.x,-pivot.y,-pivot.z);
   mb::Matrix tinv = createTranslation(pivot.x,pivot.y,pivot.z);
   mb::Vector pos_t = t*pos;
@@ -41,4 +41,13 @@ mb::Vector RotateVectorAroundPivot(mb::Vector pos,mb::Vector pivot, mb::Vector r
   mb::Vector newPos = rotationMatrix*pos_t;
   newPos = tinv*newPos;
   return newPos;
+}
+
+mb::Vector ScreenSpaceToPixels(mb::Vector v) {
+  int midW = mb::Kernel()->ViewPort()->Width()/2;
+  int midH = mb::Kernel()->ViewPort()->Height()/2;
+  mb::Vector pixels = mb::Vector();
+  pixels.x = midW+v.x*midW;
+  pixels.y = midH+v.y*midH;
+  return pixels;
 }

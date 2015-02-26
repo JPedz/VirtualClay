@@ -25,6 +25,23 @@ Leap_Fingers::Leap_Fingers(QString n) {
   name = n;
 }
 
+void Leap_Fingers::UpdateCollisionPos(mb::Vector pos, mb::Vector pivot, mb::Vector a) {
+  fakePosVect = (RotateVectorAroundPivot(pos,pivot,a));
+  mblog("testpos Centre  "+VectorToQString(fakePosVect)+"\n");
+  if(fakePos)
+    delete fakePos;
+  fakePos = NULL;
+  mb::Vector size = mb::Vector(2,2,2);
+  fakePos = new mb::AxisAlignedBoundingBox(fakePosVect-size,fakePosVect+size);
+  mb::AxisAlignedBoundingBox ab = mb::AxisAlignedBoundingBox(fakePosVect,1.0f);
+  mblog("FakePos Centre  "+QString::number(fakePos->m_vStart)+" "+QString::number(ab.m_vEnd)+"\n");
+}
+
+mb::AxisAlignedBoundingBox Leap_Fingers::GetCollisionBox() {
+  return *fakePos;
+}
+  
+
 //http://around-the-corner.typepad.com/adn/2013/06/accessing-unsubdivide-functionality-from-a-mudbox-plug-in.html
 //Import Geo returns ID of sphere made.
 int Leap_Fingers::ImportGeo(void) {
@@ -105,8 +122,7 @@ void Leap_Fingers::SetRot(mb::Vector v) {
 }
 
 mb::Vector Leap_Fingers::GetRot() {
-  if(TNode != NULL)
-    return TNode->Rotation();
+  return TNode->Rotation();
 }
 
 mb::Vector Leap_Fingers::GetPos() {
@@ -141,7 +157,8 @@ mb::AxisAlignedBoundingBox Leap_Fingers::GetBoundingBox() {
     //mblog("Finger Volume:"+QString::number( GeoNode->HighestLevel()->BoundingBox(true).Volume())+"\n");
     return GeoNode->HighestLevel()->BoundingBox(true);
   } else {
-    return mb::AxisAlignedBoundingBox(TNode->Position(),1.0f);
+    //mblog("Returning new axis box");
+    return mb::AxisAlignedBoundingBox(TNode->Position(),0.2f);
   }
 }
 
