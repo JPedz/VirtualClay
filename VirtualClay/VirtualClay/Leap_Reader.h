@@ -47,5 +47,6 @@ public:
   mb::Vector Leap_Reader::rotateScene();
   mb::Vector Leap_Reader::TestFunct();
   std::vector<bool> GetExtendedFingers(LR lOrR);
+  mb::Vector Leap_Reader::getMotionDirection(fingerEnum fn, LR lOrR);
 };
 

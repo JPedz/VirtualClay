@@ -28,6 +28,7 @@ void MeshOps::SelectObject(cameraWrapper *viewCam, mb::Vector screenPos) {
   ssp = viewCam->getCamera()->GetScreenSpacePicker();
   //TODO: Select from the actual hand camera for 3D selection
   mblog("SSP X: "+QString::number(screenX)+" y: "+QString::number(screenY)+"\n");
+  mblog("SCreenPos X: "+QString::number(screenPos.x)+" y: "+QString::number(screenPos.y)+"\n");
   bool b = ssp->Pick(viewCam->getCamera(),screenX,screenY,sp,false);
   if(b) {
     mb::Kernel()->Log("\n Hit MeshOps\n");
@@ -94,6 +95,7 @@ bool MeshOps::SelectFaces(mb::AxisAlignedBoundingBox box,float spreadDist) {
         mb::Kernel()->Log(QString::number(i)+" "+QString::number(faces->at(i))+"\n");
         pMesh->SetFaceSelected(faces->at(i));
       }
+
       return true;
     }
   } else {
@@ -142,6 +144,8 @@ bool MeshOps::SelectFaces(mb::Vector centrePoint, float widthHeight, float dropO
   }
   return false;
 }
+
+
 
 bool MeshOps::SelectFaces() {
   bool linearDropoff = true;
@@ -211,7 +215,7 @@ void MeshOps::MoveVertices(mb::Vector v) {
   for(int i = 0 ; i < vertices->size(); i++) {
     vi = vertices->at(i).vI;
     strength = vertices->at(i).strength;
-    mblog("Moving Vertex"+QString::number(i)+"\n");
+    mblog("Moving Vertex "+QString::number(i)+"by "+VectorToQStringLine(v*strength));
     //mb::Kernel()->Log(QString::number(vi)+ " " + QString::number(v.x)+"\n");
     pMesh->AddVertexPosition(vi,v*strength);
     //mb::Kernel()->Log(QString::number(vi)+ " " + QString::number(v2.x)+"\n"); 
@@ -231,7 +235,7 @@ void MeshOps::MoveVertices(mb::Vector v) {
 
 void MeshOps::StoreUndoQueue() {
   VertexInfo vertInfo;
-  mblog("Storing Undo\n");
+  //mblog("Storing Undo\n");
   //mb::VertexAdjacency *vA = new mb::VertexAdjacency();
   std::vector<VertexInfo> vertInfoList;
   for(int i = 0 ; i < vertices->size(); i++) {
@@ -245,13 +249,13 @@ void MeshOps::StoreUndoQueue() {
     //} else {
     //  vertInfo.fI = vA->FaceIndex();
     //}
-    mblog("getting vertex Position\n");
+    //mblog("getting vertex Position\n");
     vertInfo.pos = pMesh->VertexPosition(vertInfo.vI);
     vertInfoList.push_back(vertInfo);
-    mblog("Storing: "+QString::number(vertInfo.vI)+" "+VectorToQStringLine(vertInfo.pos));
+    //mblog("Storing: "+QString::number(vertInfo.vI)+" "+VectorToQStringLine(vertInfo.pos));
   }
   undoQueue.push_back(vertInfoList);
-  mblog("Stored Undo\n");
+  //mblog("Stored Undo\n");
 }
 
 void MeshOps::UndoLast() {
@@ -415,8 +419,6 @@ void MeshOps::boxSelect(mb::Vector &v1,mb::Vector &v2) {
   int ySize = abs(v1.y - v2.y);
   size_t boxSize = xSize*ySize;
   mblog("Getting Screen Space Picker: "+curCam->Name()+"\n");
-  mb::Camera *activeCam = mb::Kernel()->Scene()->ActiveCamera();
-  mb::Kernel()->Scene()->SetActiveCamera(curCam);
   ssp = curCam->GetScreenSpacePicker();
   if(ssp == NULL) {
     mblog("SSP might be NULL?\n");
@@ -429,6 +431,8 @@ void MeshOps::boxSelect(mb::Vector &v1,mb::Vector &v2) {
   int x = MIN(v1.x,v2.x);
   int y = MIN(v1.y,v2.y);
   
+  mblog("Pixels select Range :"+QString::number(x)+" "+QString::number(y)+"\nTo: "+
+    QString::number(x+xSize)+" "+QString::number(y+ySize));
   //MidVertex Special;
 
   for (int i = 0; i < xSize ; i++) {
@@ -443,7 +447,7 @@ void MeshOps::boxSelect(mb::Vector &v1,mb::Vector &v2) {
             mblog("Saving mid point");
             if(pMesh != NULL) {
               midV->vI = pMesh->QuadPrimaryIndex(false,fi,2);
-              midV->pos = pMesh->VertexPosition(midV->vI);
+              midV->pos = p.WorldPosition();
             } else {
               mblog("PMeshNULL WTF?!");
             }
@@ -461,7 +465,6 @@ void MeshOps::boxSelect(mb::Vector &v1,mb::Vector &v2) {
     }
     x++;
   }
-  mb::Kernel()->Scene()->SetActiveCamera(activeCam);
 }
 
 void MeshOps::DeselectAllFaces() {

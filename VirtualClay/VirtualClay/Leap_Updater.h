@@ -42,6 +42,9 @@ class Leap_Updater : public mb::Node {
   bool collisionToggle;
   bool thumbGrabModeToggle;
   bool ThumbSelect();
+  bool stickyMovement;
+  bool Leap_Updater::ThumbSmoothMove();
+  float thumbMoveStrength;
   mb::Vector menuStartSpace;
   Leap_HUD *menuFilter;
 public:

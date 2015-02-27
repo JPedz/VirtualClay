@@ -6,6 +6,7 @@ class Leap_Hand
   LR lr;
   std::vector<Leap_Fingers *> fingers;
   std::vector<std::vector<Leap_Fingers *>> fings;
+  std::vector<std::vector<Leap_Fingers *>> bones;
   Leap_Fingers *palm;
   mb::Vector handRot;
   mb::Vector handPos;
@@ -18,6 +19,7 @@ class Leap_Hand
 public:
   Leap_Hand(ID_List *idl,LR lOrR);
   ~Leap_Hand(void);
+  void AddLeap_Bones(void);
   void AddLeap_Fingers(void);
   void AddHand(void);
   void SetRot(mb::Vector v);

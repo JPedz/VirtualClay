@@ -37,6 +37,7 @@ class MeshOps {
   void StoreUndoQueue();
   void MeshOps::AddVFI(int vi, int fi);
   MidVertex *midV;
+  mb::Vector midPos;
 
 public:
   MeshOps();

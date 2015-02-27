@@ -245,10 +245,11 @@ std::vector<mb::Vector> Leap_Reader::getFingerPosition(fingerEnum fn,LR LOrR) {
 //  mudbox::Kernel()->Interface()->SetStatus(mudbox::Interface::stNormal,"Finger Pos"+QString::number(fn)+": "+
 //      QString::number(f.stabilizedTipPosition().x)+" "+QString::number(f.stabilizedTipPosition().y)+" "+QString::number(f.stabilizedTipPosition().z));  
   
-  std::vector<mb::Vector> fingerJoints(3);
+  std::vector<mb::Vector> fingerJoints(4);
   fingerJoints.at(TIP) = scale*(mb::Vector(f.tipPosition().x,f.tipPosition().y,f.tipPosition().z));
   fingerJoints.at(DIP) = scale*(mb::Vector(f.jointPosition(f.JOINT_DIP).x,f.jointPosition(f.JOINT_DIP).y,f.jointPosition(f.JOINT_DIP).z));
   fingerJoints.at(PIP) = scale*(mb::Vector(f.jointPosition(f.JOINT_PIP).x,f.jointPosition(f.JOINT_PIP).y,f.jointPosition(f.JOINT_PIP).z));
+  fingerJoints.at(PIP) = scale*(mb::Vector(f.jointPosition(f.JOINT_MCP).x,f.jointPosition(f.JOINT_MCP).y,f.jointPosition(f.JOINT_MCP).z));
   //mblog("Finger Pos: "+VectorToQStringLine(fingerJoints.at(0)));
   return fingerJoints;
 }
@@ -260,6 +261,19 @@ mb::Vector Leap_Reader::getFingerPosition_R(fingerEnum fn) {
 //  mudbox::Kernel()->Interface()->SetStatus(mudbox::Interface::stNormal,"Finger Pos"+QString::number(fn)+": "+
 //      QString::number(f.stabilizedTipPosition().x)+" "+QString::number(f.stabilizedTipPosition().y)+" "+QString::number(f.stabilizedTipPosition().z));  
   return mb::Vector(f.tipPosition().x,f.tipPosition().y,f.tipPosition().z);
+}
+
+mb::Vector Leap_Reader::getMotionDirection(fingerEnum fn, LR lOrR) {
+  mb::Vector dir;
+  Leap::Finger fing;
+  if(lOrR == l) {
+    fing = hand_l.fingers().fingerType(Finger::Type(fn))[0]; 
+  } else {
+    fing = hand_r.fingers().fingerType(Finger::Type(fn))[0]; 
+  }
+    dir = leapVecToMBVec(fing.tipVelocity());
+    dir.Normalize();
+    return dir;
 }
 
 mb::Vector Leap_Reader::getDirection_L(void) {

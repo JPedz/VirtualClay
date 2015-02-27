@@ -51,3 +51,7 @@ mb::Vector ScreenSpaceToPixels(mb::Vector v) {
   pixels.y = midH+v.y*midH;
   return pixels;
 }
+
+mb::Vector leapVecToMBVec(Leap::Vector v) {
+  return mb::Vector(v.x,v.y,v.z);
+}

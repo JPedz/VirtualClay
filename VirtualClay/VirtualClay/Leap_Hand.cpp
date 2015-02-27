@@ -7,9 +7,12 @@ Leap_Hand::Leap_Hand(ID_List *idl,LR lOrR)
   lr = lOrR;
   fingers.resize(5);
   fings.resize(5);
+  bones.resize(5);
   for(int i = 0; i < 5;i++) {
-    fings.at(i).resize(3);
+    fings.at(i).resize(4);
+    bones.at(i).resize(4);
   }
+
   idList = idl;
   AddHand();
   AddLeap_Fingers();
@@ -24,48 +27,55 @@ void Leap_Hand::AddHand(void) {
   palm->SetScale(mb::Vector(0.07f,0.02f,0.07f));
 }
 
+
 void Leap_Hand::AddLeap_Fingers(void) {
-  mblog("Leap_Fingers size:"+QString::number(fingers.size()));
   QString lOrR = "L_";
   if(lr == r) {
     lOrR = "R_";
   }
   QString fingerType;
   QString fingerJoint;
+  QString boneName;
   for(int i = 0; i < 5 ; i++) {
     switch(i) {
       case(0):
-        fingerType = "Thumb";
+        fingerType = "Thumb_";
         break;
       case(1):
-        fingerType = "Index";
+        fingerType = "Index_";
         break;
       case(2):
-        fingerType = "Middle";
+        fingerType = "Middle_";
         break;
       case(3):
-        fingerType = "Ring";
+        fingerType = "Ring_";
         break;
       case(4):
-        fingerType = "Pinky";
+        fingerType = "Pinky_";
         break;
-
     }
     for(int j = 0; j < 3 ; j++) {
-
       switch(j) {
       case(0):
         fingerJoint = "Tip";
+        boneName = "Meta";
         break;
       case(1):
         fingerJoint = "MIP";
+        boneName = "Phalanx";
         break;
       case(2):
         fingerJoint = "PIP";
+        boneName = "Inter";
+        break;
+      case(3):
+        fingerJoint = "MCP";
+        boneName = "Distal";
         break;
       }
-      fings.at(fingerEnum(i)).at(jointEnum(j)) = new Leap_Fingers(lOrR+fingerType+"_"+fingerJoint);
-        
+
+
+      fings.at(fingerEnum(i)).at(jointEnum(j)) = new Leap_Fingers(lOrR+fingerType+fingerJoint);
       if(j == 0) {
         //TODO: REmove this limitation to only tip
         //#Code:111
@@ -75,6 +85,7 @@ void Leap_Hand::AddLeap_Fingers(void) {
         //TODO: Store ID's
         fings.at(i).at(j)->SetScale(mb::Vector(0.03f,0.03f,0.03f));
       }
+
     }
   }
   /*fingers.at(INDEX) = new Leap_Fingers(lOrR+"Index");
