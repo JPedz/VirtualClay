@@ -26,22 +26,23 @@ public:
   void SetPos(mb::Vector v);
   mb::Vector GetPos();
   void SetVisi(bool vis);
+  void UpdateBone(boneEnum b, fingerEnum f, mb::Vector orient);
   void SetFingerPos(fingerEnum fn,mb::Vector v);
   void SetFingerPos(jointEnum j, fingerEnum f, mb::Vector v);
   void SetFingerRot(fingerEnum fn,mb::Vector v);
-  void Leap_Hand::RotateAroundPivot(jointEnum j,fingerEnum f,mb::Vector a,mb::Vector pivot);
+  void RotateAroundPivot(jointEnum j,fingerEnum f,mb::Vector a,mb::Vector pivot);
   void RotateAroundPivot(fingerEnum fn,mb::Vector a,mb::Vector pivot);
   void RotateAroundPivot(mb::Vector a,mb::Vector pivot);
   mb::AxisAlignedBoundingBox GetFingerBoundingBox(fingerEnum f, jointEnum j = jointEnum(0));
-  mb::Vector Leap_Hand::GetFingerPos(fingerEnum f, jointEnum j = jointEnum(0));
-  mb::Vector Leap_Hand::GetRot();
+  mb::Vector GetFingerPos(fingerEnum f, jointEnum j = jointEnum(0));
+  mb::Vector GetRot();
 
   //Collision Detection
-  void Leap_Hand::UpdateCollisionPos(fingerEnum f, mb::Vector &pos, mb::Vector &pivot, mb::Vector &a);
-  void Leap_Hand::UpdateCollisionPos(mb::Vector &pos, mb::Vector &pivot, mb::Vector &a);
-  mb::AxisAlignedBoundingBox Leap_Hand::getCollisionBox(mb::Vector &pos, mb::Vector &pivot, mb::Vector &a);
-  mb::AxisAlignedBoundingBox Leap_Hand::getCollisionBox(fingerEnum f);
-  mb::AxisAlignedBoundingBox Leap_Hand::getCollisionBox();
+  void UpdateCollisionPos(fingerEnum f, mb::Vector &pos, mb::Vector &pivot, mb::Vector &a);
+  void UpdateCollisionPos(mb::Vector &pos, mb::Vector &pivot, mb::Vector &a);
+  mb::AxisAlignedBoundingBox getCollisionBox(mb::Vector &pos, mb::Vector &pivot, mb::Vector &a);
+  mb::AxisAlignedBoundingBox getCollisionBox(fingerEnum f);
+  mb::AxisAlignedBoundingBox getCollisionBox();
 /*
   mb::Vector GetFingerPos(fingerEnum fn);*/
 //TODO: 

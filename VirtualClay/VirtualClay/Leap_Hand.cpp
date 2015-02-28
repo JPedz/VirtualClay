@@ -29,6 +29,7 @@ void Leap_Hand::AddHand(void) {
 
 
 void Leap_Hand::AddLeap_Fingers(void) {
+  mb::Kernel()->Interface()->ProgressStart("Creating Hands",20);
   QString lOrR = "L_";
   if(lr == r) {
     lOrR = "R_";
@@ -54,58 +55,68 @@ void Leap_Hand::AddLeap_Fingers(void) {
         fingerType = "Pinky_";
         break;
     }
-    for(int j = 0; j < 3 ; j++) {
+    for(int j = 0; j < 4 ; j++) {
       switch(j) {
       case(0):
         fingerJoint = "Tip";
-        boneName = "Meta";
+        boneName = "Distal";
         break;
       case(1):
         fingerJoint = "MIP";
-        boneName = "Phalanx";
+        boneName = "Inter";
         break;
       case(2):
         fingerJoint = "PIP";
-        boneName = "Inter";
+        boneName = "Phalanx";
         break;
       case(3):
         fingerJoint = "MCP";
-        boneName = "Distal";
+        boneName = "Meta";
         break;
       }
 
-
+      bones.at(fingerEnum(i)).at(jointEnum(j)) = new Leap_Fingers(lOrR+fingerType+boneName);
       fings.at(fingerEnum(i)).at(jointEnum(j)) = new Leap_Fingers(lOrR+fingerType+fingerJoint);
       if(j == 0) {
         //TODO: REmove this limitation to only tip
         //#Code:111
         int id;
         id = fings.at(i).at(j)->ImportGeo();
-        idList->storeFingerID(id,fingerEnum(i),lr);
+        idList->storeFingerID(id,fingerEnum(i),jointEnum(j),lr);
         //TODO: Store ID's
         fings.at(i).at(j)->SetScale(mb::Vector(0.03f,0.03f,0.03f));
+      
+        //int idBone;
+        //idBone = bones.at(i).at(j)->ImportGeo();
+        //mblog("Storing BoneID \n");
+        //idList->storeBoneID(idBone,fingerEnum(i),boneEnum(j),lr);
+        //mblog("Stored BoneID \n");
+        //bones.at(i).at(j)->SetScale(mb::Vector(0.2f,0.02f,0.02f));
       }
-
+      mb::Kernel()->Interface()->ProgressAdd();
     }
   }
-  /*fingers.at(INDEX) = new Leap_Fingers(lOrR+"Index");
-  fingers.at(MIDDLE) = new Leap_Fingers(lOrR+"Middle");
-  fingers.at(RING) = new Leap_Fingers(lOrR+"Ring");
-  fingers.at(PINKY) = new Leap_Fingers(lOrR+"Pinky");
-  fingers.at(THUMB) = new Leap_Fingers(lOrR+"Thumb");
-  int id = -1;
-  for(int i = 0; i < 5; i++) {
-    id = fingers.at(i)->ImportGeo();
-    idList->storeFingerID(id,fingerEnum(i),lr);
-    fingers.at(i)->SetPos(mb::Vector(i*20.0f,0.0f,0.0f));
-    fingers.at(i)->SetScale(mb::Vector(0.01f,0.01f,0.01f));
-  }*/
+  mb::Kernel()->Interface()->ProgressEnd();
 }
+
+
+void Leap_Hand::UpdateBone(boneEnum b, fingerEnum f, mb::Vector orient) {
+  //#Code:111
+  if(b == boneEnum(0)) {
+    bones.at(f).at(b)->SetRot(orient);
+    if(b != 3) {
+      mblog("b+1 = :"+QString::number(b+1)+"\n");
+      bones.at(f).at(b)->SetPos(fings.at(f).at(b+1)->GetPos());
+    } else {
+      bones.at(f).at(b)->SetPos(palm->GetPos());
+    }
+  }
+}
+
+
 void Leap_Hand::SetFingerPos(jointEnum j, fingerEnum f, mb::Vector v) {
   fings.at(f).at(j)->SetPos(v);
 }
-
-
 
 void Leap_Hand::SetFingerPos(fingerEnum f, mb::Vector v) {
   fingers.at(f)->SetPos(v);
@@ -126,9 +137,9 @@ void Leap_Hand::SetPos(mb::Vector v) {
 void Leap_Hand::SetVisi(bool vis) {
   TNode->SetVisible(vis);
   for(int i = 0 ; i < 5 ; i++) {
-    for(int j = 0 ; j < 3 ; j++) {
+    for(int j = 0 ; j < 4 ; j++) {
       //TODO: Remove finger tip limitation #Code:111
-      if(j == 0) {
+      if(j <= 1) {
         fings.at(i).at(j)->SetVisi(vis);
       }
     }

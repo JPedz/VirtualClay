@@ -55,3 +55,13 @@ mb::Vector ScreenSpaceToPixels(mb::Vector v) {
 mb::Vector leapVecToMBVec(Leap::Vector v) {
   return mb::Vector(v.x,v.y,v.z);
 }
+
+Leap::Vector mbVecToLeapVec(mb::Vector v) {
+  return Leap::Vector(v.x,v.y,v.z);
+}
+
+mb::Vector AngleBetweenTwoPoints(mb::Vector p1, mb::Vector p2) {
+
+  
+  return mb::Vector(0,0,0);
+}

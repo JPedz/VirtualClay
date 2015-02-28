@@ -1,9 +1,9 @@
 #pragma once
 #include "stdafx.h"
-enum jointEnum {TIP,DIP,PIP};
+enum jointEnum {TIP,DIP,PIP,MCP};
 enum LR {l,r}; //Left or Right
 enum fingerEnum {THUMB,INDEX,MIDDLE,RING,PINKY};
-enum boneEnum {META,PROXI,INTER,DISTAL};
+enum boneEnum {DISTAL,INTER,PROXI,META};
 #define mbstatus(a) mb::Kernel()->Interface()->SetStatus(mudbox::Interface::stNormal,a)
 
 #define mbhud(a) mb::Kernel()->Interface()->HUDMessageShow(a)
@@ -18,4 +18,5 @@ mb::Matrix createRotateZMatrix(float b);
 mb::Matrix createTranslation(float x,float y, float z);
 mb::Vector RotateVectorAroundPivot(mb::Vector &currPos,mb::Vector &pivot, mb::Vector &rotation);
 mb::Vector ScreenSpaceToPixels(mb::Vector);
+mb::Vector AngleBetweenTwoPoints(mb::Vector p1, mb::Vector p2);
 //https://hci.rwth-aachen.de/materials/publications/jung2014a.pdf

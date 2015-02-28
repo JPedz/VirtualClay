@@ -24,8 +24,9 @@ Leap_Updater::Leap_Updater(ID_List *idl,Leap_Hand *l,Leap_Hand *r)
   menuRight = false;
   menuUp = false;
   collisionToggle = false;
-  thumbGrabModeToggle = true;
+  thumbGrabModeToggle = false;
   stickyMovement = false;
+  pinchGrab = true;
   thumbMoveStrength = 10.0f; //Strength and distance for movement intersecting thumb
 }
 
@@ -39,18 +40,14 @@ mb::Vector Leap_Updater::fitToCameraSpace() {
   return centrePoint;
 }
 
-mb::Vector Leap_Updater::rotateCamera() {
+void Leap_Updater::rotateCamera(mb::Vector r) {
     mb::Vector camPos = viewCam->getTNode()->Position();
-    mb::Vector sceneRotate = leapReader->rotateScene();
-    //sceneRotate = mb::Vector(0,1,0);
-    //mb::Vector aimPoint = viewCam->getCamera()->Aim();
-    viewCam->getCamera()->SetAim(mb::Vector(0,0,0));
-    //mb::Vector aimPoint = fitToCameraSpace();
-    viewCam->getTNode()->AddRotation(sceneRotate);
-    return RotateVectorAroundPivot(camPos,mb::Vector(0,0,0),-RAD_TO_DEG*sceneRotate);
+    mb::Vector aimPoint = viewCam->getCamera()->Aim();
+    viewCam->setPosition(RotateVectorAroundPivot(camPos,aimPoint,r));
+    viewCam->getCamera()->SetTarget(aimPoint);
 }
 
-void Leap_Updater::getFingerScreenSpace(mb::Vector &camPos) { 
+void Leap_Updater::ScreenTap(mb::Vector &camPos) { 
   meshOp->ChangeCamera(viewCam);
   mb::Vector indexPos = hand_l->GetFingerPos(INDEX,TIP);
   mb::Vector projPos = viewCam->getCamera()->Project(indexPos);
@@ -174,19 +171,17 @@ bool Leap_Updater::ThumbSmoothMove() {
   return false;
 }
 
-void Leap_Updater::SetHandAndFingerPositions(mb::Vector &camRot, mb::Vector &cameraPivot) {
+void Leap_Updater::SetHandAndFingerPositions(mb::Vector &cameraPivot) {
   //TODO:
   // Do I need to actually rotate the fingers?? If so, by what metric?
   // hand_l->SetFingerRot(fingerEnum(i),leapReader->getFingerDirection_L(fingerEnum(i)));
-  //mblog("Setting hand visibility!\n");
+  
+  mb::Vector camRot = viewCam->getTNode()->Rotation();
   hand_l->SetVisi(leapReader->isVisible(l));
   hand_r->SetVisi(leapReader->isVisible(r));
 
   int leftCamID = idList->getCam(l);
   int rightCamID = idList->getCam(r);
-  //cameraWrapper *leftHand = new cameraWrapper(leftCamID);
-  //leftHand->getTNode()->SetRotation(leapReader->getDirection_L()+mb::Vector(78,0,0));
-  //leftHand->getTNode()->SetPosition(cameraPivot + leapReader->getPosition_L());
   // Set hand position and orientation
   hand_l->SetPos(cameraPivot + leapReader->getPosition_L());
   hand_l->SetRot(leapReader->getDirection_L());
@@ -230,31 +225,66 @@ void Leap_Updater::SetHandAndFingerPositions(mb::Vector &camRot, mb::Vector &cam
 
         hand_r->SetFingerPos(jointEnum(j),fingerEnum(i),cameraPivot + leapReader->getFingerPosition(fingerEnum(i),r).at(j));
         hand_r->RotateAroundPivot(jointEnum(j),fingerEnum(i),-1*camRot,cameraPivot);
+      
         if(collisionToggle) {
           if(meshOp->CheckIntersection(hand_l->GetFingerBoundingBox(fingerEnum(i),jointEnum(j)))) {
-            hand_l->SetFingerPos(jointEnum(j),fingerEnum(i),fingerPos_L);
+            if(j == 0) {
+              hand_l->SetFingerPos(jointEnum(j),fingerEnum(i),fingerPos_L);
+            }
             //mblog("L Hand collision!\n");
           }
           if(meshOp->CheckIntersection(hand_r->GetFingerBoundingBox(fingerEnum(i),jointEnum(j)))) {
-            hand_r->SetFingerPos(jointEnum(j),fingerEnum(i),fingerPos_R);
+            if(j == 0) {
+              hand_r->SetFingerPos(jointEnum(j),fingerEnum(i),fingerPos_R);
+            }
             //mblog("R Hand collision!\n");
           }
         }
+        //mblog("Updating Bone Pos :"+QString::number(j)+"\n");
+        //hand_r->UpdateBone(boneEnum(j),fingerEnum(i),leapReader->getBoneOrients(fingerEnum(i),r).at(j));
+        //hand_l->UpdateBone(boneEnum(j),fingerEnum(i),leapReader->getBoneOrients(fingerEnum(i),l).at(j));
+        //mblog("Updated Bone Pos\n");
       }
     }
-    ////hand_l->SetFingerPos(fingerEnum(i),cameraPivot + leapReader->getFingerPosition(fingerEnum(i),l).at(0));
-    ////hand_r->SetFingerPos(fingerEnum(i),cameraPivot + leapReader->getFingerPosition_R(fingerEnum (i)));
-    //hand_r->RotateAroundPivot(fingerEnum(i),-1*camRot,cameraPivot);
   }
 }
 
 void Leap_Updater::CameraMovement() {
-  mb::Vector sceneRotate = rotateCamera();
+  const float deadzone = 20.0f;
+  mb::Vector handRot = leapReader->getDirection_R()+mb::Vector(30,0,0);
+  mbstatus("HandRot: "+VectorToQString(handRot));
+  if(abs(handRot.x) > deadzone || abs(handRot.y) > deadzone || abs(handRot.z) > deadzone) {
+  
+    if(abs(handRot.x) > abs(handRot.y) && abs(handRot.x) > abs(handRot.z)) {
+      mblog("Pitch\n");
+      mbhud("Rotate Pitch");
+      if(handRot.x > 0) 
+        rotateCamera(mb::Vector(0.5,0,0));
+      else
+        rotateCamera(mb::Vector(-0.5,0,0));
+    }
+    if(abs(handRot.y) > abs(handRot.x) && abs(handRot.y) > abs(handRot.z)) {
+      mblog("Roll\n");
+      mbhud("Rotate Roll");
+      if(handRot.y > 0) 
+        rotateCamera(mb::Vector(0,0.5,0));
+      else
+        rotateCamera(mb::Vector(0,-0.5,0));
+    }
+    if(abs(handRot.z) > abs(handRot.x) && abs(handRot.z) > abs(handRot.y)) {
+      mblog("Yaw\n");
+      mbhud("Rotate Yaw");
+      if(handRot.z > 0) 
+        rotateCamera(mb::Vector(0,0,0.5));
+      else
+        rotateCamera(mb::Vector(0,0,-0.5));
+    }
+
+  }
   //viewCam->getTNode()->SetPosition(sceneRotate);
-  mblog("SceneRotate = "+VectorToQStringLine(sceneRotate));
 }
 
-void Leap_Updater::MenuSettings() {
+void Leap_Updater::MenuSettings_R() {
   mb::Vector PosDifference = menuStartSpace - GetRelativeScreenSpaceFromWorldPos(hand_r->GetFingerPos(INDEX));
   menuFilter->menuChoice = 0;
   if(PosDifference.y > 0.1) {
@@ -278,13 +308,13 @@ void Leap_Updater::MenuSettings() {
         menuRight = true;
       }
     }
-    if(leapReader->isCircleCCW) {
+    if(leapReader->isCircleCCW_R) {
       mbstatus("Got Anti-Clockwise Circle");
       menuFilter->SetVisible(false);
       inMenu = false;
     }
   }
-  if(menuUp){
+  if(menuUp) {
     menuFilter->SetVisible(false);
     thumbGrabModeToggle = !thumbGrabModeToggle;
     if(thumbGrabModeToggle)
@@ -293,8 +323,7 @@ void Leap_Updater::MenuSettings() {
       mbhud("Thumb Grab Mode: Off");
     inMenu = false; 
     menuUp = false;
-  } else 
-  if(menuRight) {
+  } else if(menuRight) {
     collisionToggle = !collisionToggle;
     if(collisionToggle)
       mbhud("Collision Mode: On");
@@ -303,20 +332,85 @@ void Leap_Updater::MenuSettings() {
     menuFilter->SetVisible(false);
     inMenu = false;
     menuRight = false;
-  } else
-  if(menuDown) {
+  } else if(menuDown) {
+    if(pinchGrab)
+      mbhud("Pinch Grab On");
+    else
+      mbhud("PinchGrab Off");
+    pinchGrab = !pinchGrab;
     menuFilter->SetVisible(false);
     inMenu = false;
     menuDown = false;
-  } else
-  if(menuLeft) {
+  } else if(menuLeft) {
     menuFilter->SetVisible(false);
     inMenu = false; 
     menuLeft = false;
-
   }
 }
 
+void Leap_Updater::MenuSettings_L() {
+  mb::Vector PosDifference = menuStartSpace - GetRelativeScreenSpaceFromWorldPos(hand_r->GetFingerPos(INDEX));
+  menuFilter->menuChoice = 0;
+  if(PosDifference.y > 0.1) {
+    menuFilter->menuChoice = 3;
+    if(PosDifference.y > 0.3)
+      menuDown = true;
+  } else if(PosDifference.y < -0.1) {
+    menuFilter->menuChoice = 1;
+    if(PosDifference.y < -0.3)
+      menuUp = true;
+  }
+  if(abs(PosDifference.x) > abs(PosDifference.y)) {
+    if(PosDifference.x > 0.1) {
+      menuFilter->menuChoice = 4;
+      if(PosDifference.x > 0.3) {
+        menuLeft = true;
+      }
+    } else if(PosDifference.x < -0.1) {
+      menuFilter->menuChoice = 2;
+      if(PosDifference.x < -0.3) {
+        menuRight = true;
+      }
+    }
+    if(leapReader->isCircleCCW_L) {
+      mbstatus("Got Anti-Clockwise Circle");
+      menuFilter->SetVisible(false);
+      inMenu = false;
+    }
+  }
+  if(menuUp) {
+    menuFilter->SetVisible(false);
+    thumbGrabModeToggle = !thumbGrabModeToggle;
+    if(thumbGrabModeToggle)
+      mbhud("Thumb Grab Mode: On");
+    else
+      mbhud("Thumb Grab Mode: Off");
+    inMenu = false; 
+    menuUp = false;
+  } else if(menuRight) {
+    collisionToggle = !collisionToggle;
+    if(collisionToggle)
+      mbhud("Collision Mode: On");
+    else
+      mbhud("Collision Mode: Off");
+    menuFilter->SetVisible(false);
+    inMenu = false;
+    menuRight = false;
+  } else if(menuDown) {
+    if(pinchGrab)
+      mbhud("Pinch Grab On");
+    else
+      mbhud("PinchGrab Off");
+    pinchGrab = !pinchGrab;
+    menuFilter->SetVisible(false);
+    inMenu = false;
+    menuDown = false;
+  } else if(menuLeft) {
+    menuFilter->SetVisible(false);
+    inMenu = false; 
+    menuLeft = false;
+  }
+}
 
 void Leap_Updater::Extrusion(mb::Vector &cameraPivot) {
   mblog("Finger IntersectCount = "+QString::number(countIntersectingFingers(l))+"\n");
@@ -342,6 +436,76 @@ void Leap_Updater::Extrusion(mb::Vector &cameraPivot) {
   }
 }
 
+__inline void Leap_Updater::checkRotateGesture() {
+  
+  //If Only 1 hand is showing
+  if(leapReader->isVisible(l) ^ leapReader->isVisible(r)) {
+    //if index pinky and thumb extended
+    if(leapReader->CheckRotateHandGesture(r)) {
+      CameraMovement();
+    }
+  }
+}
+
+__inline void Leap_Updater::checkMenuGesture() {
+    //If Circle Clockwise
+  if(leapReader->isCircleCW_R) {
+    menuStartSpace = GetRelativeScreenSpaceFromWorldPos(hand_r->GetFingerPos(INDEX));
+    menuFilter->SetCentre(menuStartSpace);
+    menuFilter->SetVisible(true);
+    inMenu_R = true;
+  }
+  if(leapReader->isCircleCW_L) {
+    menuStartSpace = GetRelativeScreenSpaceFromWorldPos(hand_l->GetFingerPos(INDEX));
+    menuFilter->SetCentre(menuStartSpace);
+    menuFilter->SetVisible(true);
+    inMenu_R = true;
+  }
+}
+
+__inline void Leap_Updater::checkScreenTapGesture(mb::Vector &cameraPivot) {
+  //If they tapped the screen
+  if(leapReader->isScreenTap) {
+    mblog("got tap\n");
+    ScreenTap(cameraPivot);
+  }
+}
+
+__inline void Leap_Updater::checkUndoGesture() {
+  //If they Swiped Left
+  if(leapReader->isUndo) {
+    mb::Kernel()->Interface()->HUDMessageShow("UNDO");
+    meshOp->UndoLast(); 
+  }
+}
+
+__inline void Leap_Updater::checkGrabbingGesture(mb::Vector &cameraPivot) {
+  if(thumbGrabModeToggle) {
+    if((meshOp->CheckIntersection(hand_l->GetFingerBoundingBox(THUMB,TIP)))) {
+      if(stickyMovement)
+        ThumbSelect();
+      else
+        ThumbSmoothMove();
+    } else {
+      if(facesAreSelected) {
+        meshOp->DeselectAllFaces();
+      }
+      facesAreSelected = false;
+    }
+  } else {
+  //If they are Grabbing and Thumb Toggle is Off
+    if(leapReader->isGrabbing_L ) {
+      Extrusion(cameraPivot);
+    } else {
+      if(facesAreSelected) {
+        meshOp->DeselectAllFaces();
+      }
+      firstmoveswitch = true;
+      facesAreSelected = false;
+    }
+    lastFrameHandPos == hand_l->GetPos();
+  }
+}
 
 void Leap_Updater::OnEvent(const mb::EventGate &cEvent) {
   if(cEvent == frameEvent) {
@@ -351,58 +515,18 @@ void Leap_Updater::OnEvent(const mb::EventGate &cEvent) {
         int viewcamID = idList->getViewCam();
         viewCam = new cameraWrapper(viewcamID);
         mb::Vector cameraPivot = fitToCameraSpace();
-        mb::Vector camRot = viewCam->getTNode()->Rotation();
-        SetHandAndFingerPositions(camRot,cameraPivot);
+        SetHandAndFingerPositions(cameraPivot);
         //If Circle Anti-Clockwise
-        if(inMenu) {
-          MenuSettings();
+        if(inMenu_R) {
+          MenuSettings_R();
+        } else if(inMenu_L) {
+          MenuSettings_L();
         } else {
-                    //If Only 1 hand is showing
-          if(leapReader->isVisible(l) ^ leapReader->isVisible(r)) {
-            //CameraMovement();
-          }
-          //If Circle Clockwise
-          if(leapReader->isCircleCW) {
-            menuStartSpace = GetRelativeScreenSpaceFromWorldPos(hand_r->GetFingerPos(INDEX));
-            menuFilter->SetCentre(menuStartSpace);
-            menuFilter->SetVisible(true);
-            inMenu = true;
-          }
-          //If they tapped the screen
-          if(leapReader->isScreenTap) {
-            mblog("got tap\n");
-            getFingerScreenSpace(cameraPivot);
-          }
-          //If they Swiped Left
-          if(leapReader->isUndo) {
-            mb::Kernel()->Interface()->HUDMessageShow("UNDO");
-            meshOp->UndoLast(); 
-          }
-          if(thumbGrabModeToggle) {
-            if((meshOp->CheckIntersection(hand_l->GetFingerBoundingBox(THUMB,TIP)))) {
-              if(stickyMovement)
-                ThumbSelect();
-              else
-                ThumbSmoothMove();
-            } else {
-              if(facesAreSelected) {
-                meshOp->DeselectAllFaces();
-              }
-              facesAreSelected = false;
-            }
-          } else {
-          //If they are Grabbing and Thumb Toggle is Off
-            if(leapReader->isGrabbing_L ) {
-              Extrusion(cameraPivot);
-            } else {
-              if(facesAreSelected) {
-                meshOp->DeselectAllFaces();
-              }
-              firstmoveswitch = true;
-              facesAreSelected = false;
-            }
-            lastFrameHandPos == hand_l->GetPos();
-          }
+          checkRotateGesture();
+          checkMenuGesture();
+          checkScreenTapGesture(cameraPivot);
+          checkUndoGesture();
+          checkGrabbingGesture(cameraPivot);
         }
       }
     }
