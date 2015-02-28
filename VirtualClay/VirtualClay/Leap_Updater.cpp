@@ -10,6 +10,13 @@ Leap_Updater::Leap_Updater(ID_List *idl,Leap_Hand *l,Leap_Hand *r)
   hand_l = l;
   hand_r = r;
   meshOp = new MeshOps();
+  tools.resize(2);
+  tools.at(0) = new Leap_Fingers("ToolTIP");
+  tools.at(1) = new Leap_Fingers("ToolBase");
+  tools.at(0)->ImportGeo();
+  tools.at(1)->ImportGeo();
+  tools.at(0)->SetScale(mb::Vector(0.1f,0.1f,0.1f));
+  tools.at(1)->SetScale(mb::Vector(0.1f,0.1f,0.1f));
   Leap_HUD *leapHud = new Leap_HUD();
   meshOp->ChangeCamera(new cameraWrapper(idList->getCam(LR(0))));
   leapReader = new Leap_Reader();
@@ -18,7 +25,8 @@ Leap_Updater::Leap_Updater(ID_List *idl,Leap_Hand *l,Leap_Hand *r)
   menuFilter = new Leap_HUD();
   mb::Kernel()->ViewPort()->AddFilter(menuFilter);
   menuFilter->SetVisible(false);
-  inMenu = false;
+  inMenu_L = false;
+  inMenu_R = false;
   menuLeft = false;
   menuDown = false;
   menuRight = false;
@@ -247,6 +255,18 @@ void Leap_Updater::SetHandAndFingerPositions(mb::Vector &cameraPivot) {
       }
     }
   }
+  if(leapReader->isTool) {
+    tools.at(0)->SetVisi(true);
+    tools.at(1)->SetVisi(true);
+    std::vector<mb::Vector> toolLocs = leapReader->GetToolPositions();
+    tools.at(0)->SetPos(cameraPivot+toolLocs.at(0));
+    tools.at(1)->SetPos(cameraPivot+toolLocs.at(1));
+    tools.at(0)->RotateAroundPivot(-1*camRot,cameraPivot);
+    tools.at(1)->RotateAroundPivot(-1*camRot,cameraPivot);
+  } else {
+    tools.at(0)->SetVisi(false);
+    tools.at(1)->SetVisi(false);
+  }
 }
 
 void Leap_Updater::CameraMovement() {
@@ -311,7 +331,7 @@ void Leap_Updater::MenuSettings_R() {
     if(leapReader->isCircleCCW_R) {
       mbstatus("Got Anti-Clockwise Circle");
       menuFilter->SetVisible(false);
-      inMenu = false;
+      inMenu_R = false;
     }
   }
   if(menuUp) {
@@ -321,7 +341,7 @@ void Leap_Updater::MenuSettings_R() {
       mbhud("Thumb Grab Mode: On");
     else
       mbhud("Thumb Grab Mode: Off");
-    inMenu = false; 
+    inMenu_R = false; 
     menuUp = false;
   } else if(menuRight) {
     collisionToggle = !collisionToggle;
@@ -330,7 +350,7 @@ void Leap_Updater::MenuSettings_R() {
     else
       mbhud("Collision Mode: Off");
     menuFilter->SetVisible(false);
-    inMenu = false;
+    inMenu_R = false;
     menuRight = false;
   } else if(menuDown) {
     if(pinchGrab)
@@ -339,11 +359,11 @@ void Leap_Updater::MenuSettings_R() {
       mbhud("PinchGrab Off");
     pinchGrab = !pinchGrab;
     menuFilter->SetVisible(false);
-    inMenu = false;
+    inMenu_R = false;
     menuDown = false;
   } else if(menuLeft) {
     menuFilter->SetVisible(false);
-    inMenu = false; 
+    inMenu_R = false; 
     menuLeft = false;
   }
 }
@@ -375,7 +395,7 @@ void Leap_Updater::MenuSettings_L() {
     if(leapReader->isCircleCCW_L) {
       mbstatus("Got Anti-Clockwise Circle");
       menuFilter->SetVisible(false);
-      inMenu = false;
+      inMenu_L = false;
     }
   }
   if(menuUp) {
@@ -385,7 +405,7 @@ void Leap_Updater::MenuSettings_L() {
       mbhud("Thumb Grab Mode: On");
     else
       mbhud("Thumb Grab Mode: Off");
-    inMenu = false; 
+    inMenu_L = false; 
     menuUp = false;
   } else if(menuRight) {
     collisionToggle = !collisionToggle;
@@ -394,7 +414,7 @@ void Leap_Updater::MenuSettings_L() {
     else
       mbhud("Collision Mode: Off");
     menuFilter->SetVisible(false);
-    inMenu = false;
+    inMenu_L = false;
     menuRight = false;
   } else if(menuDown) {
     if(pinchGrab)
@@ -403,11 +423,11 @@ void Leap_Updater::MenuSettings_L() {
       mbhud("PinchGrab Off");
     pinchGrab = !pinchGrab;
     menuFilter->SetVisible(false);
-    inMenu = false;
+    inMenu_L = false;
     menuDown = false;
   } else if(menuLeft) {
     menuFilter->SetVisible(false);
-    inMenu = false; 
+    inMenu_L = false; 
     menuLeft = false;
   }
 }
@@ -510,7 +530,7 @@ __inline void Leap_Updater::checkGrabbingGesture(mb::Vector &cameraPivot) {
 void Leap_Updater::OnEvent(const mb::EventGate &cEvent) {
   if(cEvent == frameEvent) {
     if(leapReader->updateAll()) {
-      if(leapReader->ishands && leapReader->isConnected) {
+      if((leapReader->ishands || leapReader->isTool )&& leapReader->isConnected) {
         //mblog("Getting CameraID\n");
         int viewcamID = idList->getViewCam();
         viewCam = new cameraWrapper(viewcamID);

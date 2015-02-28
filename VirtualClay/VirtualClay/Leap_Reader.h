@@ -12,6 +12,7 @@ class Leap_Reader {
   float handConfidenceLevel;
   Hand hand_l;
   Hand hand_r;
+  Tool tool;
   int lastFrameID;
   std::vector<bool> handvisi;
   mb::Vector Leap_Reader::LeapDirectionToMudbox(Leap::Vector dir);
@@ -44,12 +45,15 @@ public:
   mb::Vector getFingerDirection_R(fingerEnum fn);
   std::vector<mb::Vector> getFingerPosition(fingerEnum fn,LR LOrR);
   std::vector<mb::Vector> getBoneOrients(fingerEnum fn,LR lOrR);
-  bool Leap_Reader::isFist(LR lr);
-  bool Leap_Reader::isVisible(LR lr);
-  mb::Vector Leap_Reader::rotateScene();
-  mb::Vector Leap_Reader::TestFunct();
+  bool isFist(LR lr);
+  bool isVisible(LR lr);
+  mb::Vector rotateScene();
+  mb::Vector TestFunct();
   std::vector<bool> GetExtendedFingers(LR lOrR);
-  mb::Vector Leap_Reader::getMotionDirection(fingerEnum fn, LR lOrR);
+  mb::Vector getMotionDirection(fingerEnum fn, LR lOrR);
   bool Leap_Reader::CheckRotateHandGesture(LR lOrR);
+
+  //Tools
+  std::vector<mb::Vector> GetToolPositions();
 };
 

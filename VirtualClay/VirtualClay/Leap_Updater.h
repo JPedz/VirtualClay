@@ -8,6 +8,7 @@
 
 namespace mb = mudbox;
 class Leap_Updater : public mb::Node {
+  std::vector<Leap_Fingers *> tools;
   mudbox::Vector dir;
   ID_List *idList;
   Leap_Hand *hand_l;

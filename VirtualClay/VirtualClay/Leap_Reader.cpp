@@ -55,6 +55,8 @@ bool Leap_Reader::updateAll(void) {
       isUndo = false;
       isCircleCW_R = false;
       isCircleCCW_R = false;
+      isCircleCW_L = false;
+      isCircleCCW_L = false;
       Leap::GestureList gestures = f.gestures();
       Leap::SwipeGesture swipeGesture = Leap::Gesture::invalid();
       Leap::CircleGesture circleGesture = Leap::Gesture::invalid();
@@ -158,9 +160,24 @@ bool Leap_Reader::updateAll(void) {
 
 void Leap_Reader::HandSetup(Frame &f) {
   HandList hands = f.hands();
+  ToolList tools = f.tools();
+  PointableList pointys = f.pointables();
  // mblog("\nHandCount: "+QString::number(hands.count())+"\n");
   //Reconfigure these to ensure that the hand with the greatest confidence chooses
   // which is 'left' and which is right.
+  isTool = false;
+  if(tools.count() > 0) {
+    isTool = true;
+    mblog("IS TOOL\n");
+    tool = tools.frontmost();
+  }
+  if(pointys.count() > 0) {
+    for(int i = 0 ; i < pointys.count() ; i++) {
+      if(pointys[i].isTool())
+        mblog("Found tool in pointy's\n");
+    }
+  }
+
   isGrabbing_L =false;
   ishands = true;
   if(hands.count() > 1) {
@@ -338,14 +355,12 @@ std::vector<bool> Leap_Reader::GetExtendedFingers(LR lOrR) {
   return extendedList;
 }
 
-
 mb::Vector Leap_Reader::TestFunct() {
   Leap::Vector wristPoint = hand_l.wristPosition();
   Leap::Vector tripoint1 = hand_l.fingers().leftmost().jointPosition(Finger::JOINT_MCP);
   Leap::Vector tripoint2 = hand_l.fingers().rightmost().jointPosition(Finger::JOINT_MCP);
   return mb::Vector(0,0,0);
 }
-
 
 bool Leap_Reader::CheckRotateHandGesture(LR lOrR) {
   
@@ -360,7 +375,6 @@ bool Leap_Reader::CheckRotateHandGesture(LR lOrR) {
   }
   return false;
 }
-
 
 mb::Vector Leap_Reader::rotateScene() {
   //TODO: Do I need this?
@@ -422,4 +436,14 @@ bool Leap_Reader::isVisible(LR lr) {
   return handvisi.at(lr);
 }
 
+std::vector<mb::Vector> Leap_Reader::GetToolPositions() {
+  std::vector<mb::Vector> toolLocs;
+  if(isTool) {
+    toolLocs.push_back(leapVecToMBVec(tool.stabilizedTipPosition()));
+    toolLocs.push_back(leapVecToMBVec(
+      tool.stabilizedTipPosition()-(tool.direction()*tool.length())
+    ));
+  }
+  return toolLocs;
+}
 
