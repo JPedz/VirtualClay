@@ -66,57 +66,17 @@ bool Leap_Reader::updateAll(void) {
       for(Leap::GestureList::const_iterator gl = gestures.begin(); gl != f.gestures().end(); gl++)
       {
         hl = (*gl).hands();
-        if(hl[0].isLeft())
+        if(hl[0].isLeft()) {
           gestureHand = l;
-        else
+          mblog("LeftHand");
+        } else {
           gestureHand = r;
-          switch ((*gl).type()) {
-            case Leap::Gesture::TYPE_CIRCLE:
-              circleGesture = CircleGesture(*gl);
-              //http://doc.qt.io/qt-5/qtopengl-2dpainting-example.html
-              if(gestureHand == r) {
-              switch((*gl).state()) {
-                case Leap::Gesture::STATE_START:
-                  //Handle starting gestures
-                  break;
-                case Leap::Gesture::STATE_UPDATE:
-                  //Handle continuing gestures
-                  break;
-                case Leap::Gesture::STATE_STOP:
-                  if(gestureHand == r) {
-                    if(!ext_r.at(0) && ext_r.at(1) && !ext_r.at(2) && !ext_r.at(3) && !ext_r.at(4)) { 
-                      if(circleGesture.pointable().direction().angleTo(circleGesture.normal()) <= Leap::PI/2) {
-                        mblog("circle Radius: "+QString::number(circleGesture.radius())+"\n");
-                        isCircleCW_R = true;
-                      }
-                      if(circleGesture.pointable().direction().angleTo(circleGesture.normal()) >= Leap::PI/2) {
-                        mblog("circle Radius: "+QString::number(circleGesture.radius())+"\n");
-                        isCircleCCW_R = true;
-                      }
-                    }
-                  } else {
-                      if(!ext_l.at(0) && ext_l.at(1) && !ext_l.at(2) && !ext_l.at(3) && !ext_l.at(4)) { 
-                      if(circleGesture.pointable().direction().angleTo(circleGesture.normal()) <= Leap::PI/2) {
-                        mblog("circle Radius: "+QString::number(circleGesture.radius())+"\n");
-                        isCircleCW_L = true;
-                      }
-                      if(circleGesture.pointable().direction().angleTo(circleGesture.normal()) >= Leap::PI/2) {
-                        mblog("circle Radius: "+QString::number(circleGesture.radius())+"\n");
-                        isCircleCCW_L = true;
-                      }
-                    }
-                  }
-                  break;
-                default:
-                  break;
-              }
-            }
-            break;
-          case Leap::Gesture::TYPE_KEY_TAP:
-            //Handle key tap gestures
-            break;
-          case Leap::Gesture::TYPE_SCREEN_TAP:
-            switch ((*gl).state()) {
+          mblog("RightHand");
+        }
+        switch ((*gl).type()) {
+          case Leap::Gesture::TYPE_CIRCLE:
+            circleGesture = CircleGesture(*gl);
+            switch((*gl).state()) {
               case Leap::Gesture::STATE_START:
                 //Handle starting gestures
                 break;
@@ -124,24 +84,66 @@ bool Leap_Reader::updateAll(void) {
                 //Handle continuing gestures
                 break;
               case Leap::Gesture::STATE_STOP:
-                isScreenTap = true;
-                //Handle ending gestures
+                if(gestureHand == r) {
+                  mblog("RightHand");
+                  if(!ext_r.at(0) && ext_r.at(1) && !ext_r.at(2) && !ext_r.at(3) && !ext_r.at(4)) { 
+                    if(circleGesture.pointable().direction().angleTo(circleGesture.normal()) <= Leap::PI/2) {
+                      mblog("circle Radius: "+QString::number(circleGesture.radius())+"\n");
+                      isCircleCW_R = true;
+                    }
+                    if(circleGesture.pointable().direction().angleTo(circleGesture.normal()) >= Leap::PI/2) {
+                      mblog("circle Radius: "+QString::number(circleGesture.radius())+"\n");
+                      isCircleCCW_R = true;
+                    }
+                  }
+                } else {
+                  mblog("LeftHand");
+                    if(!ext_l.at(0) && ext_l.at(1) && !ext_l.at(2) && !ext_l.at(3) && !ext_l.at(4)) { 
+                    if(circleGesture.pointable().direction().angleTo(circleGesture.normal()) <= Leap::PI/2) {
+                      mblog("circle Radius: "+QString::number(circleGesture.radius())+"\n");
+                      isCircleCW_L = true;
+                    }
+                    if(circleGesture.pointable().direction().angleTo(circleGesture.normal()) >= Leap::PI/2) {
+                      mblog("circle Radius: "+QString::number(circleGesture.radius())+"\n");
+                      isCircleCCW_L = true;
+                    }
+                  }
+                }
                 break;
               default:
-                //Handle unrecognized states
                 break;
             }
-            //Handle screen tap gestures
+          break;
+        case Leap::Gesture::TYPE_KEY_TAP:
+          //Handle key tap gestures
+          break;
+        case Leap::Gesture::TYPE_SCREEN_TAP:
+          switch ((*gl).state()) {
+            case Leap::Gesture::STATE_START:
+              //Handle starting gestures
+              break;
+            case Leap::Gesture::STATE_UPDATE:
+              //Handle continuing gestures
+              break;
+            case Leap::Gesture::STATE_STOP:
+              isScreenTap = true;
+              //Handle ending gestures
+              break;
+            default:
+              //Handle unrecognized states
+              break;
+          }
+          //Handle screen tap gestures
+          break;
+        case Leap::Gesture::TYPE_SWIPE:
+            swipeGesture = SwipeGesture(*gl);
+            if(swipeGesture.direction().x < 0 )
+              isUndo = true;
+            //Handle swipe gestures
             break;
-          case Leap::Gesture::TYPE_SWIPE:
-              swipeGesture = SwipeGesture(*gl);
-              if(swipeGesture.direction().x < 0 )
-                isUndo = true;
-              //Handle swipe gestures
-              break;
-          default:
-              //Handle unrecognized gestures
-              break;
+        default:
+            //Handle unrecognized gestures
+            break;
         }
       }
       lastFrameID = f.id();
@@ -171,13 +173,6 @@ void Leap_Reader::HandSetup(Frame &f) {
     mblog("IS TOOL\n");
     tool = tools.frontmost();
   }
-  if(pointys.count() > 0) {
-    for(int i = 0 ; i < pointys.count() ; i++) {
-      if(pointys[i].isTool())
-        mblog("Found tool in pointy's\n");
-    }
-  }
-
   isGrabbing_L =false;
   ishands = true;
   if(hands.count() > 1) {
@@ -376,6 +371,22 @@ bool Leap_Reader::CheckRotateHandGesture(LR lOrR) {
   return false;
 }
 
+
+bool Leap_Reader::CheckScaleHandGesture(LR lOrR) {
+  
+  if(lOrR == l) {
+    std::vector<bool> ext_l = GetExtendedFingers(l);
+    if(!ext_l.at(0) && ext_l.at(1) && !ext_l.at(2) && !ext_l.at(3) && ext_l.at(4))
+      return true;
+  } else {
+    std::vector<bool> ext_r = GetExtendedFingers(r);
+    if(!ext_r.at(0) && ext_r.at(1) && !ext_r.at(2) && !ext_r.at(3) && ext_r.at(4))
+      return true;
+  }
+  return false;
+}
+
+
 mb::Vector Leap_Reader::rotateScene() {
   //TODO: Do I need this?
   std::vector<bool> ext_l = GetExtendedFingers(l);
@@ -445,5 +456,21 @@ std::vector<mb::Vector> Leap_Reader::GetToolPositions() {
     ));
   }
   return toolLocs;
+}
+
+
+mb::Vector Leap_Reader::GetToolDirection() {
+  mb::Vector tooldir;
+  if(isTool) {
+    tooldir = (leapVecToMBVec(tool.direction()));
+  }
+  return tooldir;
+}
+
+mb::Vector Leap_Reader::getToolMotionDirection() {
+  mb::Vector dir;
+  dir = leapVecToMBVec(tool.tipVelocity());
+  dir.Normalize();
+  return dir;
 }
 

@@ -60,6 +60,9 @@
     <ClInclude Include="Leap_HUD.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Leap_Tool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -102,6 +105,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Leap_HUD.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Leap_Tool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

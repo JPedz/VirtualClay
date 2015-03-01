@@ -5,10 +5,11 @@
 #include "cameraWrapper.h"
 #include "MeshOps.h"
 #include "Leap_HUD.h"
+#include "Mudbox\image.h"
+#include "Leap_Tool.h"
 
 namespace mb = mudbox;
 class Leap_Updater : public mb::Node {
-  std::vector<Leap_Fingers *> tools;
   mudbox::Vector dir;
   ID_List *idList;
   Leap_Hand *hand_l;
@@ -16,7 +17,8 @@ class Leap_Updater : public mb::Node {
   cameraWrapper *viewCam;
   mb::Vector fitToCameraSpace();
   void Leap_Updater::rotateCamera(mb::Vector r);
-  void Leap_Updater::CameraMovement();
+  void Leap_Updater::CameraRotate(LR lOrR);
+  void Leap_Updater::CameraZoom(LR lOrR);
   mb::aevent frameEvent;
   Leap_Reader *leapReader;
   MeshOps *meshOp;
@@ -47,16 +49,25 @@ class Leap_Updater : public mb::Node {
   bool ThumbSelect();
   bool stickyMovement;
   bool pinchGrab;
+  bool toolStamp;
+  bool brushSizeMenuToggle;
+  bool SceneNavigationToggle;
   bool Leap_Updater::ThumbSmoothMove();
   float thumbMoveStrength;
   mb::Vector menuStartSpace;
   Leap_HUD *menuFilter;
   
-  __inline void Leap_Updater::checkRotateGesture();
+  __inline void Leap_Updater::checkNavigationGestures();
   __inline void Leap_Updater::checkMenuGesture();
   __inline void Leap_Updater::checkScreenTapGesture(mb::Vector &cameraPivot);
   __inline void Leap_Updater::checkUndoGesture();
   __inline void Leap_Updater::checkGrabbingGesture(mb::Vector &cameraPivot);
+  __inline void Leap_Updater::checkToolIntersection();
+
+  //Tools:
+  Leap_Tool *tool;
+  void Leap_Updater::ToolSmoothMove();
+  void Leap_Updater::ToolStampMove();
 public:
   Leap_Updater(ID_List *idl,Leap_Hand *l,Leap_Hand *r);
   void OnEvent(const mb::EventGate &cEvent);

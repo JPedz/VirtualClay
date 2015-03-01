@@ -7,6 +7,8 @@ enum boneEnum {DISTAL,INTER,PROXI,META};
 #define mbstatus(a) mb::Kernel()->Interface()->SetStatus(mudbox::Interface::stNormal,a)
 
 #define mbhud(a) mb::Kernel()->Interface()->HUDMessageShow(a)
+#define PLUGINDIR   mb::Kernel()->PluginDirectory("VirtualClay")
+#define RESOURCESDIR mb::Kernel()->PluginDirectory("VirtualClay")+"/VirtualClayResources/"
 
 namespace mb = mudbox;
 QString VectorToQStringLine(mudbox::Vector v);

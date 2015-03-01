@@ -52,8 +52,11 @@ public:
   std::vector<bool> GetExtendedFingers(LR lOrR);
   mb::Vector getMotionDirection(fingerEnum fn, LR lOrR);
   bool Leap_Reader::CheckRotateHandGesture(LR lOrR);
+  bool Leap_Reader::CheckScaleHandGesture(LR lOrR);
 
   //Tools
   std::vector<mb::Vector> GetToolPositions();
+  mb::Vector getToolMotionDirection();
+  mb::Vector GetToolDirection();
 };
 
