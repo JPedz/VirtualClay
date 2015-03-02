@@ -16,6 +16,7 @@ MeshOps::MeshOps() {
   vertices = new std::vector<VertexModifyInfo>();
   points = new std::vector<mb::SurfacePoint>();
   midV = new MidVertex;
+  firstUse = true;
 }
 
 
@@ -28,6 +29,7 @@ void MeshOps::SelectObject(cameraWrapper *viewCam, mb::Vector screenPos) {
   ssp = viewCam->getCamera()->GetScreenSpacePicker();
   //TODO: Select from the actual hand camera for 3D selection
   mblog("SSP X: "+QString::number(screenX)+" y: "+QString::number(screenY)+"\n");
+  mblog("SCreenPos X: "+QString::number(screenPos.x)+" y: "+QString::number(screenPos.y)+"\n");
   bool b = ssp->Pick(viewCam->getCamera(),screenX,screenY,sp,false);
   if(b) {
     mb::Kernel()->Log("\n Hit MeshOps\n");
@@ -94,6 +96,7 @@ bool MeshOps::SelectFaces(mb::AxisAlignedBoundingBox box,float spreadDist) {
         mb::Kernel()->Log(QString::number(i)+" "+QString::number(faces->at(i))+"\n");
         pMesh->SetFaceSelected(faces->at(i));
       }
+
       return true;
     }
   } else {
@@ -136,10 +139,52 @@ bool MeshOps::SelectFaces(mb::Vector centrePoint, float widthHeight, float dropO
       MeshGeo->ChangeActiveLevel(MeshGeo->LowestLevel());
       MeshGeo->ChangeActiveLevel(MeshGeo->HighestLevel());
       mb::Kernel()->ViewPort()->Redraw();
-      StoreUndoQueue();
+      //if(firstUse) {
+        StoreUndoQueue();
+      //} else {
+      //  AddToUndoQueue();
+      //}
       return true;
     }
   }
+  return false;
+}
+
+bool MeshOps::ToolManip(mb::Vector centrePoint, float widthHeight, mb::Image *stamp) {
+  if(pMesh != NULL) {
+    mb::MeshChange *mC = pMesh->StartChange();
+    mb::Vector vS = centrePoint - mb::Vector(widthHeight,widthHeight,0);
+    mb::Vector vE = centrePoint + mb::Vector(widthHeight,widthHeight,0);
+    faces->clear();
+    vertices->clear();
+    points->clear();
+    midV->pos = mb::Vector(0,0,0);
+    midV->vI = 0;
+    mblog("SelectingBox\n");
+    boxSelect(vS,vE,stamp);
+    if(faces->size() > 0) {
+      mbstatus(QString("Polygon SELECTED"+QString::number(points->size())));
+      mblog("box selected");
+      for(int i = 0 ; i < faces->size() ; i++) {
+        mb::Kernel()->Log(QString::number(i)+" "+QString::number(faces->at(i))+"\n");
+        pMesh->SetFaceSelected(faces->at(i));
+      }
+      MeshGeo->ContentChanged();
+      MeshGeo->ChangeActiveLevel(MeshGeo->LowestLevel());
+      MeshGeo->ChangeActiveLevel(MeshGeo->HighestLevel());
+      mb::Kernel()->ViewPort()->Redraw();
+      if(firstUse) {
+        StoreUndoQueue();
+      } else {
+        AddToUndoQueue();
+      }
+      return true;
+    }
+  }
+  return false;
+}
+
+bool MeshOps::ToolManip(mb::Vector centrePoint, float size, float dropOffRate) {
   return false;
 }
 
@@ -159,8 +204,8 @@ bool MeshOps::SelectFaces() {
       polyScreen.push_back(polyScreenVector);
     }*/
 
-    mb::Vector vS = mb::Vector(midW-20,midH-20,0);
-    mb::Vector vE = mb::Vector(midW + 20, midH + 20, 0);
+    mb::Vector vS = mb::Vector(midW-40,midH-40,0);
+    mb::Vector vE = mb::Vector(midW + 40, midH + 40, 0);
     //mb::Kernel()->Interface()->SetStatus(mudbox::Interface::stNormal,pMesh->Name());
     //mb::Kernel()->Interface()->SetStatus(mudbox::Interface::stNormal,QString("BOX SELECTED"+QString::number(points.size())));
     faces->clear();
@@ -180,11 +225,11 @@ bool MeshOps::SelectFaces() {
         pMesh->SetFaceSelected(faces->at(i));
       }
       if(linearDropoff) {
-        mblog("Performing LinearDropOff");
+        mblog("Performing LinearDropOff mid point"+VectorToQStringLine(midV->pos));
         for(int i = 0 ; i < vertices->size() ; i++) {
           float dist = midV->pos.DistanceFrom(pMesh->VertexPosition(vertices->at(i).vI));
           vertices->at(i).strength = MIN(10/dist,1); //restrict to 1 strength
-          mb::Kernel()->Log("Strength: "+QString::number(i)+": "+QString::number(MIN(10/dist,1))+"\n");
+          mb::Kernel()->Log("Strength: "+QString::number(i)+": "+QString::number(MIN(10000/dist*dist*dist,1))+"\n");
           if(vertices->at(i).strength < 0.001)
             vertices->at(i).strength = 0;
         }
@@ -211,7 +256,7 @@ void MeshOps::MoveVertices(mb::Vector v) {
   for(int i = 0 ; i < vertices->size(); i++) {
     vi = vertices->at(i).vI;
     strength = vertices->at(i).strength;
-    mblog("Moving Vertex"+QString::number(i)+"\n");
+    mblog("Moving Vertex "+QString::number(i)+"by "+VectorToQStringLine(v*strength));
     //mb::Kernel()->Log(QString::number(vi)+ " " + QString::number(v.x)+"\n");
     pMesh->AddVertexPosition(vi,v*strength);
     //mb::Kernel()->Log(QString::number(vi)+ " " + QString::number(v2.x)+"\n"); 
@@ -231,7 +276,7 @@ void MeshOps::MoveVertices(mb::Vector v) {
 
 void MeshOps::StoreUndoQueue() {
   VertexInfo vertInfo;
-  mblog("Storing Undo\n");
+  //mblog("Storing Undo\n");
   //mb::VertexAdjacency *vA = new mb::VertexAdjacency();
   std::vector<VertexInfo> vertInfoList;
   for(int i = 0 ; i < vertices->size(); i++) {
@@ -245,13 +290,39 @@ void MeshOps::StoreUndoQueue() {
     //} else {
     //  vertInfo.fI = vA->FaceIndex();
     //}
-    mblog("getting vertex Position\n");
+    //mblog("getting vertex Position\n");
     vertInfo.pos = pMesh->VertexPosition(vertInfo.vI);
     vertInfoList.push_back(vertInfo);
-    mblog("Storing: "+QString::number(vertInfo.vI)+" "+VectorToQStringLine(vertInfo.pos));
+    //mblog("Storing: "+QString::number(vertInfo.vI)+" "+VectorToQStringLine(vertInfo.pos));
   }
   undoQueue.push_back(vertInfoList);
-  mblog("Stored Undo\n");
+  //mblog("Stored Undo\n");
+}
+
+void MeshOps::AddToUndoQueue() {
+  //mblog("Storing Undo\n");
+  VertexInfo vertInfo;
+  //mb::VertexAdjacency *vA = new mb::VertexAdjacency();
+  std::vector<VertexInfo> vertInfoList = undoQueue.back();
+  bool newVert = true;
+  for(int i = 0 ; i < vertices->size(); i++) {
+    //if(pMesh != NULL) {
+    //  mblog("getting vertexAdjacency\n");
+    //  vA = &pMesh->VertexAdjacency(vertices->at(i));
+    //}
+    for(int j = 0 ; i < vertInfoList.size() ; j++) {
+      if(vertices->at(i).vI == vertInfoList.at(j).vI) {
+        newVert = false;
+        break;
+      }
+    }
+    if(newVert) {
+      vertInfo.pos = pMesh->VertexPosition(vertInfo.vI);
+      vertInfoList.push_back(vertInfo); 
+    }
+    //mblog("Storing: "+QString::number(vertInfo.vI)+" "+VectorToQStringLine(vertInfo.pos));
+  }
+  //mblog("Stored Undo\n");
 }
 
 void MeshOps::UndoLast() {
@@ -415,8 +486,6 @@ void MeshOps::boxSelect(mb::Vector &v1,mb::Vector &v2) {
   int ySize = abs(v1.y - v2.y);
   size_t boxSize = xSize*ySize;
   mblog("Getting Screen Space Picker: "+curCam->Name()+"\n");
-  mb::Camera *activeCam = mb::Kernel()->Scene()->ActiveCamera();
-  mb::Kernel()->Scene()->SetActiveCamera(curCam);
   ssp = curCam->GetScreenSpacePicker();
   if(ssp == NULL) {
     mblog("SSP might be NULL?\n");
@@ -429,6 +498,8 @@ void MeshOps::boxSelect(mb::Vector &v1,mb::Vector &v2) {
   int x = MIN(v1.x,v2.x);
   int y = MIN(v1.y,v2.y);
   
+  mblog("Pixels select Range :"+QString::number(x)+" "+QString::number(y)+"\nTo: "+
+    QString::number(x+xSize)+" "+QString::number(y+ySize));
   //MidVertex Special;
 
   for (int i = 0; i < xSize ; i++) {
@@ -438,12 +509,14 @@ void MeshOps::boxSelect(mb::Vector &v1,mb::Vector &v2) {
       if(curCam->Pick(x,y,p)) {
         //If it belongs to the same mesh
         if(p.Mesh()->ID() == pMesh->ID()) {
+
           fi = p.FaceIndex();
+          mblog("Cur Loop :"+QString::number(i)+" "+QString::number(j)+"\n");
           if((j == floor(ySize/2)) && (i == floor(xSize/2))) {
             mblog("Saving mid point");
             if(pMesh != NULL) {
               midV->vI = pMesh->QuadPrimaryIndex(false,fi,2);
-              midV->pos = pMesh->VertexPosition(midV->vI);
+              midV->pos = p.WorldPosition();
             } else {
               mblog("PMeshNULL WTF?!");
             }
@@ -461,7 +534,95 @@ void MeshOps::boxSelect(mb::Vector &v1,mb::Vector &v2) {
     }
     x++;
   }
-  mb::Kernel()->Scene()->SetActiveCamera(activeCam);
+  if(midV->pos == mb::Vector(0,0,0)) {
+    if(vertices->size() > 0) {
+      mb::Vector sumVector = mb::Vector(0,0,0);
+      for(int ind = 0 ; ind < vertices->size() ; ind++) {
+        sumVector += pMesh->VertexPosition(vertices->at(ind).vI);
+      }
+      midV->pos = sumVector/(float)vertices->size();
+    }
+  }
+}
+
+void MeshOps::boxSelect(mb::Vector &v1,mb::Vector &v2,mb::Image *stamp) {
+  int xSize = abs(v1.x - v2.x);
+  int ySize = abs(v1.y - v2.y);
+  size_t boxSize = xSize*ySize;
+  mblog("Getting Screen Space Picker: "+curCam->Name()+"\n");
+  ssp = curCam->GetScreenSpacePicker();
+  if(ssp == NULL) {
+    mblog("SSP might be NULL?\n");
+  }
+  mblog("\n boxSelect:"+curCam->Name()+"\n");
+  int fi;
+  mb::SurfacePoint p;
+  // TODO: Optimise by reserving space
+  // TODO: Ensure it works if v2 is < v1 etc..
+  int x = MIN(v1.x,v2.x);
+  int y = MIN(v1.y,v2.y);
+  
+  mblog("Pixels select Range :"+QString::number(x)+" "+QString::number(y)+"\nTo: "+
+    QString::number(x+xSize)+" "+QString::number(y+ySize));
+
+  for (int i = 0; i < xSize ; i++) {
+    y = MIN(v1.y,v2.y);
+    for(int j = 0 ; j < ySize; j++) {
+      //If there is a surface point in this pixel
+      if(curCam->Pick(x,y,p)) {
+        //If it belongs to the same mesh
+        if(p.Mesh()->ID() == pMesh->ID()) {
+          fi = p.FaceIndex();
+          if((j == floor(ySize/2)) && (i == floor(xSize/2))) {
+            mblog("Saving mid point");
+            if(pMesh != NULL) {
+              midV->vI = pMesh->QuadPrimaryIndex(false,fi,2);
+              midV->pos = p.WorldPosition();
+            } else {
+              mblog("PMeshNULL WTF?!");
+            }
+          }
+          if(checkUniqueInFaceList(fi)) {  
+            points->push_back(p);
+            faces->push_back(fi);
+            addVertex(fi);
+            mblog("Face: "+QString::number(x)+" "
+              +QString::number(y)+" "+QString::number(p.FaceIndex())+"\n");
+          }
+        }
+      }
+      y++;
+    }
+    x++;
+  }
+  mb::Vector posi;
+  float closestDist;
+  float curDist;
+  float closestX;
+  float closestY;
+  x = MIN(v1.x,v2.x);
+  y = MIN(v1.y,v2.y);
+  for(int k = 0 ; k < vertices->size() ; k++) {
+    closestDist = FLT_MAX;
+    posi = pMesh->VertexPosition(vertices->at(k).vI);
+    for(int i = 0; i < xSize; i++) {
+      y = MIN(v1.y,v2.y);
+      for(int j = 0 ; j < ySize; j++) {
+        if(curCam->Pick(x,y,p)) {
+          if(curDist = posi.DistanceFrom(p.WorldPosition()) < closestDist) {
+            closestDist = curDist;
+            closestX = i;
+            closestY = j;
+          }
+        }
+        y++;
+      }
+      x++;
+    }
+    vertices->at(k).strength = stamp->ColorAt(closestX,closestY).Luminance();
+    mblog("Vertex : "+QString::number(k)+" Strength = "+QString::number(vertices->at(k).strength)+"\n");
+  }
+
 }
 
 void MeshOps::DeselectAllFaces() {

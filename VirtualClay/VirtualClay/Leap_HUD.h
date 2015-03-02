@@ -21,10 +21,15 @@ public:
   float cX;
   float cY;
 	//mb::CGcontext m_CGContext;
-	mb::Texture* menuMiddle;
-	mb::Texture* menuUp;
-	mb::Texture* menuRight;
-	mb::Texture* menuDown;
-	mb::Texture* menuLeft;
+	mb::Texture* menuMiddle_L;
+	mb::Texture* menuUp_L;
+	mb::Texture* menuRight_L;
+	mb::Texture* menuDown_L;
+	mb::Texture* menuLeft_L;
+	mb::Texture* menuMiddle_R;
+	mb::Texture* menuUp_R;
+	mb::Texture* menuRight_R;
+	mb::Texture* menuDown_R;
+	mb::Texture* menuLeft_R;
 };
 

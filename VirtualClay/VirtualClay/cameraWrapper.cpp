@@ -67,13 +67,26 @@ void cameraWrapper::setAim(mb::Vector v) {
   cam->SetTarget(v);
 }
 
+void cameraWrapper::setRotation(mb::Vector &ypr) {
+  cam->SetAim(mb::Vector(0,0,0));
+  cam->SetTarget(mb::Vector(0,0,0));
+}
+
 void cameraWrapper::setTranslation(mb::Vector v) {
   //cam_TNode = cam_GNode->Transformation();
   cam_TNode->SetPosition(v);
 }
 
+void cameraWrapper::setPosition(mb::Vector &pos) {
+  cam->SetPosition(pos);
+}
+
 void cameraWrapper::selectPoints(mb::Vector v) {
 
+}
+
+void cameraWrapper::MoveForward(float dist) {
+  cam->MoveForward(dist);
 }
 
 void cameraWrapper::deleteCam(void) {

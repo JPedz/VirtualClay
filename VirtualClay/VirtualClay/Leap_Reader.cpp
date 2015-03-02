@@ -11,7 +11,7 @@ Leap_Reader::Leap_Reader(void) {
   controller.enableGesture(Leap::Gesture::TYPE_CIRCLE);
   controller.config().setFloat("Gesture.Swipe.MinLength", 300.0);
   controller.config().setFloat("Gesture.Swipe.MinVelocity", 1000.0);
-  controller.config().setFloat("Gesture.Circle.MinRadius", 10.0);
+  controller.config().setFloat("Gesture.Circle.MinRadius", 15.0);
   controller.config().setFloat("Gesture.Circle.MinArc", 2.5*PI);
   controller.config().save();
   QTime *t = new QTime();
@@ -50,55 +50,33 @@ bool Leap_Reader::updateAll(void) {
     isConnected =true;
     Frame f = controller.frame();
     if(f.id() != lastFrameID) {
-      updateDirection(f);
+      HandSetup(f);
       isScreenTap = false;
       isUndo = false;
-      isCircleCW = false;
-      isCircleCCW = false;
+      isCircleCW_R = false;
+      isCircleCCW_R = false;
+      isCircleCW_L = false;
+      isCircleCCW_L = false;
       Leap::GestureList gestures = f.gestures();
       Leap::SwipeGesture swipeGesture = Leap::Gesture::invalid();
       Leap::CircleGesture circleGesture = Leap::Gesture::invalid();
       Leap::HandList hl;
+      std::vector<bool> ext_r = GetExtendedFingers(r);
+      std::vector<bool> ext_l = GetExtendedFingers(l);
       for(Leap::GestureList::const_iterator gl = gestures.begin(); gl != f.gestures().end(); gl++)
       {
         hl = (*gl).hands();
-        if(hl[0].isLeft())
+        if(hl[0].isLeft()) {
           gestureHand = l;
-        else
+          mblog("LeftHand");
+        } else {
           gestureHand = r;
-          switch ((*gl).type()) {
-            case Leap::Gesture::TYPE_CIRCLE:
-              //http://doc.qt.io/qt-5/qtopengl-2dpainting-example.html
-              if(gestureHand == r) {
-              switch((*gl).state()) {
-                case Leap::Gesture::STATE_START:
-                  //Handle starting gestures
-                  break;
-                case Leap::Gesture::STATE_UPDATE:
-                  //Handle continuing gestures
-                  break;
-                case Leap::Gesture::STATE_STOP:
-                  circleGesture = CircleGesture(*gl);
-                  if(circleGesture.pointable().direction().angleTo(circleGesture.normal()) <= Leap::PI/2) {
-                    mblog("circle Radius: "+QString::number(circleGesture.radius())+"\n");
-                    isCircleCW = true;
-                  }
-                  if(circleGesture.pointable().direction().angleTo(circleGesture.normal()) >= Leap::PI/2) {
-                    mblog("circle Radius: "+QString::number(circleGesture.radius())+"\n");
-                    isCircleCCW = true;
-                  }
-                  //Handle swipe gestures
-                  break;
-                default:
-                  break;
-              }
-            }
-            break;
-          case Leap::Gesture::TYPE_KEY_TAP:
-            //Handle key tap gestures
-            break;
-          case Leap::Gesture::TYPE_SCREEN_TAP:
-            switch ((*gl).state()) {
+          mblog("RightHand");
+        }
+        switch ((*gl).type()) {
+          case Leap::Gesture::TYPE_CIRCLE:
+            circleGesture = CircleGesture(*gl);
+            switch((*gl).state()) {
               case Leap::Gesture::STATE_START:
                 //Handle starting gestures
                 break;
@@ -106,24 +84,66 @@ bool Leap_Reader::updateAll(void) {
                 //Handle continuing gestures
                 break;
               case Leap::Gesture::STATE_STOP:
-                isScreenTap = true;
-                //Handle ending gestures
+                if(gestureHand == r) {
+                  mblog("RightHand");
+                  if(!ext_r.at(0) && ext_r.at(1) && !ext_r.at(2) && !ext_r.at(3) && !ext_r.at(4)) { 
+                    if(circleGesture.pointable().direction().angleTo(circleGesture.normal()) <= Leap::PI/2) {
+                      mblog("circle Radius: "+QString::number(circleGesture.radius())+"\n");
+                      isCircleCW_R = true;
+                    }
+                    if(circleGesture.pointable().direction().angleTo(circleGesture.normal()) >= Leap::PI/2) {
+                      mblog("circle Radius: "+QString::number(circleGesture.radius())+"\n");
+                      isCircleCCW_R = true;
+                    }
+                  }
+                } else {
+                  mblog("LeftHand");
+                    if(!ext_l.at(0) && ext_l.at(1) && !ext_l.at(2) && !ext_l.at(3) && !ext_l.at(4)) { 
+                    if(circleGesture.pointable().direction().angleTo(circleGesture.normal()) <= Leap::PI/2) {
+                      mblog("circle Radius: "+QString::number(circleGesture.radius())+"\n");
+                      isCircleCW_L = true;
+                    }
+                    if(circleGesture.pointable().direction().angleTo(circleGesture.normal()) >= Leap::PI/2) {
+                      mblog("circle Radius: "+QString::number(circleGesture.radius())+"\n");
+                      isCircleCCW_L = true;
+                    }
+                  }
+                }
                 break;
               default:
-                //Handle unrecognized states
                 break;
             }
-            //Handle screen tap gestures
+          break;
+        case Leap::Gesture::TYPE_KEY_TAP:
+          //Handle key tap gestures
+          break;
+        case Leap::Gesture::TYPE_SCREEN_TAP:
+          switch ((*gl).state()) {
+            case Leap::Gesture::STATE_START:
+              //Handle starting gestures
+              break;
+            case Leap::Gesture::STATE_UPDATE:
+              //Handle continuing gestures
+              break;
+            case Leap::Gesture::STATE_STOP:
+              isScreenTap = true;
+              //Handle ending gestures
+              break;
+            default:
+              //Handle unrecognized states
+              break;
+          }
+          //Handle screen tap gestures
+          break;
+        case Leap::Gesture::TYPE_SWIPE:
+            swipeGesture = SwipeGesture(*gl);
+            if(swipeGesture.direction().x < 0 )
+              isUndo = true;
+            //Handle swipe gestures
             break;
-          case Leap::Gesture::TYPE_SWIPE:
-              swipeGesture = SwipeGesture(*gl);
-              if(swipeGesture.direction().x < 0 )
-                isUndo = true;
-              //Handle swipe gestures
-              break;
-          default:
-              //Handle unrecognized gestures
-              break;
+        default:
+            //Handle unrecognized gestures
+            break;
         }
       }
       lastFrameID = f.id();
@@ -142,10 +162,17 @@ bool Leap_Reader::updateAll(void) {
 
 void Leap_Reader::HandSetup(Frame &f) {
   HandList hands = f.hands();
+  ToolList tools = f.tools();
+  PointableList pointys = f.pointables();
  // mblog("\nHandCount: "+QString::number(hands.count())+"\n");
   //Reconfigure these to ensure that the hand with the greatest confidence chooses
   // which is 'left' and which is right.
-  
+  isTool = false;
+  if(tools.count() > 0) {
+    isTool = true;
+    mblog("IS TOOL\n");
+    tool = tools.frontmost();
+  }
   isGrabbing_L =false;
   ishands = true;
   if(hands.count() > 1) {
@@ -190,20 +217,7 @@ void Leap_Reader::HandSetup(Frame &f) {
       handvisi.at(1) = false;
       ishands = false;
     }
-  }/*
-  if(hands.leftmost().isLeft()) {
-    hand_l = hands.leftmost();
-  } else if(hands.rightmost().isLeft()) {
-    hand_l = hands.rightmost();
   }
-  if(hands.leftmost().isRight()) {
-    hand_r = hands.leftmost();
-  } else if(hands.rightmost().isRight()) {
-    hand_r = hands.rightmost();
-  } else {
-    hand_r = hands.rightmost();
-    hand_l = hands.leftmost();
-  }*/
 }
 
 mb::Vector Leap_Reader::LeapDirectionToMudbox(Leap::Vector dir) {
@@ -235,47 +249,67 @@ mb::Vector Leap_Reader::getFingerDirection_R(fingerEnum fn) {
 }
 
 
-std::vector<mb::Vector> Leap_Reader::getFingerPosition(fingerEnum fn,LR LOrR) {
+std::vector<mb::Vector> Leap_Reader::getFingerPosition(fingerEnum fn,LR lOrR) {
   Finger f;
   Bone b;
-  if(LOrR == l)
+  if(lOrR == l)
     f = hand_l.fingers().fingerType(Finger::Type(fn))[0];
   else
     f = hand_r.fingers().fingerType(Finger::Type(fn))[0];
 //  mudbox::Kernel()->Interface()->SetStatus(mudbox::Interface::stNormal,"Finger Pos"+QString::number(fn)+": "+
 //      QString::number(f.stabilizedTipPosition().x)+" "+QString::number(f.stabilizedTipPosition().y)+" "+QString::number(f.stabilizedTipPosition().z));  
   
-  std::vector<mb::Vector> fingerJoints(3);
+  std::vector<mb::Vector> fingerJoints(4);
   fingerJoints.at(TIP) = scale*(mb::Vector(f.tipPosition().x,f.tipPosition().y,f.tipPosition().z));
   fingerJoints.at(DIP) = scale*(mb::Vector(f.jointPosition(f.JOINT_DIP).x,f.jointPosition(f.JOINT_DIP).y,f.jointPosition(f.JOINT_DIP).z));
   fingerJoints.at(PIP) = scale*(mb::Vector(f.jointPosition(f.JOINT_PIP).x,f.jointPosition(f.JOINT_PIP).y,f.jointPosition(f.JOINT_PIP).z));
+  fingerJoints.at(MCP) = scale*(leapVecToMBVec(f.jointPosition(f.JOINT_MCP)));
   //mblog("Finger Pos: "+VectorToQStringLine(fingerJoints.at(0)));
   return fingerJoints;
 }
 
-mb::Vector Leap_Reader::getFingerPosition_R(fingerEnum fn) {
+std::vector<mb::Vector> Leap_Reader::getBoneOrients(fingerEnum fn,LR lOrR) {
   Finger f;
   Bone b;
-  f = hand_r.fingers().fingerType(Finger::Type(fn))[0];
-//  mudbox::Kernel()->Interface()->SetStatus(mudbox::Interface::stNormal,"Finger Pos"+QString::number(fn)+": "+
-//      QString::number(f.stabilizedTipPosition().x)+" "+QString::number(f.stabilizedTipPosition().y)+" "+QString::number(f.stabilizedTipPosition().z));  
-  return mb::Vector(f.tipPosition().x,f.tipPosition().y,f.tipPosition().z);
+  if(lOrR == l)
+    f = hand_l.fingers().fingerType(Finger::Type(fn))[0];
+  else
+    f = hand_r.fingers().fingerType(Finger::Type(fn))[0];
+  std::vector<mb::Vector> bones(4);
+  bones.at(DISTAL) = RAD_TO_DEG*(leapVecToMBVec(f.bone(b.TYPE_DISTAL).direction()));
+  if(lOrR == l)
+    bones.at(DISTAL) = RAD_TO_DEG*(leapVecToMBVec(f.bone(b.TYPE_DISTAL).basis().xBasis));
+  bones.at(INTER) = RAD_TO_DEG*(leapVecToMBVec(f.bone(b.TYPE_INTERMEDIATE).basis().yBasis));
+  bones.at(PROXI) = RAD_TO_DEG*(leapVecToMBVec(f.bone(b.TYPE_PROXIMAL).basis().yBasis));
+  bones.at(META) = RAD_TO_DEG*(leapVecToMBVec(f.bone(b.TYPE_METACARPAL).basis().yBasis));
+  return bones;
+}
+
+mb::Vector Leap_Reader::getMotionDirection(fingerEnum fn, LR lOrR) {
+  mb::Vector dir;
+  Leap::Finger fing;
+  if(lOrR == l) {
+    fing = hand_l.fingers().fingerType(Finger::Type(fn))[0]; 
+  } else {
+    fing = hand_r.fingers().fingerType(Finger::Type(fn))[0]; 
+  }
+  dir = leapVecToMBVec(fing.tipVelocity());
+  dir.Normalize();
+  return dir;
 }
 
 mb::Vector Leap_Reader::getDirection_L(void) {
-  float yaw,roll,pitch;
-  yaw = hand_l.direction().yaw();
-  roll = hand_l.palmNormal().roll();
-  pitch = hand_l.direction().pitch();
+  const float yaw = hand_l.direction().yaw();
+  const float roll = hand_l.palmNormal().roll();
+  const float pitch = hand_l.direction().pitch();
   return mb::Vector(-pitch,yaw,-roll)*RAD_TO_DEG;
 }
 
 mb::Vector Leap_Reader::getDirection_R(void) {
  // http://stackoverflow.com/questions/26555040/yaw-pitch-and-roll-to-glmrotate
-  float yaw,roll,pitch;
-  yaw = hand_r.direction().yaw();
-  roll = hand_r.palmNormal().roll();
-  pitch = hand_r.direction().pitch();
+  const float yaw = hand_r.direction().yaw();
+  const float roll = hand_r.palmNormal().roll();
+  const float pitch = hand_r.direction().pitch();
   return mb::Vector(-pitch,yaw,-roll)*RAD_TO_DEG;
 }
 
@@ -291,14 +325,12 @@ bool Leap_Reader::isFist(LR lr) {
   Frame f;
   switch(lr) {
     case(l):
-      if(hand_l.grabStrength() > 0.9) {
+      if(hand_l.grabStrength() > 0.9)
         return true;
-      }
       break;
     case(r):
-      if(hand_r.grabStrength() > 0.9) {
+      if(hand_r.grabStrength() > 0.9)
         return true;
-      }
       break;
   }
   return false;
@@ -318,7 +350,6 @@ std::vector<bool> Leap_Reader::GetExtendedFingers(LR lOrR) {
   return extendedList;
 }
 
-
 mb::Vector Leap_Reader::TestFunct() {
   Leap::Vector wristPoint = hand_l.wristPosition();
   Leap::Vector tripoint1 = hand_l.fingers().leftmost().jointPosition(Finger::JOINT_MCP);
@@ -326,27 +357,64 @@ mb::Vector Leap_Reader::TestFunct() {
   return mb::Vector(0,0,0);
 }
 
+bool Leap_Reader::CheckRotateHandGesture(LR lOrR) {
+  
+  if(lOrR == l) {
+    std::vector<bool> ext_l = GetExtendedFingers(l);
+    if(ext_l.at(0) && ext_l.at(1) && !ext_l.at(2) && !ext_l.at(3) && ext_l.at(4))
+      return true;
+  } else {
+    std::vector<bool> ext_r = GetExtendedFingers(r);
+    if(ext_r.at(0) && ext_r.at(1) && !ext_r.at(2) && !ext_r.at(3) && ext_r.at(4))
+      return true;
+  }
+  return false;
+}
+
+
+bool Leap_Reader::CheckScaleHandGesture(LR lOrR) {
+  
+  if(lOrR == l) {
+    std::vector<bool> ext_l = GetExtendedFingers(l);
+    if(!ext_l.at(0) && ext_l.at(1) && !ext_l.at(2) && !ext_l.at(3) && ext_l.at(4))
+      return true;
+  } else {
+    std::vector<bool> ext_r = GetExtendedFingers(r);
+    if(!ext_r.at(0) && ext_r.at(1) && !ext_r.at(2) && !ext_r.at(3) && ext_r.at(4))
+      return true;
+  }
+  return false;
+}
+
+
 mb::Vector Leap_Reader::rotateScene() {
+  //TODO: Do I need this?
+  std::vector<bool> ext_l = GetExtendedFingers(l);
+  std::vector<bool> ext_r = GetExtendedFingers(r);
 
   if(handvisi.at(l)) {
     //Using Left Hand;
-    if(hand_l.rotationProbability(controller.frame(10)) > 0.6) {
-      float ang = hand_l.rotationAngle(controller.frame(10));
-      Leap::Vector rotAxis = hand_l.rotationAxis(controller.frame(10));
-      //return ang*mb::Vector(0, rotAxis.y, 0);
-      return ang*mb::Vector(rotAxis.x, rotAxis.y, rotAxis.z);
-    } else {
-      mblog("Left Hand Rotate Probability = "+QString::number(hand_l.rotationProbability(controller.frame(10))));
+    if(ext_l.at(0) && ext_l.at(1) && !ext_l.at(2) && !ext_l.at(3) && ext_l.at(4)) { 
+      if(hand_l.rotationProbability(controller.frame(10)) > 0.6) {
+        float ang = hand_l.rotationAngle(controller.frame(10));
+        Leap::Vector rotAxis = hand_l.rotationAxis(controller.frame(10));
+        //return ang*mb::Vector(0, rotAxis.y, 0);
+        return ang*mb::Vector(rotAxis.x, rotAxis.y, rotAxis.z);
+      } else {
+        mblog("Left Hand Rotate Probability = "+QString::number(hand_l.rotationProbability(controller.frame(10))));
+      }
     }
   } else {
-    //Using Right Hand;
-    if(hand_r.rotationProbability(controller.frame(10)) > 0.6) {
-      float ang = hand_r.rotationAngle(controller.frame(10));
-      Leap::Vector rotAxis = hand_r.rotationAxis(controller.frame(10));
-      //return ang*mb::Vector(0, rotAxis.y, 0);
-      return ang*mb::Vector(rotAxis.x, rotAxis.y, rotAxis.z);
-    } else {
-      mblog("Right Hand Rotate Probability = "+QString::number(hand_r.rotationProbability(controller.frame(10))));
+    if(ext_r.at(0) && ext_r.at(1) && !ext_r.at(2) && !ext_r.at(3) && ext_r.at(4)) { 
+      //Using Right Hand;
+      if(hand_r.rotationProbability(controller.frame(10)) > 0.6) {
+        float ang = hand_r.rotationAngle(controller.frame(10));
+        Leap::Vector rotAxis = hand_r.rotationAxis(controller.frame(10));
+        //return ang*mb::Vector(0, rotAxis.y, 0);
+        return ang*mb::Vector(rotAxis.x, rotAxis.y, rotAxis.z);
+      } else {
+        mblog("Right Hand Rotate Probability = "+QString::number(hand_r.rotationProbability(controller.frame(10))));
+      }
     }
   }
   return mb::Vector(0,0,0);
@@ -379,8 +447,30 @@ bool Leap_Reader::isVisible(LR lr) {
   return handvisi.at(lr);
 }
 
-void Leap_Reader::updateDirection(Frame &f) {
-  HandSetup(f);
+std::vector<mb::Vector> Leap_Reader::GetToolPositions() {
+  std::vector<mb::Vector> toolLocs;
+  if(isTool) {
+    toolLocs.push_back(leapVecToMBVec(tool.stabilizedTipPosition()));
+    toolLocs.push_back(leapVecToMBVec(
+      tool.stabilizedTipPosition()-(tool.direction()*tool.length())
+    ));
+  }
+  return toolLocs;
 }
 
+
+mb::Vector Leap_Reader::GetToolDirection() {
+  mb::Vector tooldir;
+  if(isTool) {
+    tooldir = (leapVecToMBVec(tool.direction()));
+  }
+  return tooldir;
+}
+
+mb::Vector Leap_Reader::getToolMotionDirection() {
+  mb::Vector dir;
+  dir = leapVecToMBVec(tool.tipVelocity());
+  dir.Normalize();
+  return dir;
+}
 

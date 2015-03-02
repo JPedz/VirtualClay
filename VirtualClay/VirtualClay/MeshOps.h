@@ -35,8 +35,10 @@ class MeshOps {
   std::vector<mb::SurfacePoint > *points;
   std::vector<std::vector<VertexInfo>> undoQueue;
   void StoreUndoQueue();
-  void MeshOps::AddVFI(int vi, int fi);
+  void AddToUndoQueue();
+  void AddVFI(int vi, int fi);
   MidVertex *midV;
+  mb::Vector midPos;
 
 public:
   MeshOps();
@@ -50,6 +52,7 @@ public:
   bool SelectFaces(mb::Vector centrePoint, float width, float height, float dropOffRate);
   //Select in a box with corners v1 and v2 (Z is ignored)
   void boxSelect(mb::Vector &v1,mb::Vector &v2);
+  void boxSelect(mb::Vector &v1,mb::Vector &v2,mb::Image *stamp);
   void polygonSelect(QList<mb::Vector> &points, QList<mb::SurfacePoint>&sp,
                          QList<int> &faces, QList<int> &vertices);
   void addVertex(int fi);
@@ -58,6 +61,11 @@ public:
   void MoveVertices(mb::Vector v);
   bool CheckIntersection(mb::AxisAlignedBoundingBox box1);
   void DeselectAllFaces();
+
+  //Tools:
+  bool firstUse;
+  bool ToolManip(mb::Vector centrePoint, float size, mb::Image *stamp);
+  bool ToolManip(mb::Vector centrePoint, float size, float dropOffRate);
 };
 
 #endif

@@ -27,14 +27,15 @@ class VirtualClay: mudbox::Node {
 public:
 	static void Initializer(void);
 	static void Execute(void);   // Execute 
-	
+  void Serialize(mudbox::Stream s);
 };
 
-
-
-
-
-
+void Serialize(mudbox::Stream s) {
+  if(s.IsStoring()) {
+    s << "Hello?" << "\n";
+    mblog("Maybe Storing??\n");
+  } 
+}
 
 
 

@@ -161,6 +161,7 @@
     <ClInclude Include="Leap_Fingers.h" />
     <ClInclude Include="Leap_Hand.h" />
     <ClInclude Include="Leap_HUD.h" />
+    <ClInclude Include="Leap_Tool.h" />
     <ClInclude Include="SmoothMoveVertices.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="ID_List.h" />
@@ -180,6 +181,7 @@
     <ClCompile Include="Leap_HUD.cpp" />
     <ClCompile Include="Leap_Listener.cpp" />
     <ClCompile Include="Leap_Reader.cpp" />
+    <ClCompile Include="Leap_Tool.cpp" />
     <ClCompile Include="Leap_Updater.cpp" />
     <ClCompile Include="menuUI.cpp" />
     <ClCompile Include="MeshOps.cpp" />

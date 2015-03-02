@@ -9,10 +9,10 @@ class Leap_Reader {
   Leap::Controller controller;
   void getAndSetHandDirection(Hand &h,LR lr);
   void HandSetup(Frame &f);
-  void Leap_Reader::updateDirection(Frame &f);
   float handConfidenceLevel;
   Hand hand_l;
   Hand hand_r;
+  Tool tool;
   int lastFrameID;
   std::vector<bool> handvisi;
   mb::Vector Leap_Reader::LeapDirectionToMudbox(Leap::Vector dir);
@@ -26,8 +26,11 @@ public:
   bool grabswitch;
   bool isGrabbing_R;
   bool isUndo;
-  bool isCircleCW;
-  bool isCircleCCW;
+  bool isCircleCW_R;
+  bool isCircleCCW_R;
+  bool isCircleCW_L;
+  bool isCircleCCW_L;
+  bool isTool;
   LR gestureHand;
   Leap_Reader(void);
   ~Leap_Reader(void);
@@ -41,11 +44,19 @@ public:
   mb::Vector getFingerDirection_L(fingerEnum fn);
   mb::Vector getFingerDirection_R(fingerEnum fn);
   std::vector<mb::Vector> getFingerPosition(fingerEnum fn,LR LOrR);
-  mb::Vector getFingerPosition_R(fingerEnum fn);
-  bool Leap_Reader::isFist(LR lr);
-  bool Leap_Reader::isVisible(LR lr);
-  mb::Vector Leap_Reader::rotateScene();
-  mb::Vector Leap_Reader::TestFunct();
+  std::vector<mb::Vector> getBoneOrients(fingerEnum fn,LR lOrR);
+  bool isFist(LR lr);
+  bool isVisible(LR lr);
+  mb::Vector rotateScene();
+  mb::Vector TestFunct();
   std::vector<bool> GetExtendedFingers(LR lOrR);
+  mb::Vector getMotionDirection(fingerEnum fn, LR lOrR);
+  bool Leap_Reader::CheckRotateHandGesture(LR lOrR);
+  bool Leap_Reader::CheckScaleHandGesture(LR lOrR);
+
+  //Tools
+  std::vector<mb::Vector> GetToolPositions();
+  mb::Vector getToolMotionDirection();
+  mb::Vector GetToolDirection();
 };
 

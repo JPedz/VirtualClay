@@ -50,30 +50,50 @@ void Leap_HUD::OnNodeEvent( const mb::Attribute &cAttribute, mb::NodeEventType e
 Leap_HUD::Leap_HUD():
   menuChoice(this,"menuOptions")
 {
-    menuChoice.AddItem("Middle");
-    menuChoice.AddItem("Up");
-    menuChoice.AddItem("Right");
-    menuChoice.AddItem("Down");
-    menuChoice.AddItem("Left");
+    menuChoice.AddItem("Middle_L");
+    menuChoice.AddItem("Up_L");
+    menuChoice.AddItem("Right_L");
+    menuChoice.AddItem("Down_L");
+    menuChoice.AddItem("Left_L");    
+    menuChoice.AddItem("Middle_R");
+    menuChoice.AddItem("Up_R");
+    menuChoice.AddItem("Right_R");
+    menuChoice.AddItem("Down_R");
+    menuChoice.AddItem("Left_R");
     menuChoice.SetValue(0);
     cX = 0;
     cY = 0;
     QString loc = QString("C:/Users/Pedz/Documents/VirtualClay/VirtualClay/VirtualClay/VirtualClay/Resources/");
-	  menuMiddle = mb::CreateInstance<mb::Texture>();
-    menuMiddle->CreateFromFile(loc + QString("menuMiddle.png"));
-	  menuMiddle->SetLocation( mb::TexturePool::locationGPU );
-	  menuUp = mb::CreateInstance<mb::Texture>();
-    menuUp->CreateFromFile(loc + QString("menuUp.png"));
-	  menuUp->SetLocation( mb::TexturePool::locationGPU );
-	  menuLeft = mb::CreateInstance<mb::Texture>();
-    menuLeft->CreateFromFile(loc + QString("menuLeft.png"));
-	  menuLeft->SetLocation( mb::TexturePool::locationGPU );
-	  menuDown = mb::CreateInstance<mb::Texture>();
-    menuDown->CreateFromFile(loc + QString("menuDown.png"));
-	  menuDown->SetLocation( mb::TexturePool::locationGPU );
-    menuRight = mb::CreateInstance<mb::Texture>();
-    menuRight->CreateFromFile(loc + QString("menuRight.png"));
-	  menuRight->SetLocation( mb::TexturePool::locationGPU );
+	  menuMiddle_L = mb::CreateInstance<mb::Texture>();
+    menuMiddle_L->CreateFromFile(RESOURCESDIR + QString("menuMiddle_L.png"));
+	  menuMiddle_L->SetLocation( mb::TexturePool::locationGPU );
+	  menuUp_L = mb::CreateInstance<mb::Texture>();
+    menuUp_L->CreateFromFile(RESOURCESDIR + QString("menuUp_L.png"));
+	  menuUp_L->SetLocation( mb::TexturePool::locationGPU );
+	  menuLeft_L = mb::CreateInstance<mb::Texture>();
+    menuLeft_L->CreateFromFile(RESOURCESDIR + QString("menuLeft_L.png"));
+	  menuLeft_L->SetLocation( mb::TexturePool::locationGPU );
+	  menuDown_L = mb::CreateInstance<mb::Texture>();
+    menuDown_L->CreateFromFile(RESOURCESDIR + QString("menuDown_L.png"));
+	  menuDown_L->SetLocation( mb::TexturePool::locationGPU );
+    menuRight_L = mb::CreateInstance<mb::Texture>();
+    menuRight_L->CreateFromFile(RESOURCESDIR + QString("menuRight_L.png"));
+	  menuRight_L->SetLocation( mb::TexturePool::locationGPU );
+    menuMiddle_R = mb::CreateInstance<mb::Texture>();
+    menuMiddle_R->CreateFromFile(RESOURCESDIR + QString("menuMiddle_R.png"));
+	  menuMiddle_R->SetLocation( mb::TexturePool::locationGPU );
+	  menuUp_R = mb::CreateInstance<mb::Texture>();
+    menuUp_R->CreateFromFile(RESOURCESDIR + QString("menuUp_R.png"));
+	  menuUp_R->SetLocation( mb::TexturePool::locationGPU );
+	  menuLeft_R = mb::CreateInstance<mb::Texture>();
+    menuLeft_R->CreateFromFile(RESOURCESDIR + QString("menuLeft_R.png"));
+	  menuLeft_R->SetLocation( mb::TexturePool::locationGPU );
+	  menuDown_R = mb::CreateInstance<mb::Texture>();
+    menuDown_R->CreateFromFile(RESOURCESDIR + QString("menuDown_R.png"));
+	  menuDown_R->SetLocation( mb::TexturePool::locationGPU );
+    menuRight_R = mb::CreateInstance<mb::Texture>();
+    menuRight_R->CreateFromFile(RESOURCESDIR + QString("menuRight_R.png"));
+	  menuRight_R->SetLocation( mb::TexturePool::locationGPU );
 }
 
 void Leap_HUD::SetCentre(mb::Vector &c) {
@@ -88,19 +108,34 @@ void Leap_HUD::Process(mb::ViewPortState &s) {
 
   switch(menuChoice) {
   case 0:
-    currTex = menuMiddle;
+    currTex = menuMiddle_L;
     break;
   case 1:
-    currTex = menuUp;
+    currTex = menuUp_L;
     break;
   case 2:
-    currTex = menuRight;
+    currTex = menuRight_L;
     break;
   case 3:
-    currTex = menuDown;
+    currTex = menuDown_L;
     break;
   case 4:
-    currTex = menuLeft;
+    currTex = menuLeft_L;
+    break;
+  case 5:
+    currTex = menuMiddle_R;
+    break;
+  case 6:
+    currTex = menuUp_R;
+    break;
+  case 7:
+    currTex = menuRight_R;
+    break;
+  case 8:
+    currTex = menuDown_R;
+    break;
+  case 9:
+    currTex = menuLeft_R;
     break;
   }
   if(currTex == NULL) {
@@ -127,37 +162,62 @@ void Leap_HUD::SetVisible( bool bVisible )
 
 	if( bVisible )
 	{
-    if( !menuMiddle ) {
+    if( !menuMiddle_L ) {
       QString loc = QString("C:/Users/Pedz/Documents/VirtualClay/VirtualClay/VirtualClay/VirtualClay/Resources/");
-			menuMiddle = mb::CreateInstance<mb::Texture>();
-      menuMiddle->CreateFromFile(loc + QString("menuMiddle.png"));
-	    menuMiddle->SetLocation( mb::TexturePool::locationGPU );
-	    menuUp = mb::CreateInstance<mb::Texture>();
-      menuUp->CreateFromFile(loc + QString("menuUp.png"));
-	    menuUp->SetLocation( mb::TexturePool::locationGPU );
-	    menuLeft = mb::CreateInstance<mb::Texture>();
-      menuLeft->CreateFromFile(loc + QString("menuLeft.png"));
-	    menuLeft->SetLocation( mb::TexturePool::locationGPU );
-	    menuDown = mb::CreateInstance<mb::Texture>();
-      menuDown->CreateFromFile(loc + QString("menuDown.png"));
-	    menuDown->SetLocation( mb::TexturePool::locationGPU );
-      menuRight = mb::CreateInstance<mb::Texture>();
-      menuRight->CreateFromFile(loc + QString("menuRight.png"));
-	    menuRight->SetLocation( mb::TexturePool::locationGPU );
+			menuMiddle_L = mb::CreateInstance<mb::Texture>();
+      menuMiddle_L->CreateFromFile(RESOURCESDIR + QString("menuMiddle_L.png"));
+	    menuMiddle_L->SetLocation( mb::TexturePool::locationGPU );
+	    menuUp_L = mb::CreateInstance<mb::Texture>();
+      menuUp_L->CreateFromFile(RESOURCESDIR + QString("menuUp_L.png"));
+	    menuUp_L->SetLocation( mb::TexturePool::locationGPU );
+	    menuLeft_L = mb::CreateInstance<mb::Texture>();
+      menuLeft_L->CreateFromFile(RESOURCESDIR + QString("menuLeft_L.png"));
+	    menuLeft_L->SetLocation( mb::TexturePool::locationGPU );
+	    menuDown_L = mb::CreateInstance<mb::Texture>();
+      menuDown_L->CreateFromFile(RESOURCESDIR + QString("menuDown_L.png"));
+	    menuDown_L->SetLocation( mb::TexturePool::locationGPU );
+      menuRight_L = mb::CreateInstance<mb::Texture>();
+      menuRight_L->CreateFromFile(RESOURCESDIR + QString("menuRight_L.png"));
+	    menuRight_L->SetLocation( mb::TexturePool::locationGPU );			
+      menuMiddle_R = mb::CreateInstance<mb::Texture>();
+      menuMiddle_R->CreateFromFile(RESOURCESDIR + QString("menuMiddle_R.png"));
+	    menuMiddle_R->SetLocation( mb::TexturePool::locationGPU );
+	    menuUp_R = mb::CreateInstance<mb::Texture>();
+      menuUp_R->CreateFromFile(RESOURCESDIR + QString("menuUp_R.png"));
+	    menuUp_R->SetLocation( mb::TexturePool::locationGPU );
+	    menuLeft_R = mb::CreateInstance<mb::Texture>();
+      menuLeft_R->CreateFromFile(RESOURCESDIR + QString("menuLeft_R.png"));
+	    menuLeft_R->SetLocation( mb::TexturePool::locationGPU );
+	    menuDown_R = mb::CreateInstance<mb::Texture>();
+      menuDown_R->CreateFromFile(RESOURCESDIR + QString("menuDown_R.png"));
+	    menuDown_R->SetLocation( mb::TexturePool::locationGPU );
+      menuRight_R = mb::CreateInstance<mb::Texture>();
+      menuRight_R->CreateFromFile(RESOURCESDIR + QString("menuRight_R.png"));
+	    menuRight_R->SetLocation( mb::TexturePool::locationGPU );
     }
 	}
 	else
 	{
-		delete menuMiddle;
-    delete menuUp;
-    delete menuLeft;
-    delete menuDown;
-    delete menuRight;
-		menuMiddle = 0;
-		menuUp = 0;
-		menuLeft = 0;
-		menuDown = 0;
-		menuRight = 0;
+		delete menuMiddle_L;
+    delete menuUp_L;
+    delete menuLeft_L;
+    delete menuDown_L;
+    delete menuRight_L;
+    menuMiddle_L = 0;
+		menuUp_L = 0;
+		menuLeft_L = 0;
+		menuDown_L = 0;
+		menuRight_L = 0;
+	  delete menuMiddle_R;
+    delete menuUp_R;
+    delete menuLeft_R;
+    delete menuDown_R;
+    delete menuRight_R;
+		menuMiddle_R = 0;
+		menuUp_R = 0;
+		menuLeft_R = 0;
+		menuDown_R = 0;
+		menuRight_R = 0;
 	};
 };
 
