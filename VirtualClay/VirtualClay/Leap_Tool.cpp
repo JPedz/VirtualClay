@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Leap_Tool.h"
-
+#include "qimage.h"
+#include "qrgb.h"
 
 Leap_Tool::Leap_Tool(void)
 {
@@ -11,22 +12,50 @@ Leap_Tool::Leap_Tool(void)
   tools.at(1)->ImportGeo();
   tools.at(0)->SetScale(mb::Vector(0.1f,0.1f,0.1f));
   tools.at(1)->SetScale(mb::Vector(0.1f,0.1f,0.1f));
+  img = new QImage();
+  OriginalImg = new QImage(RESOURCESDIR+"stamp1.png");
+  *img = OriginalImg->copy();
+  img->mirrored();
+  mblog("luminance at 0,0 = "+QString::number(qGray(OriginalImg->pixel(0.0f,0.0f)))+"\n");
+  mblog("luminance at 100,100 = "+QString::number(qGray(OriginalImg->pixel(100.0f,100.0f)))+"\n");
+  mblog("luminance at 0,0 = "+QString::number(qGray(img->pixel(0.0f,0.0f)))+"\n");
+  mblog("luminance at 100,100 = "+QString::number(qGray(img->pixel(100,100)))+"\n");
+  //stamp = mb::CreateInstance<mb::Image>();
+  //stamp->Load(RESOURCESDIR+"stamp1.png");
   stamp = mb::CreateInstance<mb::Image>();
-  stamp->Load(RESOURCESDIR+"stamp1.png");
+  stamp->ConvertFromQImage(*img);
+  mblog("luminance at 0,0 = "+QString::number(stamp->ColorAt(0.0f,0.0f).Luminance())+"\n");
+  mblog("luminance at 100,100 = "+QString::number(stamp->ColorAt(100.0f,100.0f).Luminance())+"\n");
 }
 
 
 Leap_Tool::~Leap_Tool(void)
 {
+
 }
 
 
 void Leap_Tool::SetStamp(QString &fullPath) {
-  stamp->Load(fullPath);
+  if(stamp == NULL || img == NULL) { 
+    OriginalImg = new QImage(fullPath);
+    img = new QImage();
+    *img = OriginalImg->copy();
+    stamp = mb::CreateInstance<mb::Image>();
+  }
+  stamp->ConvertFromQImage(*img);
+}
+
+void Leap_Tool::ReleaseStamp() {
+  delete img;
+  img = NULL;
+  delete stamp;
+  stamp = NULL;
 }
 
 void Leap_Tool::ResizeStamp(float x, float y) {
-  
+  if(img != NULL) {
+    img->scaled(x,y);
+  }
 }
 
 mb::Image* Leap_Tool::GetStamp() {

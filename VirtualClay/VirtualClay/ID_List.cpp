@@ -3,7 +3,7 @@
 #include "cameraWrapper.h"
 
 ID_List::ID_List(void) {
-  HandCamList.resize(2,-1);
+  HandCamList.resize(3,-1);
   FingerList.resize(2);
   BoneList.resize(2);
   for(int i = 0 ; i < 2 ; i++) {
@@ -16,6 +16,7 @@ ID_List::ID_List(void) {
   }
   HandList.resize(2,-1);
   viewCam = mudbox::Kernel()->Scene()->ActiveCamera()->ID();
+  ToolCam = -1;
   cameraWrapper *viewCam_tmp = new cameraWrapper(viewCam);
   viewCam_tmp->getTNode()->SetRotation(mb::Vector(0,0,0));
   viewCam_tmp->getTNode()->SetPosition(mb::Vector(0,0,800));
@@ -39,6 +40,15 @@ int ID_List::getViewCam(void) {
 int ID_List::getCam(LR lr) {
   return HandCamList.at(lr);
 }
+
+int ID_List::getToolCam() {
+  return ToolCam;
+}
+
+void ID_List::setToolCam(int camID) {
+  ToolCam = camID;
+}
+
   
 std::vector<int> ID_List::getCurrentTagets(void) {
   return currentTargets;

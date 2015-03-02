@@ -12,14 +12,13 @@ Leap_Updater::Leap_Updater(ID_List *idl,Leap_Hand *l,Leap_Hand *r)
   hand_l = l;
   hand_r = r;
   tool = new Leap_Tool();
-  tool->SetStamp(QString(RESOURCESDIR+"stamp1.png"));
   meshOp = new MeshOps();
   
-  mblog("Listing Nodes\n");
-  for(mb::Node *nodes = mb::Node::First() ; nodes ; nodes = nodes->Next()) {
-    mblog("Node: "+nodes->Name()+" "+QString::number(nodes->ID())+"\n");
-  }
-  mblog("Listed Nodes\n");
+  //mblog("Listing Nodes\n");
+  //for(mb::Node *nodes = mb::Node::First() ; nodes ; nodes = nodes->Next()) {
+  //  mblog("Node: "+nodes->Name()+" "+QString::number(nodes->ID())+"\n");
+  //}
+  //mblog("Listed Nodes\n");
 
   Leap_HUD *leapHud = new Leap_HUD();
   meshOp->ChangeCamera(new cameraWrapper(idList->getCam(LR(0))));
@@ -67,9 +66,11 @@ void Leap_Updater::rotateCamera(mb::Vector r) {
 void Leap_Updater::ScreenTap(mb::Vector &camPos) { 
   meshOp->ChangeCamera(viewCam);
   mb::Vector indexPos = hand_l->GetFingerPos(INDEX,TIP);
+  hand_l->SetVisi(false);
   mb::Vector projPos = viewCam->getCamera()->Project(indexPos);
   mblog(VectorToQString(indexPos)+"Pos"+VectorToQStringLine(projPos));
   meshOp->SelectObject(viewCam,projPos);
+  hand_l->SetVisi(true);
 }
 
 mb::Vector Leap_Updater::GetRelativeScreenSpaceFromWorldPos(mb::Vector &wPos) {
@@ -101,9 +102,13 @@ bool Leap_Updater::selectMesh(mb::Vector &camPos) {
   int leftCamID = idList->getCam(l);
   cameraWrapper *leftHand = new cameraWrapper(leftCamID);
   meshOp->ChangeCamera(leftHand);
+  mb::Kernel()->Scene()->SetActiveCamera(leftHand->getCamera());
+  mb::Kernel()->Redraw();
   hand_l->SetVisi(false);
   bool b = meshOp->SelectFaces();
   hand_l->SetVisi(true);
+  mb::Kernel()->Scene()->SetActiveCamera(viewCam->getCamera());
+  mb::Kernel()->Redraw();
   return b;
 }
 
@@ -544,11 +549,15 @@ __inline void Leap_Updater::checkUndoGesture() {
 __inline void Leap_Updater::checkGrabbingGesture(mb::Vector &cameraPivot) {
   if(thumbGrabModeToggle) {
     if((meshOp->CheckIntersection(hand_l->GetFingerBoundingBox(THUMB,TIP)))) {
+      if(meshOp->firstUse) {
+        meshOp->firstUse = false;
+      }
       if(stickyMovement)
         ThumbSelect();
       else
         ThumbSmoothMove();
     } else {
+      meshOp->firstUse = true;
       if(facesAreSelected) {
         meshOp->DeselectAllFaces();
       }
@@ -575,18 +584,23 @@ void Leap_Updater::ToolStampMove() {
   mb::Vector toolProj = viewCam->getCamera()->Project(toolPos);
   mblog("Thumb Proj Pos = "+VectorToQStringLine(toolProj));
   mblog("Thumb Proj Pos Pixels = "+VectorToQStringLine(ScreenSpaceToPixels(toolProj)));
-  if(meshOp->SelectFaces(ScreenSpaceToPixels(toolProj),10.0f,10)) {
+  if(meshOp->ToolManip(ScreenSpaceToPixels(toolProj),10.0f,tool->GetStamp())) {
   }
   tool->SetVisi(true);
 }
 
 void Leap_Updater::ToolSmoothMove() {
+  int toolCamID = idList->getToolCam();
+  cameraWrapper *toolCam= new cameraWrapper(toolCamID);
+  toolCam->setPosition(tool->GetPos(1));
+  toolCam->setAim(tool->GetPos(0));
+  meshOp->ChangeCamera(toolCam);
   tool->SetVisi(false);
   mb::Vector toolPos = tool->GetPos(0);
-  mb::Vector toolProj = viewCam->getCamera()->Project(toolPos);
+  mb::Vector toolProj = toolCam->getCamera()->Project(toolPos);
   mblog("Thumb Proj Pos = "+VectorToQStringLine(toolProj));
   mblog("Thumb Proj Pos Pixels = "+VectorToQStringLine(ScreenSpaceToPixels(toolProj)));
-  meshOp->ChangeCamera(viewCam);
+  //meshOp->ChangeCamera(viewCam);
   if(meshOp->SelectFaces(ScreenSpaceToPixels(toolProj),10.0f,10)) {
     mb::Vector dirNorm = leapReader->getToolMotionDirection();
     mblog("Normalised Direction = "+VectorToQStringLine(dirNorm));

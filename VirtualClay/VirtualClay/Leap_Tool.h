@@ -6,6 +6,8 @@ class Leap_Tool
 {
   std::vector<Leap_Fingers *> tools;
   mb::Image *stamp;
+  QImage *img;
+  QImage *OriginalImg;
 public:
   //Constructor
   Leap_Tool(void);
@@ -13,6 +15,7 @@ public:
   
   //Stamp
   void SetStamp(QString &fullPath);
+  void Leap_Tool::ReleaseStamp();
   mb::Image* GetStamp();
   void Leap_Tool::ResizeStamp(float x, float y);
 

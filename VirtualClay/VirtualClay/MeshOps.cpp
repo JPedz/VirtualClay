@@ -139,7 +139,11 @@ bool MeshOps::SelectFaces(mb::Vector centrePoint, float widthHeight, float dropO
       MeshGeo->ChangeActiveLevel(MeshGeo->LowestLevel());
       MeshGeo->ChangeActiveLevel(MeshGeo->HighestLevel());
       mb::Kernel()->ViewPort()->Redraw();
-      StoreUndoQueue();
+      //if(firstUse) {
+        StoreUndoQueue();
+      //} else {
+      //  AddToUndoQueue();
+      //}
       return true;
     }
   }
@@ -200,8 +204,8 @@ bool MeshOps::SelectFaces() {
       polyScreen.push_back(polyScreenVector);
     }*/
 
-    mb::Vector vS = mb::Vector(midW-20,midH-20,0);
-    mb::Vector vE = mb::Vector(midW + 20, midH + 20, 0);
+    mb::Vector vS = mb::Vector(midW-40,midH-40,0);
+    mb::Vector vE = mb::Vector(midW + 40, midH + 40, 0);
     //mb::Kernel()->Interface()->SetStatus(mudbox::Interface::stNormal,pMesh->Name());
     //mb::Kernel()->Interface()->SetStatus(mudbox::Interface::stNormal,QString("BOX SELECTED"+QString::number(points.size())));
     faces->clear();
@@ -221,11 +225,11 @@ bool MeshOps::SelectFaces() {
         pMesh->SetFaceSelected(faces->at(i));
       }
       if(linearDropoff) {
-        mblog("Performing LinearDropOff");
+        mblog("Performing LinearDropOff mid point"+VectorToQStringLine(midV->pos));
         for(int i = 0 ; i < vertices->size() ; i++) {
           float dist = midV->pos.DistanceFrom(pMesh->VertexPosition(vertices->at(i).vI));
           vertices->at(i).strength = MIN(10/dist,1); //restrict to 1 strength
-          mb::Kernel()->Log("Strength: "+QString::number(i)+": "+QString::number(MIN(10/dist,1))+"\n");
+          mb::Kernel()->Log("Strength: "+QString::number(i)+": "+QString::number(MIN(10000/dist*dist*dist,1))+"\n");
           if(vertices->at(i).strength < 0.001)
             vertices->at(i).strength = 0;
         }
@@ -505,7 +509,9 @@ void MeshOps::boxSelect(mb::Vector &v1,mb::Vector &v2) {
       if(curCam->Pick(x,y,p)) {
         //If it belongs to the same mesh
         if(p.Mesh()->ID() == pMesh->ID()) {
+
           fi = p.FaceIndex();
+          mblog("Cur Loop :"+QString::number(i)+" "+QString::number(j)+"\n");
           if((j == floor(ySize/2)) && (i == floor(xSize/2))) {
             mblog("Saving mid point");
             if(pMesh != NULL) {
@@ -527,6 +533,15 @@ void MeshOps::boxSelect(mb::Vector &v1,mb::Vector &v2) {
       y++;
     }
     x++;
+  }
+  if(midV->pos == mb::Vector(0,0,0)) {
+    if(vertices->size() > 0) {
+      mb::Vector sumVector = mb::Vector(0,0,0);
+      for(int ind = 0 ; ind < vertices->size() ; ind++) {
+        sumVector += pMesh->VertexPosition(vertices->at(ind).vI);
+      }
+      midV->pos = sumVector/(float)vertices->size();
+    }
   }
 }
 

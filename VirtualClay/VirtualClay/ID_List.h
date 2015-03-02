@@ -9,6 +9,7 @@ class ID_List {
   std::vector<int> HandList;
   std::vector<int> currentTargets;
   int viewCam;
+  int ToolCam;
 public:
   ID_List(void);
   int getFinger(fingerEnum fn,jointEnum j, LR lr);
@@ -16,6 +17,7 @@ public:
   int getHand(LR lr);
   int getViewCam(void);
   int getCam(LR lr);
+  int getToolCam();
   void storeHandID(int ID,LR lr);
   void storeFingerID(int ID,fingerEnum f, jointEnum j, LR lr);
   void storeBoneID(int ID,fingerEnum f, boneEnum j, LR lr);
@@ -23,6 +25,7 @@ public:
   void storeViewCamID(int ID);
   void addTargetID(int ID);
   void storeTargetID(std::vector<int> ID);
+  void setToolCam(int camID);
   std::vector<int> getCurrentTagets(void);
   ~ID_List(void);
 };
