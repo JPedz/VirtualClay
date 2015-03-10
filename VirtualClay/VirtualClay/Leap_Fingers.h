@@ -18,21 +18,25 @@ class Leap_Fingers {
     mb::Geometry *GeoNode;
     mb::Mesh *MNode;
     mb::Vector fakePosVect;
-    void Leap_Fingers::BuildGeo(void);
+    void BuildGeo(void);
     int ID;
   public:
     Leap_Fingers(void);
     Leap_Fingers(QString n);
-    mb::Transformation * Leap_Fingers::getTNode();
-    void Leap_Fingers::SetPos(mb::Vector v);
-    mb::Vector Leap_Fingers::GetPos(void);
-    void Leap_Fingers::SetRot(mb::Vector r);
-    mb::Vector Leap_Fingers::GetRot();
-    void Leap_Fingers::SetScale(mb::Vector s);
-    int Leap_Fingers::ImportGeo(void);
-    void Leap_Fingers::SetVisi(bool visi);
-    void Leap_Fingers::RotateAroundPivot(mb::Vector angle, mb::Vector pivot);
-    void Leap_Fingers::changeMaterial();
+    int CopyGeo(Leap_Fingers *copyNode);
+    mb::Geometry *GetGeoNode();
+    mb::Transformation * getTNode();
+    void SetPos(mb::Vector &v);
+    mb::Vector GetPos(void);
+    void SetRot(mb::Vector r);
+    void SetRotMatrix(mb::Vector &r);
+    void AddRot(mb::Vector r);
+    mb::Vector GetRot();
+    void SetScale(mb::Vector s);
+    int ImportGeo(void);
+    void SetVisi(bool visi);
+    void RotateAroundPivot(mb::Vector angle, mb::Vector pivot);
+    void changeMaterial();
     mb::AxisAlignedBoundingBox GetBoundingBox();
     
     //Collision Detection

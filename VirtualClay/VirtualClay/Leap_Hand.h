@@ -5,8 +5,8 @@ class Leap_Hand
 {
   LR lr;
   std::vector<Leap_Fingers *> fingers;
-  std::vector<std::vector<Leap_Fingers *>> fings;
-  std::vector<std::vector<Leap_Fingers *>> bones;
+  std::vector<std::vector<Leap_Fingers *> > fings;
+  std::vector<std::vector<Leap_Fingers *> > bones;
   Leap_Fingers *palm;
   mb::Vector handRot;
   mb::Vector handPos;
@@ -18,18 +18,25 @@ class Leap_Hand
   ID_List *idList;
 public:
   Leap_Hand(ID_List *idl,LR lOrR);
+  Leap_Hand(ID_List *idl,LR lOrR,Leap_Hand *copyHand);
   ~Leap_Hand(void);
   void AddLeap_Bones(void);
   void AddLeap_Fingers(void);
   void AddHand(void);
+  Leap_Fingers *GetPalm();
+  void CopyHand(Leap_Hand *copyHand);
   void SetRot(mb::Vector v);
-  void SetPos(mb::Vector v);
+  void SetRotMatrix(mb::Vector &v);
+  void AddRot(mb::Vector v);
+  void SetPos(mb::Vector &v);
+  mb::Transformation *GetTNode() { return TNode; }
   mb::Vector GetPos();
   void SetVisi(bool vis);
   void UpdateBone(boneEnum b, fingerEnum f, mb::Vector orient);
-  void SetFingerPos(fingerEnum fn,mb::Vector v);
-  void SetFingerPos(jointEnum j, fingerEnum f, mb::Vector v);
-  void SetFingerRot(fingerEnum fn,mb::Vector v);
+  void SetFingerPos(fingerEnum fn,mb::Vector &v);
+  void SetFingerPos(jointEnum j, fingerEnum f, mb::Vector &v);
+  void SetFingerRot(fingerEnum fn,mb::Vector &v);
+  void AddFingerRot(fingerEnum fn,mb::Vector v);
   void RotateAroundPivot(jointEnum j,fingerEnum f,mb::Vector a,mb::Vector pivot);
   void RotateAroundPivot(fingerEnum fn,mb::Vector a,mb::Vector pivot);
   void RotateAroundPivot(mb::Vector a,mb::Vector pivot);

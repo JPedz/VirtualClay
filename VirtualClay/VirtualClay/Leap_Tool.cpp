@@ -28,6 +28,23 @@ Leap_Tool::Leap_Tool(void)
   mblog("luminance at 100,100 = "+QString::number(stamp->ColorAt(100.0f,100.0f).Luminance())+"\n");
 }
 
+Leap_Tool::Leap_Tool(Leap_Hand *copyNode)
+{
+  tools.resize(2);
+  tools.at(0) = new Leap_Fingers("ToolTIP");
+  tools.at(1) = new Leap_Fingers("ToolBase");
+  tools.at(0)->CopyGeo(copyNode->GetPalm());
+  tools.at(1)->CopyGeo(copyNode->GetPalm());
+  tools.at(0)->SetScale(mb::Vector(0.1f,0.1f,0.1f));
+  tools.at(1)->SetScale(mb::Vector(0.1f,0.1f,0.1f));
+  img = new QImage();
+  OriginalImg = new QImage(RESOURCESDIR+"stamp1.png");
+  *img = OriginalImg->copy();
+  img->mirrored();
+  stamp = mb::CreateInstance<mb::Image>();
+  stamp->ConvertFromQImage(*img);
+}
+
 
 Leap_Tool::~Leap_Tool(void)
 {
@@ -35,7 +52,7 @@ Leap_Tool::~Leap_Tool(void)
 }
 
 
-void Leap_Tool::SetStamp(QString &fullPath) {
+void Leap_Tool::SetStamp(QString fullPath) {
   if(stamp == NULL || img == NULL) { 
     OriginalImg = new QImage(fullPath);
     img = new QImage();
@@ -53,9 +70,9 @@ void Leap_Tool::ReleaseStamp() {
 }
 
 void Leap_Tool::ResizeStamp(float x, float y) {
-  if(img != NULL) {
-    img->scaled(x,y);
-  }
+  if(img != NULL)
+    if(img->width() != x && img->height() != y)
+      img->scaled(x,y);
 }
 
 mb::Image* Leap_Tool::GetStamp() {
@@ -66,7 +83,6 @@ mb::Image* Leap_Tool::GetStamp() {
 void Leap_Tool::SetVisi(bool vis) {
   tools.at(0)->SetVisi(vis);
   tools.at(1)->SetVisi(vis);
-
 }
 
 
@@ -93,14 +109,12 @@ void Leap_Tool::SetRot(int i, mb::Vector &pos) {
     mblog("Tool Position Index out of Range\n");
 }
 
-void Leap_Tool::SetRot(std::vector<mb::Vector> &pos) {
-  if( pos.size() != 2) {
-    mblog("Tool pos vector size incorrect\n");
-  } else {
-    tools.at(0)->SetRot(pos.at(0));
-    tools.at(1)->SetRot(pos.at(1));
-  }
+void Leap_Tool::SetRot(mb::Vector &rotation) {
+    tools.at(0)->SetRotMatrix(rotation);
+    tools.at(1)->SetRotMatrix(rotation);
 }
+
+
 
 void Leap_Tool::RotateAroundPivot(int i, mb::Vector &a, mb::Vector &pivot) {
   if(i < 2)
@@ -120,5 +134,5 @@ mb::Vector Leap_Tool::GetPos(int i) {
 }
 
 mb::AxisAlignedBoundingBox Leap_Tool::GetBoundingBox(int i) {
-  return tools.at(i)->GetBoundingBox();
+  return mb::AxisAlignedBoundingBox(tools.at(i)->GetPos(),5.0f);
 }

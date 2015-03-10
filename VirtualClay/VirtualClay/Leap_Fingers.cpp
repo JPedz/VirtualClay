@@ -72,12 +72,15 @@ int Leap_Fingers::ImportGeo(void) {
       }
     } 
   }
+  mblog("Looking for geo node\n");
   for(mb::Node *nodes = mb::Node::First() ; nodes ; nodes = nodes->Next()) {
     if(nodes->IsKindOf(mb::Geometry::StaticClass())) {
       mb::Geometry *geoPotential = dynamic_cast<mb::Geometry *>(nodes);
       MB_SAFELY(geoPotential) {
         QString s_GName = geoPotential->Name();
-        if(s_GName.indexOf( "Finger"+QString::number(ID) ) != -1) {
+        if((s_GName.indexOf( "Finger"+QString::number(ID) ) != -1) || 
+          (s_GName.indexOf(name+"_"+QString::number(ID) ) != -1)) {
+          mblog("found the geo node\n");
           GeoNode = geoPotential;
           GeoNode->SetActiveLevel(GeoNode->HighestLevel());
         }
@@ -88,6 +91,28 @@ int Leap_Fingers::ImportGeo(void) {
   return ID;
 }
 
+int Leap_Fingers::CopyGeo(Leap_Fingers *copyNode) {
+  GeoNode = mb::CreateInstance<mb::Geometry>();
+  if(copyNode->GetGeoNode() ==NULL)
+    mblog("NO GEO NODE TO COPY!\n");
+  GeoNode = dynamic_cast<mb::Geometry *>(copyNode->GetGeoNode()->Duplicate());
+  mb::Kernel()->Scene()->AddGeometry(GeoNode);
+  TNode = GeoNode->Transformation();
+  ID = GeoNode->ID();
+  TNode->SetName(name+"_"+QString::number(ID));
+  GeoNode->SetName(name+"_"+QString::number(ID));
+  GeoNode->SetActiveLevel(GeoNode->HighestLevel());
+  return ID;
+}
+
+mb::Geometry* Leap_Fingers::GetGeoNode() {
+  if(GeoNode) {
+    return GeoNode;
+  }
+  return NULL;
+}
+
+
 void Leap_Fingers::changeMaterial() {
 
 }
@@ -96,7 +121,7 @@ mb::Transformation * Leap_Fingers::getTNode() {
   return TNode;
 }
 
-void Leap_Fingers::SetPos(mb::Vector v) {
+void Leap_Fingers::SetPos(mb::Vector &v) {
   if(TNode != NULL)
     TNode->SetPosition(v);
 }
@@ -104,6 +129,21 @@ void Leap_Fingers::SetPos(mb::Vector v) {
 void Leap_Fingers::SetRot(mb::Vector v) {
   if(TNode != NULL)
     TNode->SetRotation(v);
+}
+
+void Leap_Fingers::SetRotMatrix(mb::Vector &rotation) {
+  if(TNode != NULL) {
+    mb::Matrix rX = createRotateXMatrix(rotation.x);
+    mb::Matrix rY = createRotateYMatrix(rotation.y);
+    mb::Matrix rZ = createRotateZMatrix(rotation.z);
+    mb::Matrix rotationMatrix = rX*rZ*rY;
+    TNode->SetRotation(rotationMatrix);
+  }
+}
+
+void Leap_Fingers::AddRot(mb::Vector v) {
+  if(TNode != NULL)
+    TNode->AddRotation(v,true);
 }
 
 mb::Vector Leap_Fingers::GetRot() {
@@ -118,7 +158,7 @@ mb::Vector Leap_Fingers::GetPos() {
 void Leap_Fingers::RotateAroundPivot(mb::Vector a, mb::Vector pivot) {
   if(TNode != NULL) {
     TNode->SetPosition(RotateVectorAroundPivot(TNode->Position(),pivot,a));
-    TNode->SetRotation(TNode->Rotation()-a);
+    //TNode->SetRotation(TNode->Rotation()-a);
   }
 }
 
@@ -142,7 +182,7 @@ mb::AxisAlignedBoundingBox Leap_Fingers::GetBoundingBox() {
     //mblog("Finger Volume:"+QString::number( GeoNode->HighestLevel()->BoundingBox(true).Volume())+"\n");
     return GeoNode->HighestLevel()->BoundingBox(true);
   } else {
-    //mblog("Returning new axis box");
+    mblog("Returning new axis box");
     return mb::AxisAlignedBoundingBox(TNode->Position(),0.2f);
   }
 }

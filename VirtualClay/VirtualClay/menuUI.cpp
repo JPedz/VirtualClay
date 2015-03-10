@@ -25,7 +25,7 @@ void MenuUI::Execute() {
   idList->storeHandCamID(R_Cam->getID(),r);
   idList->setToolCam(ToolCam->getID());
   Leap_Hand *hand_l = new Leap_Hand(idList,l);
-  Leap_Hand *hand_r = new Leap_Hand(idList,r);
+  Leap_Hand *hand_r = new Leap_Hand(idList,r,hand_l);
   Leap_Updater *lU = new Leap_Updater(idList,hand_l,hand_r);
 
 }
