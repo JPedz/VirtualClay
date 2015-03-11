@@ -540,7 +540,7 @@ void MeshOps::boxSelect(mb::Vector &v1,mb::Vector &v2) {
   VertexModifyInfo vMI;
   float dist;
   if(curCam->Pick(x,y,p)) {
-
+    mblog("Selected :"+p.Mesh()->Name()+" Mesh \n");
     if(p.Mesh()->ID() == pMesh->ID()) {
       faceIndices.push_back(p.FaceIndex());
       faces->push_back(p.FaceIndex());
@@ -799,10 +799,10 @@ bool MeshOps::CheckIntersection(mb::AxisAlignedBoundingBox box1) {
   //mblog("Gothere\n");
   if(pMesh != NULL) {
     mb::AxisAlignedBoundingBox box2 = pMesh->BoundingBox(true);
-    if(box2.IsTouching(box1))
-      mblog("Box2 is touching\n");
-    if(box2.IsContaining(box1))
-      mblog("Box2 is Containing\n");
+    //if(box2.IsTouching(box1))
+      //mblog("Box2 is touching\n");
+    //if(box2.IsContaining(box1))
+      //mblog("Box2 is Containing\n");
     //mblog("box1 vol:"+QString::number(box1.Volume())+"Box2 Vol: "+QString::number(box2.Volume())+"\n");
     return box2.IsTouching(box1) && !box2.IsContaining(box1);
   } else {

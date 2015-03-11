@@ -19,8 +19,8 @@ void MenuUI::Execute() {
   cameraWrapper *R_Cam = new cameraWrapper("R_HandCam");
   cameraWrapper *ToolCam = new cameraWrapper("ToolCam");
   mblog("Original LCAM ID = "+QString::number(L_Cam->getID())+"\n");
-  L_Cam->getCamera()->SetOrthographic(true);
-  R_Cam->getCamera()->SetOrthographic(true);
+  //L_Cam->getCamera()->SetOrthographic(true);
+  //R_Cam->getCamera()->SetOrthographic(true);
   idList->storeHandCamID(L_Cam->getID(),l);
   idList->storeHandCamID(R_Cam->getID(),r);
   idList->setToolCam(ToolCam->getID());

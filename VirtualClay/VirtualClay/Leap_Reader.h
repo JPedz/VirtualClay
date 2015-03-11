@@ -53,7 +53,7 @@ public:
   mb::Vector getMotionDirection(fingerEnum fn, LR lOrR);
   bool CheckRotateHandGesture(LR lOrR);
   bool CheckScaleHandGesture(LR lOrR);
-  bool CheckFingerExtensions(LR lOrR,bool ext0,bool ext1,bool ext2,bool ext3,bool ext4);
+  bool CheckFingerExtensions(LR lOrR,bool thumb,bool index,bool middle,bool ring,bool pinky);
 
   //Tools
   std::vector<mb::Vector> GetToolPositions();

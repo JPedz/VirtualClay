@@ -97,14 +97,15 @@ bool Leap_Updater::selectMesh(mb::Vector &camPos) {
   int leftCamID = idList->getCam(l);
   cameraWrapper *leftHand = new cameraWrapper(leftCamID);
   meshOp->ChangeCamera(leftHand);
+  leftHand->MoveForward(50);
   hand_l->SetVisi(false);
   hand_l->SetPos(mb::Vector(0,0,0));
   mb::Kernel()->Scene()->SetActiveCamera(leftHand->getCamera());
-  mb::Kernel()->Redraw();
+  mb::Kernel()->ViewPort()->Redraw();
   bool b = meshOp->SelectFaces();
   hand_l->SetVisi(true);
   mb::Kernel()->Scene()->SetActiveCamera(viewCam->getCamera());
-  mb::Kernel()->Redraw();
+  mb::Kernel()->ViewPort()->Redraw();
   return b;
 }
 
@@ -486,7 +487,7 @@ void Leap_Updater::Extrusion() {
     mbstatus("Grabbing");
   } else {
     if(firstmoveswitch) {
-      lastFrameHandPos == hand_l->GetPos();
+      lastFrameHandPos = hand_l->GetPos();
       firstmoveswitch = false;
     } else {
       mbstatus("MovingMesh");
@@ -533,9 +534,15 @@ __inline void Leap_Updater::checkMenuGesture() {
 
 __inline void Leap_Updater::checkScreenTapGesture() {
   //If they tapped the screen
-  if(leapReader->isScreenTap) {
-    mblog("got tap\n");
-    ScreenTap();
+  std::vector<bool> b;
+  b = leapReader->GetExtendedFingers(l);
+
+  if(leapReader->CheckFingerExtensions(l,false,true,false,false,false)) {
+    mblog("Got fingers\n");
+    if(leapReader->isScreenTap) {
+      mblog("got tap\n");
+      ScreenTap();
+    }
   }
 }
 
@@ -575,7 +582,7 @@ __inline void Leap_Updater::checkGrabbingGesture() {
       firstmoveswitch = true;
       facesAreSelected = false;
     }
-    lastFrameHandPos == hand_l->GetPos();
+    lastFrameHandPos = hand_l->GetPos();
   }
 }
 

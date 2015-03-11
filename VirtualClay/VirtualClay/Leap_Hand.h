@@ -25,6 +25,7 @@ public:
   void AddHand(void);
   Leap_Fingers *GetPalm();
   void CopyHand(Leap_Hand *copyHand);
+  float AvgDistFromThumb();
   void SetRot(mb::Vector v);
   void SetRotMatrix(mb::Vector &v);
   void AddRot(mb::Vector v);

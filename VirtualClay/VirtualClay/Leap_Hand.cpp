@@ -173,6 +173,13 @@ void Leap_Hand::SetRotMatrix(mb::Vector &rotation) {
   }
 }
 
+float Leap_Hand::AvgDistFromThumb() {
+  float sumdist = 0;
+  const mb::Vector thumb = fings.at(0).at(0)->GetPos();
+  for(int f = 1 ; f < 5 ; f++) {
+    sumdist += fings.at(f).at(0)->GetPos().DistanceFrom(thumb);
+  }
+}
 
 void Leap_Hand::AddRot(mb::Vector v) {
   TNode->AddRotation(v,true);

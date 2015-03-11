@@ -95,8 +95,8 @@ Leap_HUD::Leap_HUD():
 }
 
 void Leap_HUD::SetCentre(mb::Vector &c) {
-  cX = c.x;
-  cY = c.y;
+  cX = MIN(MAX(c.x,-0.8),0.8);
+  cY = MIN(MAX(c.y,-0.8),0.8);
 }
 
 void Leap_HUD::Process(mb::ViewPortState &s) {
