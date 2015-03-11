@@ -102,6 +102,8 @@ bool Leap_Updater::selectMesh(mb::Vector &camPos) {
   hand_l->SetPos(mb::Vector(0,0,0));
   mb::Kernel()->Scene()->SetActiveCamera(leftHand->getCamera());
   mb::Kernel()->ViewPort()->Redraw();
+  float avgSize = hand_l->AvgDistFromThumb();
+  mblog("Brush Size = "+QString::number(avgSize));
   bool b = meshOp->SelectFaces();
   hand_l->SetVisi(true);
   mb::Kernel()->Scene()->SetActiveCamera(viewCam->getCamera());
