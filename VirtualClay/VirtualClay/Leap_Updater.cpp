@@ -335,10 +335,10 @@ void Leap_Updater::CameraZoom(LR lOrR) {
   if(abs(handRot.z) > deadzone) {
       if(handRot.z > 0) {
         mblog("Forward\n");
-        viewCam->getCamera()->MoveForward(mb::Vector(1,0,0));  
+        viewCam->getCamera()->MoveForward(mb::Vector(5,0,0));  
       } else {
         mbhud("Backward\n");
-        viewCam->getCamera()->MoveBackward(mb::Vector(1,0,0));  
+        viewCam->getCamera()->MoveBackward(mb::Vector(5,0,0));  
       }
     }
   //viewCam->getTNode()->SetPosition(sceneRotate);
@@ -534,9 +534,6 @@ __inline void Leap_Updater::checkMenuGesture() {
 
 __inline void Leap_Updater::checkScreenTapGesture() {
   //If they tapped the screen
-  std::vector<bool> b;
-  b = leapReader->GetExtendedFingers(l);
-
   if(leapReader->CheckFingerExtensions(l,false,true,false,false,false)) {
     mblog("Got fingers\n");
     if(leapReader->isScreenTap) {

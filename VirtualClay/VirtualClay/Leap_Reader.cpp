@@ -503,32 +503,6 @@ bool Leap_Reader::CheckFingerExtensions(LR lOrR,bool ext0,bool ext1,bool ext2,bo
   } else {
     b = GetExtendedFingers(r);
   }
-  bool ex = 1;
-  bool ans;
-  if(ext0 ==b.at(0))
-    ans = true;
-  else 
-    ans = false;
-  mblog("Fingers extended\n");
-  for(int i = 0 ; i < b.size() ; i++) {
-    if(i == 0)
-      ex = ext0;
-    if(i == 1)
-      ex = ext1;
-    if(i == 2)
-      ex = ext2;
-    if(i == 3)
-      ex = ext3;
-    if(i == 4)
-      ex = ext4;
-    mblog(QString::number(i)+" "+QString::number(static_cast<int>(b.at(i)))+" "+QString::number(static_cast<int>(ex))+" "+QString::number(static_cast<int>(b.at(i) == ex))+"\n");
-
-    if(b.at(i)  == ex )
-      ans = ans && true;
-    else
-      ans = ans && false;
-  }
-  mblog("End ans = "+QString::number(static_cast<int>(ans))+"\n");
   if((b.at(0) == ext0) &&
     (b.at(1) == ext1) &&
     (b.at(2) == ext2) &&

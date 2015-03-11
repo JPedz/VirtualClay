@@ -95,8 +95,10 @@ Leap_HUD::Leap_HUD():
 }
 
 void Leap_HUD::SetCentre(mb::Vector &c) {
-  cX = MIN(MAX(c.x,-0.8),0.8);
-  cY = MIN(MAX(c.y,-0.8),0.8);
+  mblog("LEAPHUD "+VectorToQStringLine(c));
+  cX = MIN(MAX(c.x,-0.6),0.6);
+  cY = MIN(MAX(c.y,-0.4),0.4);
+  mblog("LEAPHUD "+QString::number(cX)+" "+QString::number(cY)+"\n");
 }
 
 void Leap_HUD::Process(mb::ViewPortState &s) {
