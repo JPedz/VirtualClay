@@ -27,6 +27,7 @@ class cameraWrapper {
     mb::Vector getForward(void);
     void setRotation(mb::Vector &ypr);
     void setPosition(mb::Vector &pos);
+    void setPosition(mb::Vector pos);
     void MoveForward(float dist);
 };
 

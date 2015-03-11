@@ -2,8 +2,7 @@
 #define MESHOPS_H_
 #include "stdafx.h"
 #include "cameraWrapper.h"
-#include "qtimer.h"
-#include <QTime>
+#include <QtCore/QTime>
 
 namespace mb = mudbox;
 
@@ -35,7 +34,7 @@ class MeshOps {
   std::vector<int> *faces;
   std::vector<VertexModifyInfo> *vertices;
   std::vector<mb::SurfacePoint > *points;
-  std::vector<std::vector<VertexInfo>> undoQueue;
+  std::vector<std::vector<VertexInfo> > undoQueue;
   void StoreUndoQueue();
   void AddToUndoQueue();
   void AddVFI(int vi, int fi);

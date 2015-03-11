@@ -3,16 +3,16 @@
 // are changed infrequently
 //
 
-#pragma once
+//#pragma once
 
-#include "targetver.h"
+//#include "targetver.h"
 
 #include <stdio.h>
-#include <tchar.h>
 #include <Leap.h>
 #include <LeapMath.h>
-#include "Mudbox\mudbox.h"
+#include <Mudbox/mudbox.h>
 #include <vector>
+#include "VirtualClay.h"
 #include "util.h"
 #include "ID_List.h"
 #define mblog(a) mudbox::Kernel()->Log(a);
@@ -21,21 +21,6 @@
 //#define min(a,b) (a < b) ? a : b
 
 
-class VirtualClay: mudbox::Node {
-  DECLARE_CLASS
-    Q_DECLARE_TR_FUNCTIONS(VirtualClay);
-public:
-	static void Initializer(void);
-	static void Execute(void);   // Execute 
-  void Serialize(mudbox::Stream s);
-};
-
-void Serialize(mudbox::Stream s) {
-  if(s.IsStoring()) {
-    s << "Hello?" << "\n";
-    mblog("Maybe Storing??\n");
-  } 
-}
 
 
 

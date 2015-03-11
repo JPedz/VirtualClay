@@ -27,7 +27,7 @@ class Leap_Updater : public mb::Node {
   void setDir(mudbox::Vector dir);
   void SetHandAndFingerPositions();
   void ScreenTap();
-  mb::Vector GetRelativeScreenSpaceFromWorldPos(mb::Vector &wPos);
+  mb::Vector GetRelativeScreenSpaceFromWorldPos(mb::Vector wPos);
   void MoveMesh();
   bool selectMesh(mb::Vector &camPos);
   bool selectMeshPinch(mb::Vector &camPos);

@@ -5,10 +5,13 @@ using namespace Leap;
 
 Leap_Reader::Leap_Reader(void) {
   handvisi.resize(2,false);
-  controller.addListener(listener); 
+  controller.addListener(listener);
   controller.enableGesture(Leap::Gesture::TYPE_SCREEN_TAP);
   controller.enableGesture(Leap::Gesture::TYPE_SWIPE);
   controller.enableGesture(Leap::Gesture::TYPE_CIRCLE);
+  controller.config().setFloat("Gesture.ScreenTap.MinForwardVelocity", 5.0);
+  controller.config().setFloat("Gesture.ScreenTap.HistorySeconds", 1.0f);
+  controller.config().setFloat("Gesture.ScreenTap.MinDistance", 10.0f);
   controller.config().setFloat("Gesture.Swipe.MinLength", 300.0);
   controller.config().setFloat("Gesture.Swipe.MinVelocity", 1000.0);
   controller.config().setFloat("Gesture.Circle.MinRadius", 15.0);
@@ -19,7 +22,7 @@ Leap_Reader::Leap_Reader(void) {
   while(!controller.isConnected()) {
     if(t->elapsed() > 5000) {
        mb::Kernel()->Interface()->MessageBox(mb::Interface::msgInformation,
-       "Leap Motion Connection", 
+       "Leap Motion Connection",
        "Unable to connect to Leap Motion Controller. Please make sure it is plugged in",
        2,0);
       break;
@@ -87,7 +90,7 @@ bool Leap_Reader::updateAll(void) {
               case Leap::Gesture::STATE_STOP:
                 if(gestureHand == r) {
                   mblog("RightHand");
-                  if(!ext_r.at(0) && ext_r.at(1) && !ext_r.at(2) && !ext_r.at(3) && !ext_r.at(4)) { 
+                  if(!ext_r.at(0) && ext_r.at(1) && ext_r.at(2) && !ext_r.at(3) && !ext_r.at(4)) {
                     if(circleGesture.pointable().direction().angleTo(circleGesture.normal()) <= Leap::PI/2) {
                       mblog("circle Radius: "+QString::number(circleGesture.radius())+"\n");
                       isCircleCW_R = true;
@@ -99,7 +102,7 @@ bool Leap_Reader::updateAll(void) {
                   }
                 } else {
                   mblog("LeftHand");
-                    if(!ext_l.at(0) && ext_l.at(1) && !ext_l.at(2) && !ext_l.at(3) && !ext_l.at(4)) { 
+                    if(!ext_l.at(0) && ext_l.at(1) && ext_l.at(2) && !ext_l.at(3) && !ext_l.at(4)) {
                     if(circleGesture.pointable().direction().angleTo(circleGesture.normal()) <= Leap::PI/2) {
                       mblog("circle Radius: "+QString::number(circleGesture.radius())+"\n");
                       isCircleCW_L = true;
@@ -120,6 +123,7 @@ bool Leap_Reader::updateAll(void) {
           break;
         case Leap::Gesture::TYPE_SCREEN_TAP:
           switch ((*gl).state()) {
+              mbstatus("ScreenTap B");
             case Leap::Gesture::STATE_START:
               //Handle starting gestures
               break;
@@ -161,7 +165,7 @@ bool Leap_Reader::updateAll(void) {
     while(!controller.isConnected()) {
       if(t->elapsed() > 5000) {
          mb::Kernel()->Interface()->MessageBox(mb::Interface::msgInformation,
-         "Leap Motion Connection", 
+         "Leap Motion Connection",
          "Unable to connect to Leap Motion Controller. Please make sure it is plugged in",
          2,0);
         break;
@@ -213,7 +217,7 @@ void Leap_Reader::HandSetup(Frame &f) {
     handvisi.at(1) = true;
     if(isFist(l)) {
       isGrabbing_L =true;
-    }    
+    }
     if(isFist(r)) {
       isGrabbing_R =true;
     }
@@ -254,8 +258,9 @@ mb::Vector Leap_Reader::getFingerDirection_L(fingerEnum fn) {
   Finger f;
   mb::Vector directions;
   Bone b;
+  Bone::Type bType = Bone::Type(1);
   f = hand_l.fingers().fingerType(Finger::Type(fn))[0];
-  b = f.bone(Bone::Type::TYPE_PROXIMAL);
+  b = f.bone(bType);
   directions = LeapDirectionToMudbox(b.direction());
   return directions;
 }
@@ -264,8 +269,9 @@ mb::Vector Leap_Reader::getFingerDirection_R(fingerEnum fn) {
   Finger f;
   mb::Vector directions;
   Bone b;
+  Bone::Type bType = Bone::Type(1);
   f = hand_r.fingers().fingerType(Finger::Type(fn))[0];
-  b = f.bone(Bone::Type::TYPE_PROXIMAL);
+  b = f.bone(bType);
   directions = LeapDirectionToMudbox(b.direction());
   return directions;
 }
@@ -279,8 +285,8 @@ std::vector<mb::Vector> Leap_Reader::getFingerPosition(fingerEnum fn,LR lOrR) {
   else
     f = hand_r.fingers().fingerType(Finger::Type(fn))[0];
 //  mudbox::Kernel()->Interface()->SetStatus(mudbox::Interface::stNormal,"Finger Pos"+QString::number(fn)+": "+
-//      QString::number(f.stabilizedTipPosition().x)+" "+QString::number(f.stabilizedTipPosition().y)+" "+QString::number(f.stabilizedTipPosition().z));  
-  
+//      QString::number(f.stabilizedTipPosition().x)+" "+QString::number(f.stabilizedTipPosition().y)+" "+QString::number(f.stabilizedTipPosition().z));
+
   std::vector<mb::Vector> fingerJoints(4);
   fingerJoints.at(TIP) = scale*(mb::Vector(f.tipPosition().x,f.tipPosition().y,f.tipPosition().z));
   fingerJoints.at(DIP) = scale*(mb::Vector(f.jointPosition(f.JOINT_DIP).x,f.jointPosition(f.JOINT_DIP).y,f.jointPosition(f.JOINT_DIP).z));
@@ -311,9 +317,9 @@ mb::Vector Leap_Reader::getMotionDirection(fingerEnum fn, LR lOrR) {
   mb::Vector dir;
   Leap::Finger fing;
   if(lOrR == l) {
-    fing = hand_l.fingers().fingerType(Finger::Type(fn))[0]; 
+    fing = hand_l.fingers().fingerType(Finger::Type(fn))[0];
   } else {
-    fing = hand_r.fingers().fingerType(Finger::Type(fn))[0]; 
+    fing = hand_r.fingers().fingerType(Finger::Type(fn))[0];
   }
   dir = leapVecToMBVec(fing.tipVelocity());
   dir.Normalize();
@@ -380,7 +386,7 @@ mb::Vector Leap_Reader::TestFunct() {
 }
 
 bool Leap_Reader::CheckRotateHandGesture(LR lOrR) {
-  
+
   if(lOrR == l) {
     std::vector<bool> ext_l = GetExtendedFingers(l);
     if(ext_l.at(0) && ext_l.at(1) && !ext_l.at(2) && !ext_l.at(3) && ext_l.at(4))
@@ -395,7 +401,7 @@ bool Leap_Reader::CheckRotateHandGesture(LR lOrR) {
 
 
 bool Leap_Reader::CheckScaleHandGesture(LR lOrR) {
-  
+
   if(lOrR == l) {
     std::vector<bool> ext_l = GetExtendedFingers(l);
     if(!ext_l.at(0) && ext_l.at(1) && !ext_l.at(2) && !ext_l.at(3) && ext_l.at(4))
@@ -416,7 +422,7 @@ mb::Vector Leap_Reader::rotateScene() {
 
   if(handvisi.at(l)) {
     //Using Left Hand;
-    if(ext_l.at(0) && ext_l.at(1) && !ext_l.at(2) && !ext_l.at(3) && ext_l.at(4)) { 
+    if(ext_l.at(0) && ext_l.at(1) && !ext_l.at(2) && !ext_l.at(3) && ext_l.at(4)) {
       if(hand_l.rotationProbability(controller.frame(10)) > 0.6) {
         float ang = hand_l.rotationAngle(controller.frame(10));
         Leap::Vector rotAxis = hand_l.rotationAxis(controller.frame(10));
@@ -427,7 +433,7 @@ mb::Vector Leap_Reader::rotateScene() {
       }
     }
   } else {
-    if(ext_r.at(0) && ext_r.at(1) && !ext_r.at(2) && !ext_r.at(3) && ext_r.at(4)) { 
+    if(ext_r.at(0) && ext_r.at(1) && !ext_r.at(2) && !ext_r.at(3) && ext_r.at(4)) {
       //Using Right Hand;
       if(hand_r.rotationProbability(controller.frame(10)) > 0.6) {
         float ang = hand_r.rotationAngle(controller.frame(10));
@@ -513,4 +519,3 @@ bool Leap_Reader::CheckFingerExtensions(LR lOrR,bool ext0,bool ext1,bool ext2,bo
     return false;
 
 }
-

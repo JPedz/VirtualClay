@@ -131,13 +131,16 @@ void Leap_Hand::AddLeap_Fingers(void) {
 
 void Leap_Hand::UpdateBone(boneEnum b, fingerEnum f, mb::Vector orient) {
   //#Code:111
+  mb::Vector tmp;
   if(b == boneEnum(0)) {
     bones.at(f).at(b)->SetRot(orient);
     if(b != 3) {
+      tmp = fings.at(f).at(b+1)->GetPos();
       mblog("b+1 = :"+QString::number(b+1)+"\n");
-      bones.at(f).at(b)->SetPos(fings.at(f).at(b+1)->GetPos());
+      bones.at(f).at(b)->SetPos(tmp);
     } else {
-      bones.at(f).at(b)->SetPos(palm->GetPos());
+        tmp = palm->GetPos();
+        bones.at(f).at(b)->SetPos(tmp);
     }
   }
 }

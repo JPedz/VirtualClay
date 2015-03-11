@@ -78,7 +78,11 @@ void cameraWrapper::setTranslation(mb::Vector v) {
 }
 
 void cameraWrapper::setPosition(mb::Vector &pos) {
-  cam->SetPosition(pos);
+    cam->SetPosition(pos);
+}
+
+void cameraWrapper::setPosition(mb::Vector pos) {
+    cam->SetPosition(pos);
 }
 
 void cameraWrapper::selectPoints(mb::Vector v) {

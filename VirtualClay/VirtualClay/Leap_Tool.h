@@ -28,7 +28,7 @@ public:
   void SetRot(int i, mb::Vector &pos);
   void SetRot(mb::Vector &rotation);
   void RotateAroundPivot(int i, mb::Vector &a, mb::Vector &pivot);
-  void Leap_Tool::RotateAroundPivot(mb::Vector &a, mb::Vector &pivot);
+  void RotateAroundPivot(mb::Vector &a, mb::Vector &pivot);
   mb::Vector GetPos(int i);
   mb::AxisAlignedBoundingBox GetBoundingBox(int i);
 };

@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "Leap_Tool.h"
-#include "qimage.h"
-#include "qrgb.h"
+#include "QtGui/qimage.h"
+#include "QtGui/qrgb.h"
 
 Leap_Tool::Leap_Tool(void)
 {
@@ -79,12 +79,10 @@ mb::Image* Leap_Tool::GetStamp() {
   return stamp;
 }
 
-
 void Leap_Tool::SetVisi(bool vis) {
   tools.at(0)->SetVisi(vis);
   tools.at(1)->SetVisi(vis);
 }
-
 
 void Leap_Tool::SetPos(int i, mb::Vector &pos) {
   if(i < 2)
@@ -114,8 +112,6 @@ void Leap_Tool::SetRot(mb::Vector &rotation) {
     tools.at(1)->SetRotMatrix(rotation);
 }
 
-
-
 void Leap_Tool::RotateAroundPivot(int i, mb::Vector &a, mb::Vector &pivot) {
   if(i < 2)
     tools.at(i)->RotateAroundPivot(a,pivot);
@@ -127,7 +123,6 @@ void Leap_Tool::RotateAroundPivot(mb::Vector &a, mb::Vector &pivot) {
   tools.at(0)->RotateAroundPivot(a,pivot);
   tools.at(1)->RotateAroundPivot(a,pivot);
 }
-
 
 mb::Vector Leap_Tool::GetPos(int i) {
   return tools.at(i)->GetPos();

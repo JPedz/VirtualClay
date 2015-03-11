@@ -126,6 +126,8 @@ void Leap_Fingers::SetPos(mb::Vector &v) {
     TNode->SetPosition(v);
 }
 
+
+
 void Leap_Fingers::SetRot(mb::Vector v) {
   if(TNode != NULL)
     TNode->SetRotation(v);
@@ -140,6 +142,8 @@ void Leap_Fingers::SetRotMatrix(mb::Vector &rotation) {
     TNode->SetRotation(rotationMatrix);
   }
 }
+
+
 
 void Leap_Fingers::AddRot(mb::Vector v) {
   if(TNode != NULL)
@@ -156,8 +160,10 @@ mb::Vector Leap_Fingers::GetPos() {
 
 
 void Leap_Fingers::RotateAroundPivot(mb::Vector a, mb::Vector pivot) {
+    mb::Vector tmp;
   if(TNode != NULL) {
-    TNode->SetPosition(RotateVectorAroundPivot(TNode->Position(),pivot,a));
+    tmp = TNode->Position();
+    TNode->SetPosition(RotateVectorAroundPivot(tmp,pivot,a));
     //TNode->SetRotation(TNode->Rotation()-a);
   }
 }

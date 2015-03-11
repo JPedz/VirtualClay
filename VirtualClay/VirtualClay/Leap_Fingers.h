@@ -2,10 +2,9 @@
 #define FINGERS_H_
 #include "stdafx.h"
 #include "MenuUI.h"
-#include "qmenu.h"
-#include "qmainwindow.h"
-#include "qmenubar.h"
 #include "util.h"
+#include <QtGui/qaction.h>
+#include <QtGui/qmenu.h>
 namespace mb = mudbox;
 
 class Leap_Fingers {
@@ -41,7 +40,7 @@ class Leap_Fingers {
     
     //Collision Detection
     void UpdateCollisionPos(mb::Vector pos, mb::Vector pivot, mb::Vector a);
-    mb::AxisAlignedBoundingBox Leap_Fingers::GetCollisionBox();
+    mb::AxisAlignedBoundingBox GetCollisionBox();
 };
 
 

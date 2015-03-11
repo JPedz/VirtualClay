@@ -1,11 +1,12 @@
 #pragma once
 #include "stdafx.h"
+
 class ID_List {
   //Stores the ID's for all of the nodes.
   //TODO: on close store these values somewhere.
   std::vector<int> HandCamList;
-  std::vector<std::vector<std::vector<int>>> FingerList;
-  std::vector<std::vector<std::vector<int>>> BoneList;
+  std::vector<std::vector<std::vector<int> > > FingerList;
+  std::vector<std::vector<std::vector<int> > > BoneList;
   std::vector<int> HandList;
   std::vector<int> currentTargets;
   int viewCam;

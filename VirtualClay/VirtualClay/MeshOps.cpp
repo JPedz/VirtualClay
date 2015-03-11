@@ -114,7 +114,7 @@ bool MeshOps::SelectFaces(mb::AxisAlignedBoundingBox box,float spreadDist) {
 bool MeshOps::SelectFaces(mb::Vector centrePoint, float widthHeight, float dropOffRate) {
   bool linearDropoff = true;
   if(pMesh != NULL) {
-    mb::MeshChange *mC = pMesh->StartChange();
+    //mb::MeshChange *mC = pMesh->StartChange();
     mb::Vector vS = centrePoint - mb::Vector(widthHeight,widthHeight,0);
     mb::Vector vE = centrePoint + mb::Vector(widthHeight,widthHeight,0);
     faces->clear();
@@ -157,7 +157,7 @@ bool MeshOps::SelectFaces(mb::Vector centrePoint, float widthHeight, float dropO
 
 bool MeshOps::ToolManip(mb::Vector centrePoint, float widthHeight, mb::Image *stamp) {
   if(pMesh != NULL) {
-    mb::MeshChange *mC = pMesh->StartChange();
+    //mb::MeshChange *mC = pMesh->StartChange();
     mb::Vector vS = centrePoint - mb::Vector(widthHeight,widthHeight,0);
     mb::Vector vE = centrePoint + mb::Vector(widthHeight,widthHeight,0);
     faces->clear();
@@ -362,6 +362,7 @@ void MeshOps::AddToUndoQueue() {
         break;
       }
     }
+    vertInfo.vI = vertices->at(i).vI;
     if(newVert) {
       vertInfo.pos = pMesh->VertexPosition(vertInfo.vI);
       vertInfoList.push_back(vertInfo); 
@@ -466,7 +467,7 @@ bool checkIsInside(QList<mb::Vector> &points,mb::Vector point,mb::Vector extreme
   float x = point.x;
   float y = point.y;
   for (int i = 0 ; i < points.size() ; i++) {
-    if ((points.at(i).y< y && points.at(j).y>=y || points.at(j).y< y && points.at(i).y>=y) &&
+    if (((points.at(i).y< y && points.at(j).y>=y) || (points.at(j).y< y && points.at(i).y>=y)) &&
       (points.at(i).x<=x || points.at(j).x<=x)) {
       if (points.at(i).x+(y-points.at(i).y)/(points.at(j).y-points.at(i).y)*(points.at(j).x-points.at(i).x)<x) {
         isInside=!isInside; 
@@ -695,7 +696,6 @@ void MeshOps::boxSelect(mb::Vector &v1,mb::Vector &v2,mb::Image *stamp) {
 void MeshOps::boxSelect2(mb::Vector &v1,mb::Vector &v2,mb::Image *stamp) {
   int xSize = abs(v1.x - v2.x);
   int ySize = abs(v1.y - v2.y);
-  size_t boxSize = xSize*ySize;
   mblog("Getting Screen Space Picker: "+curCam->Name()+"\n");
   ssp = curCam->GetScreenSpacePicker();
   if(ssp == NULL) {

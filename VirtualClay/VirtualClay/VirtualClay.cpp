@@ -1,6 +1,6 @@
 // VirtualClay.cpp : Defines the entry point for the console application.
 //
-
+#include "VirtualClay.h"
 #include "stdafx.h"
 #include "cameraWrapper.h"
 #include "MenuUI.h"
@@ -16,8 +16,6 @@ void VirtualClay::Initializer(void) {
   mb::Kernel()->Interface()->AddClassMenuItem(mb::Interface::menuCreate,"Leap Motion",MenuUI::StaticClass(),"Instatiate");
 }
 
-void VirtualClay::Execute(void) {
-}
 
 //TOOLS:
 

@@ -1,5 +1,4 @@
 #pragma once
-#include "stdafx.h"
 enum jointEnum {TIP,DIP,PIP,MCP};
 enum LR {l,r}; //Left or Right
 enum fingerEnum {THUMB,INDEX,MIDDLE,RING,PINKY};

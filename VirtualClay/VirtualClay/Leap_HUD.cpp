@@ -10,7 +10,8 @@ static void drawFullScreenQuad(mb::Texture* const outputTexture,mb::Texture* con
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();     
   glColor3f(1.0f,1.0f,1.0f);
-  glBindTexture(GL_TEXTURE_2D,overlay->OpenGLName());
+  if(overlay != NULL)
+    glBindTexture(GL_TEXTURE_2D,overlay->OpenGLName());
 
 	glBegin( GL_QUADS );
   
@@ -102,7 +103,7 @@ void Leap_HUD::SetCentre(mb::Vector &c) {
 }
 
 void Leap_HUD::Process(mb::ViewPortState &s) {
-  enum mb::Image::Format eFormat = s.m_bHDRNeeded ? mb::Image::e16float : mb::Image::e8integer;
+  //enum mb::Image::Format eFormat = s.m_bHDRNeeded ? mb::Image::e16float : mb::Image::e8integer;
 
   mb::Texture *currTex = NULL;
 

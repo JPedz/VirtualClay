@@ -1,6 +1,6 @@
 #pragma once
 #include "Leap.h"
-#include <QTime>
+#include <QTCore/QTime>
 #include "Leap_Listener.h"
 using namespace Leap;
 namespace mb = mudbox;
