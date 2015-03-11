@@ -478,13 +478,15 @@ void Leap_Updater::MenuSettings_L() {
 void Leap_Updater::Extrusion() {
   mblog("Finger IntersectCount = "+QString::number(countIntersectingFingers(l))+"\n");
   if(!facesAreSelected) {
-    if(selectMesh(cameraPivot)) {
-      facesAreSelected = true;
-      firstmoveswitch = true;
-      mblog("Succesfully Selected\n");
-    } else {
-      mb::Kernel()->Interface()->HUDMessageShow("Failed To Select");
-      mblog("Failed to select\n");
+    if(countIntersectingFingers(l) > 3) {
+      if(selectMesh(cameraPivot) ) {
+        facesAreSelected = true;
+        firstmoveswitch = true;
+        mblog("Succesfully Selected\n");
+      } else {
+        mb::Kernel()->Interface()->HUDMessageShow("Failed To Select, Have you selected the Mesh?");
+        mblog("Failed to select\n");
+      }
     }
     mbstatus("Grabbing");
   } else {
