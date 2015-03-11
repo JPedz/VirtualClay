@@ -2,6 +2,8 @@
 #define MESHOPS_H_
 #include "stdafx.h"
 #include "cameraWrapper.h"
+#include "qtimer.h"
+#include <QTime>
 
 namespace mb = mudbox;
 
@@ -39,6 +41,7 @@ class MeshOps {
   void AddVFI(int vi, int fi);
   MidVertex *midV;
   mb::Vector midPos;
+  void refreshMesh(void);
 
 public:
   MeshOps();
@@ -52,13 +55,16 @@ public:
   bool SelectFaces(mb::Vector centrePoint, float width, float height, float dropOffRate);
   //Select in a box with corners v1 and v2 (Z is ignored)
   void boxSelect(mb::Vector &v1,mb::Vector &v2);
+  void boxSelect2(mb::Vector &v1,mb::Vector &v2);
   void boxSelect(mb::Vector &v1,mb::Vector &v2,mb::Image *stamp);
+  void boxSelect2(mb::Vector &v1,mb::Vector &v2,mb::Image *stamp);
   void polygonSelect(QList<mb::Vector> &points, QList<mb::SurfacePoint>&sp,
                          QList<int> &faces, QList<int> &vertices);
   void addVertex(int fi);
   void setMesh(mb::Mesh *m);
   void ChangeCamera(cameraWrapper *cam);
   void MoveVertices(mb::Vector v);
+  void MoveVertices(float dist);
   bool CheckIntersection(mb::AxisAlignedBoundingBox box1);
   void DeselectAllFaces();
 

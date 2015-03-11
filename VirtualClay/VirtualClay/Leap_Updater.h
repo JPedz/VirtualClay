@@ -5,7 +5,7 @@
 #include "cameraWrapper.h"
 #include "MeshOps.h"
 #include "Leap_HUD.h"
-#include "Mudbox\image.h"
+#include <Mudbox/image.h>
 #include "Leap_Tool.h"
 
 namespace mb = mudbox;
@@ -16,26 +16,25 @@ class Leap_Updater : public mb::Node {
   Leap_Hand *hand_r;
   cameraWrapper *viewCam;
   mb::Vector fitToCameraSpace();
-  void Leap_Updater::rotateCamera(mb::Vector r);
-  void Leap_Updater::CameraRotate(LR lOrR);
-  void Leap_Updater::CameraZoom(LR lOrR);
+  void rotateCamera(mb::Vector r);
+  void CameraRotate(LR lOrR);
+  void CameraZoom(LR lOrR);
   mb::aevent frameEvent;
   Leap_Reader *leapReader;
   MeshOps *meshOp;
   mb::Vector lastFrameHandPos;
   mb::Vector lastFrameThumbPos;
   void setDir(mudbox::Vector dir);
-  void SetHandAndFingerPositions(mb::Vector &camPivot);
-  void ScreenTap(mb::Vector &camPos);
+  void SetHandAndFingerPositions();
+  void ScreenTap();
   mb::Vector GetRelativeScreenSpaceFromWorldPos(mb::Vector &wPos);
   void MoveMesh();
   bool selectMesh(mb::Vector &camPos);
   bool selectMeshPinch(mb::Vector &camPos);
   int countIntersectingFingers(LR lOrR);
-  void Leap_Updater::Extrusion(mb::Vector &cameraPivot);
+  void Extrusion();
   void MenuSettings_R();
   void MenuSettings_L();
-  void Leap_Updater::CollisionDectectionMovement();
   bool facesAreSelected;
   bool firstmoveswitch;
   bool inMenu_L;
@@ -52,22 +51,25 @@ class Leap_Updater : public mb::Node {
   bool toolStamp;
   bool brushSizeMenuToggle;
   bool SceneNavigationToggle;
-  bool Leap_Updater::ThumbSmoothMove();
+  bool pivotHandsOnMesh;
+  bool ThumbSmoothMove();
   float thumbMoveStrength;
   mb::Vector menuStartSpace;
   Leap_HUD *menuFilter;
   
-  __inline void Leap_Updater::checkNavigationGestures();
-  __inline void Leap_Updater::checkMenuGesture();
-  __inline void Leap_Updater::checkScreenTapGesture(mb::Vector &cameraPivot);
-  __inline void Leap_Updater::checkUndoGesture();
-  __inline void Leap_Updater::checkGrabbingGesture(mb::Vector &cameraPivot);
-  __inline void Leap_Updater::checkToolIntersection();
+  __inline void checkNavigationGestures();
+  __inline void checkMenuGesture();
+  __inline void checkScreenTapGesture();
+  __inline void checkUndoGesture();
+  __inline void checkGrabbingGesture();
+  __inline void checkToolIntersection();
 
+
+  mb::Vector cameraPivot;
   //Tools:
   Leap_Tool *tool;
-  void Leap_Updater::ToolSmoothMove();
-  void Leap_Updater::ToolStampMove();
+  void ToolSmoothMove();
+  void ToolStampMove();
 public:
   Leap_Updater(ID_List *idl,Leap_Hand *l,Leap_Hand *r);
   void OnEvent(const mb::EventGate &cEvent);

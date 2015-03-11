@@ -16,24 +16,25 @@ Leap_Reader::Leap_Reader(void) {
   controller.config().save();
   QTime *t = new QTime();
   t->start();
-  lastFrameID = controller.frame().id();
   while(!controller.isConnected()) {
-    if(t->elapsed() > 5000)
+    if(t->elapsed() > 5000) {
        mb::Kernel()->Interface()->MessageBox(mb::Interface::msgInformation,
        "Leap Motion Connection", 
        "Unable to connect to Leap Motion Controller. Please make sure it is plugged in",
        2,0);
       break;
+    }
     mb::Kernel()->Interface()->SetStatus(mb::Interface::stNormal,"Leap Not Connected");
   }
   if(controller.isConnected()) {
     isConnected =true;
-    mb::Kernel()->Interface()->SetStatus(mb::Interface::stNormal,"Leap Connected Successfully");
+    mbstatus("Leap Connected Successfully");
     mblog("\n Leap Connected Successfully\n");
   } else {
     isConnected =false;
     mblog("\n Leap not Connected\n");
   }
+  lastFrameID = controller.frame().id();
 }
 
 Leap_Reader::~Leap_Reader(void)
@@ -137,8 +138,10 @@ bool Leap_Reader::updateAll(void) {
           break;
         case Leap::Gesture::TYPE_SWIPE:
             swipeGesture = SwipeGesture(*gl);
-            if(swipeGesture.direction().x < 0 )
-              isUndo = true;
+            if(swipeGesture.direction().x < 0 ) {
+              if(CheckFingerExtensions(gestureHand,1,1,1,1,1))
+                isUndo = true;
+            }
             //Handle swipe gestures
             break;
         default:
@@ -153,6 +156,18 @@ bool Leap_Reader::updateAll(void) {
       return false;
     }
   } else {
+    QTime *t = new QTime();
+    t->start();
+    while(!controller.isConnected()) {
+      if(t->elapsed() > 5000) {
+         mb::Kernel()->Interface()->MessageBox(mb::Interface::msgInformation,
+         "Leap Motion Connection", 
+         "Unable to connect to Leap Motion Controller. Please make sure it is plugged in",
+         2,0);
+        break;
+      }
+      mb::Kernel()->Interface()->SetStatus(mb::Interface::stNormal,"Leap Not Connected");
+    }
     handvisi.at(0) = false;
     handvisi.at(1) = false;
     isConnected =false;
@@ -170,10 +185,11 @@ void Leap_Reader::HandSetup(Frame &f) {
   isTool = false;
   if(tools.count() > 0) {
     isTool = true;
-    mblog("IS TOOL\n");
+    //mblog("IS TOOL\n");
     tool = tools.frontmost();
   }
   isGrabbing_L =false;
+  isGrabbing_R =false;
   ishands = true;
   if(hands.count() > 1) {
     if(hands.leftmost().confidence() >= hands.rightmost().confidence()) {
@@ -197,6 +213,9 @@ void Leap_Reader::HandSetup(Frame &f) {
     handvisi.at(1) = true;
     if(isFist(l)) {
       isGrabbing_L =true;
+    }    
+    if(isFist(r)) {
+      isGrabbing_R =true;
     }
   } else {
     if(hands.count() == 1) {
@@ -209,6 +228,9 @@ void Leap_Reader::HandSetup(Frame &f) {
         }
       } else {
         hand_r = hands.leftmost();
+        if(isFist(r)) {
+          isGrabbing_R =true;
+        }
         handvisi.at(0) = false;
         handvisi.at(1) = true;
       }
@@ -462,7 +484,7 @@ std::vector<mb::Vector> Leap_Reader::GetToolPositions() {
 mb::Vector Leap_Reader::GetToolDirection() {
   mb::Vector tooldir;
   if(isTool) {
-    tooldir = (leapVecToMBVec(tool.direction()));
+    tooldir = (leapVecToMBVec(tool.direction()))*RAD_TO_DEG;
   }
   return tooldir;
 }
@@ -472,5 +494,23 @@ mb::Vector Leap_Reader::getToolMotionDirection() {
   dir = leapVecToMBVec(tool.tipVelocity());
   dir.Normalize();
   return dir;
+}
+
+bool Leap_Reader::CheckFingerExtensions(LR lOrR,bool ext0,bool ext1,bool ext2,bool ext3,bool ext4) {
+  std::vector<bool> b;
+  if(lOrR == l) {
+    b = GetExtendedFingers(l);
+  } else {
+    b = GetExtendedFingers(r);
+  }
+  if((b.at(0) == ext0) &&
+    (b.at(1) == ext1) &&
+    (b.at(2) == ext2) &&
+    (b.at(3) == ext3) &&
+    (b.at(4) == ext4))
+      return true;
+  else
+    return false;
+
 }
 

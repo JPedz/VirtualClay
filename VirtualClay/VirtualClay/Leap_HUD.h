@@ -1,8 +1,8 @@
 #pragma once
 #include "stdafx.h"
-#include <Cg\cg.h>
+#include <Cg/cg.h>
 #include <cmath>
-#include <Cg\cgGL.h>
+#include <Cg/cgGL.h>
 #include <QtCore/QDir>
 class Leap_HUD : public mb::ViewPortFilter {
 public:

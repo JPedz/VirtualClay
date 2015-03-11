@@ -86,7 +86,10 @@ void cameraWrapper::selectPoints(mb::Vector v) {
 }
 
 void cameraWrapper::MoveForward(float dist) {
-  cam->MoveForward(dist);
+  if(dist > 0) 
+    cam->MoveForward(dist);
+  else 
+    cam->MoveBackward(dist);
 }
 
 void cameraWrapper::deleteCam(void) {

@@ -23,16 +23,31 @@ class Leap_Fingers {
     void SetMaterial();
 =======
     mb::Vector fakePosVect;
+<<<<<<< HEAD
     void Leap_Fingers::BuildGeo(void);
 >>>>>>> 9e8b7a505bdeab7a07a9a3501a9f33b85881a056
+=======
+    void BuildGeo(void);
+>>>>>>> da004796e4e964c1fbfae449684aa30bdec54feb
     int ID;
   public:
     Leap_Fingers(void);
     Leap_Fingers(QString n);
+<<<<<<< HEAD
     mb::Transformation * getTNode();
     void SetPos(mb::Vector v);
     mb::Vector GetPos(void);
     void SetRot(mb::Vector r);
+=======
+    int CopyGeo(Leap_Fingers *copyNode);
+    mb::Geometry *GetGeoNode();
+    mb::Transformation * getTNode();
+    void SetPos(mb::Vector &v);
+    mb::Vector GetPos(void);
+    void SetRot(mb::Vector r);
+    void SetRotMatrix(mb::Vector &r);
+    void AddRot(mb::Vector r);
+>>>>>>> da004796e4e964c1fbfae449684aa30bdec54feb
     mb::Vector GetRot();
     void SetScale(mb::Vector s);
     int ImportGeo(void);

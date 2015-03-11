@@ -11,7 +11,8 @@ Leap_Updater::Leap_Updater(ID_List *idl,Leap_Hand *l,Leap_Hand *r)
   idList = idl;
   hand_l = l;
   hand_r = r;
-  tool = new Leap_Tool();
+  tool = new Leap_Tool(hand_l);
+  tool->SetStamp(RESOURCESDIR+"stamp1.png");
   meshOp = new MeshOps();
   
   //mblog("Listing Nodes\n");
@@ -19,7 +20,6 @@ Leap_Updater::Leap_Updater(ID_List *idl,Leap_Hand *l,Leap_Hand *r)
   //  mblog("Node: "+nodes->Name()+" "+QString::number(nodes->ID())+"\n");
   //}
   //mblog("Listed Nodes\n");
-
   Leap_HUD *leapHud = new Leap_HUD();
   meshOp->ChangeCamera(new cameraWrapper(idList->getCam(LR(0))));
   leapReader = new Leap_Reader();
@@ -38,9 +38,10 @@ Leap_Updater::Leap_Updater(ID_List *idl,Leap_Hand *l,Leap_Hand *r)
   thumbGrabModeToggle = false;
   stickyMovement = false;
   pinchGrab = true;
-  toolStamp = false;
+  toolStamp = true;
   brushSizeMenuToggle = false;
   SceneNavigationToggle = true;
+  pivotHandsOnMesh = true;
   thumbMoveStrength = 10.0f; //Strength and distance for movement intersecting thumb
 }
 
@@ -61,13 +62,12 @@ void Leap_Updater::rotateCamera(mb::Vector r) {
     viewCam->getCamera()->SetTarget(aimPoint);
 }
 
-
-
-void Leap_Updater::ScreenTap(mb::Vector &camPos) { 
+void Leap_Updater::ScreenTap() { 
   meshOp->ChangeCamera(viewCam);
   mb::Vector indexPos = hand_l->GetFingerPos(INDEX,TIP);
   hand_l->SetVisi(false);
   mb::Vector projPos = viewCam->getCamera()->Project(indexPos);
+  projPos = projPos * mb::Vector(1,-1,1);
   mblog(VectorToQString(indexPos)+"Pos"+VectorToQStringLine(projPos));
   meshOp->SelectObject(viewCam,projPos);
   hand_l->SetVisi(true);
@@ -77,11 +77,6 @@ mb::Vector Leap_Updater::GetRelativeScreenSpaceFromWorldPos(mb::Vector &wPos) {
   mb::Camera *activeCam = mb::Kernel()->Scene()->ActiveCamera();
   return activeCam->Project(wPos);
 }
-
-void Leap_Updater::CollisionDectectionMovement() {
-
-}
-
 
 bool Leap_Updater::selectMeshPinch(mb::Vector &camPos) {
   meshOp->ChangeCamera(viewCam);
@@ -102,13 +97,15 @@ bool Leap_Updater::selectMesh(mb::Vector &camPos) {
   int leftCamID = idList->getCam(l);
   cameraWrapper *leftHand = new cameraWrapper(leftCamID);
   meshOp->ChangeCamera(leftHand);
-  mb::Kernel()->Scene()->SetActiveCamera(leftHand->getCamera());
-  mb::Kernel()->Redraw();
+  leftHand->MoveForward(50);
   hand_l->SetVisi(false);
+  hand_l->SetPos(mb::Vector(0,0,0));
+  mb::Kernel()->Scene()->SetActiveCamera(leftHand->getCamera());
+  mb::Kernel()->ViewPort()->Redraw();
   bool b = meshOp->SelectFaces();
   hand_l->SetVisi(true);
   mb::Kernel()->Scene()->SetActiveCamera(viewCam->getCamera());
-  mb::Kernel()->Redraw();
+  mb::Kernel()->ViewPort()->Redraw();
   return b;
 }
 
@@ -176,6 +173,7 @@ bool Leap_Updater::ThumbSelect() {
 bool Leap_Updater::ThumbSmoothMove() {
   mb::Vector thumbPos = hand_l->GetFingerPos(THUMB,TIP);
   mb::Vector thumbProj = viewCam->getCamera()->Project(thumbPos);
+  thumbProj = thumbProj * mb::Vector(1,-1,1);
   hand_l->SetVisi(false);
   mblog("Thumb Proj Pos = "+VectorToQStringLine(thumbProj));
   mblog("Thumb Proj Pos Pixels = "+VectorToQStringLine(ScreenSpaceToPixels(thumbProj)));
@@ -193,7 +191,7 @@ bool Leap_Updater::ThumbSmoothMove() {
   return false;
 }
 
-void Leap_Updater::SetHandAndFingerPositions(mb::Vector &cameraPivot) {
+void Leap_Updater::SetHandAndFingerPositions() {
   //TODO:
   // Do I need to actually rotate the fingers?? If so, by what metric?
   // hand_l->SetFingerRot(fingerEnum(i),leapReader->getFingerDirection_L(fingerEnum(i)));
@@ -206,9 +204,24 @@ void Leap_Updater::SetHandAndFingerPositions(mb::Vector &cameraPivot) {
   int rightCamID = idList->getCam(r);
   // Set hand position and orientation
   hand_l->SetPos(cameraPivot + leapReader->getPosition_L());
-  hand_l->SetRot(leapReader->getDirection_L());
   hand_r->SetPos(cameraPivot + leapReader->getPosition_R());
-  hand_r->SetRot(leapReader->getDirection_R());
+  
+  //Rotate the hands XZY
+  mb::Vector rotation = (mb::Vector(1,1,-1)*camRot) + leapReader->getDirection_L();
+  mb::Matrix rX = createRotateXMatrix(rotation.x);
+  mb::Matrix rY = createRotateYMatrix(rotation.y);
+  mb::Matrix rZ = createRotateZMatrix(rotation.z);
+  mb::Matrix rotationMatrix = rX*rZ*rY;
+  hand_l->GetTNode()->SetRotation(rotationMatrix);
+
+  mb::Vector rotation_r = (mb::Vector(-1,1,-1)*camRot) + leapReader->getDirection_R();
+  mb::Matrix rX_r = createRotateXMatrix(rotation_r.x);
+  mb::Matrix rY_r = createRotateYMatrix(rotation_r.y);
+  mb::Matrix rZ_r = createRotateZMatrix(rotation_r.z);
+  mb::Matrix rotationMatrix_r = rZ_r*rX_r*rY_r;
+  hand_r->GetTNode()->SetRotation(rotationMatrix_r);
+
+
   hand_l->RotateAroundPivot(-1*camRot,cameraPivot);
   hand_r->RotateAroundPivot(-1*camRot,cameraPivot);
 
@@ -229,55 +242,43 @@ void Leap_Updater::SetHandAndFingerPositions(mb::Vector &cameraPivot) {
   mb::Vector fingerPos_R = mb::Vector(0,0,0);
   
   for(int i = 0 ; i < 5 ; i++) {
-    //Check for collisions
-    leftColl = false;
-    //hand_l->UpdateCollisionPos(fingerEnum(i),cameraPivot+leapReader->getFingerPosition(fingerEnum(i),l).at(0),-1*camRot,cameraPivot);
-    //if(meshOp->CheckIntersection(hand_l->getCollisionBox(cameraPivot+leapReader->getFingerPosition(fingerEnum(i),l).at(0),-1*camRot,cameraPivot))) {
-    //  mblog("Collision detected!\n");
-    //  leftColl = true;
-    //}
     for(int j = 0 ; j < 4 ; j++) {
-      //TODO: Remove restriction to only fingerTips
-        //#Code:111
-      if(j == 0) {
-        fingerPos_L = hand_l->GetFingerPos(fingerEnum(i),jointEnum(j));
-        fingerPos_R = hand_r->GetFingerPos(fingerEnum(i),jointEnum(j));
-        hand_l->SetFingerPos(jointEnum(j),fingerEnum(i),cameraPivot + leapReader->getFingerPosition(fingerEnum(i),l).at(j));
-        hand_l->RotateAroundPivot(jointEnum(j),fingerEnum(i),-1*camRot,cameraPivot);
-
-        hand_r->SetFingerPos(jointEnum(j),fingerEnum(i),cameraPivot + leapReader->getFingerPosition(fingerEnum(i),r).at(j));
-        hand_r->RotateAroundPivot(jointEnum(j),fingerEnum(i),-1*camRot,cameraPivot);
+      fingerPos_L = hand_l->GetFingerPos(fingerEnum(i),jointEnum(j));
+      fingerPos_R = hand_r->GetFingerPos(fingerEnum(i),jointEnum(j));
+      hand_l->SetFingerPos(jointEnum(j),fingerEnum(i),cameraPivot + leapReader->getFingerPosition(fingerEnum(i),l).at(j));
+      hand_l->RotateAroundPivot(jointEnum(j),fingerEnum(i),-1*camRot,cameraPivot);
+      hand_r->SetFingerPos(jointEnum(j),fingerEnum(i),cameraPivot + leapReader->getFingerPosition(fingerEnum(i),r).at(j));
+      hand_r->RotateAroundPivot(jointEnum(j),fingerEnum(i),-1*camRot,cameraPivot);
       
-        if(collisionToggle) {
-          if(meshOp->CheckIntersection(hand_l->GetFingerBoundingBox(fingerEnum(i),jointEnum(j)))) {
-            if(j == 0) {
-              hand_l->SetFingerPos(jointEnum(j),fingerEnum(i),fingerPos_L);
-            }
-            //mblog("L Hand collision!\n");
-          }
-          if(meshOp->CheckIntersection(hand_r->GetFingerBoundingBox(fingerEnum(i),jointEnum(j)))) {
-            if(j == 0) {
-              hand_r->SetFingerPos(jointEnum(j),fingerEnum(i),fingerPos_R);
-            }
-            //mblog("R Hand collision!\n");
-          }
-        }
-        //mblog("Updating Bone Pos :"+QString::number(j)+"\n");
-        //hand_r->UpdateBone(boneEnum(j),fingerEnum(i),leapReader->getBoneOrients(fingerEnum(i),r).at(j));
-        //hand_l->UpdateBone(boneEnum(j),fingerEnum(i),leapReader->getBoneOrients(fingerEnum(i),l).at(j));
-        //mblog("Updated Bone Pos\n");
+      //if(collisionToggle) {
+      //  if(meshOp->CheckIntersection(hand_l->GetFingerBoundingBox(fingerEnum(i),jointEnum(j)))) {
+      //    if(j == 0) {
+      //      hand_l->SetFingerPos(jointEnum(j),fingerEnum(i),fingerPos_L);
+      //    }
+      //    //mblog("L Hand collision!\n");
+      //  }
+      //  if(meshOp->CheckIntersection(hand_r->GetFingerBoundingBox(fingerEnum(i),jointEnum(j)))) {
+      //    if(j == 0) {
+      //      hand_r->SetFingerPos(jointEnum(j),fingerEnum(i),fingerPos_R);
+      //    }
+      //    //mblog("R Hand collision!\n");
+      //  }
+      //}
+      // }
+      //mblog("Updating Bone Pos :"+QString::number(j)+"\n");
+      //hand_r->UpdateBone(boneEnum(j),fingerEnum(i),leapReader->getBoneOrients(fingerEnum(i),r).at(j));
+      //hand_l->UpdateBone(boneEnum(j),fingerEnum(i),leapReader->getBoneOrients(fingerEnum(i),l).at(j));
+      //mblog("Updated Bone Pos\n");
       }
     }
-  }
   if(leapReader->isTool) {
     tool->SetVisi(true);
     std::vector<mb::Vector> toolLocs = leapReader->GetToolPositions();
     tool->SetPos(0,cameraPivot+toolLocs.at(0));
     tool->SetPos(1,cameraPivot+toolLocs.at(1));
+    tool->SetRot( (mb::Vector(-1,1,-1)*camRot)+leapReader->GetToolDirection());
     tool->RotateAroundPivot(-1*camRot,cameraPivot);
     tool->RotateAroundPivot(-1*camRot,cameraPivot);
-    tool->SetRot(0,leapReader->GetToolDirection());
-    tool->SetRot(1,leapReader->GetToolDirection());
   } else {
     tool->SetVisi(false);
   }
@@ -334,10 +335,10 @@ void Leap_Updater::CameraZoom(LR lOrR) {
   if(abs(handRot.z) > deadzone) {
       if(handRot.z > 0) {
         mblog("Forward\n");
-        viewCam->getCamera()->MoveForward(mb::Vector(1,0,0));  
+        viewCam->getCamera()->MoveForward(mb::Vector(5,0,0));  
       } else {
         mbhud("Backward\n");
-        viewCam->getCamera()->MoveBackward(mb::Vector(1,0,0));  
+        viewCam->getCamera()->MoveBackward(mb::Vector(5,0,0));  
       }
     }
   //viewCam->getTNode()->SetPosition(sceneRotate);
@@ -384,6 +385,7 @@ void Leap_Updater::MenuSettings_R() {
     menuUp = false;
   } else if(menuRight) {
     collisionToggle = !collisionToggle;
+    pivotHandsOnMesh =! pivotHandsOnMesh;
     if(collisionToggle)
       mbhud("Collision Mode: On");
     else
@@ -471,7 +473,7 @@ void Leap_Updater::MenuSettings_L() {
   }
 }
 
-void Leap_Updater::Extrusion(mb::Vector &cameraPivot) {
+void Leap_Updater::Extrusion() {
   mblog("Finger IntersectCount = "+QString::number(countIntersectingFingers(l))+"\n");
   if(!facesAreSelected) {
     if(selectMesh(cameraPivot)) {
@@ -485,7 +487,7 @@ void Leap_Updater::Extrusion(mb::Vector &cameraPivot) {
     mbstatus("Grabbing");
   } else {
     if(firstmoveswitch) {
-      lastFrameHandPos == hand_l->GetPos();
+      lastFrameHandPos = hand_l->GetPos();
       firstmoveswitch = false;
     } else {
       mbstatus("MovingMesh");
@@ -502,7 +504,7 @@ __inline void Leap_Updater::checkNavigationGestures() {
         CameraRotate(l);
       } else if(leapReader->CheckScaleHandGesture(l)) {
         CameraZoom(l);
-      } 
+      }
     }
     if(leapReader->isVisible(r)) {
       if(leapReader->CheckRotateHandGesture(r)) {
@@ -530,11 +532,14 @@ __inline void Leap_Updater::checkMenuGesture() {
   }
 }
 
-__inline void Leap_Updater::checkScreenTapGesture(mb::Vector &cameraPivot) {
+__inline void Leap_Updater::checkScreenTapGesture() {
   //If they tapped the screen
-  if(leapReader->isScreenTap) {
-    mblog("got tap\n");
-    ScreenTap(cameraPivot);
+  if(leapReader->CheckFingerExtensions(l,false,true,false,false,false)) {
+    mblog("Got fingers\n");
+    if(leapReader->isScreenTap) {
+      mblog("got tap\n");
+      ScreenTap();
+    }
   }
 }
 
@@ -546,7 +551,7 @@ __inline void Leap_Updater::checkUndoGesture() {
   }
 }
 
-__inline void Leap_Updater::checkGrabbingGesture(mb::Vector &cameraPivot) {
+__inline void Leap_Updater::checkGrabbingGesture() {
   if(thumbGrabModeToggle) {
     if((meshOp->CheckIntersection(hand_l->GetFingerBoundingBox(THUMB,TIP)))) {
       if(meshOp->firstUse) {
@@ -566,7 +571,7 @@ __inline void Leap_Updater::checkGrabbingGesture(mb::Vector &cameraPivot) {
   } else {
   //If they are Grabbing and Thumb Toggle is Off
     if(leapReader->isGrabbing_L ) {
-      Extrusion(cameraPivot);
+      Extrusion();
     } else {
       if(facesAreSelected) {
         meshOp->DeselectAllFaces();
@@ -574,17 +579,28 @@ __inline void Leap_Updater::checkGrabbingGesture(mb::Vector &cameraPivot) {
       firstmoveswitch = true;
       facesAreSelected = false;
     }
-    lastFrameHandPos == hand_l->GetPos();
+    lastFrameHandPos = hand_l->GetPos();
   }
 }
 
-void Leap_Updater::ToolStampMove() {
+void Leap_Updater::ToolStampMove() {  
+  int toolCamID = idList->getToolCam();
+  cameraWrapper *toolCam= new cameraWrapper(toolCamID);
+  toolCam->setPosition(tool->GetPos(1));
+  toolCam->setAim(tool->GetPos(0));
+  toolCam->MoveForward(-50);
+  meshOp->ChangeCamera(viewCam);
   tool->SetVisi(false);
+  mblog("ToolStamp\n");
   mb::Vector toolPos = tool->GetPos(0);
   mb::Vector toolProj = viewCam->getCamera()->Project(toolPos);
-  mblog("Thumb Proj Pos = "+VectorToQStringLine(toolProj));
-  mblog("Thumb Proj Pos Pixels = "+VectorToQStringLine(ScreenSpaceToPixels(toolProj)));
-  if(meshOp->ToolManip(ScreenSpaceToPixels(toolProj),10.0f,tool->GetStamp())) {
+  mblog("Tool Proj Pos = "+VectorToQStringLine(toolProj));
+  toolProj = toolProj * mb::Vector(1,-1,1);
+  mblog("Tool Proj Pos Pixels = "+VectorToQStringLine(ScreenSpaceToPixels(toolProj)));
+  if(meshOp->ToolManip(ScreenSpaceToPixels(toolProj),20.0f,tool->GetStamp())) {
+    mblog("Moving vertices maybe?\n");
+    tool->ResizeStamp(20,20);
+    meshOp->MoveVertices(10);
   }
   tool->SetVisi(true);
 }
@@ -593,13 +609,16 @@ void Leap_Updater::ToolSmoothMove() {
   int toolCamID = idList->getToolCam();
   cameraWrapper *toolCam= new cameraWrapper(toolCamID);
   toolCam->setPosition(tool->GetPos(1));
+  toolCam->MoveForward(-50);
   toolCam->setAim(tool->GetPos(0));
-  meshOp->ChangeCamera(toolCam);
+  meshOp->ChangeCamera(viewCam);
   tool->SetVisi(false);
   mb::Vector toolPos = tool->GetPos(0);
-  mb::Vector toolProj = toolCam->getCamera()->Project(toolPos);
-  mblog("Thumb Proj Pos = "+VectorToQStringLine(toolProj));
-  mblog("Thumb Proj Pos Pixels = "+VectorToQStringLine(ScreenSpaceToPixels(toolProj)));
+  mb::Vector toolProj = viewCam->getCamera()->Project(toolPos);
+  toolProj = toolProj * mb::Vector(1,-1,1);
+  mblog("ToolSmoothMove\n");
+  mblog("Tool Proj Pos = "+VectorToQStringLine(toolProj));
+  mblog("Tool Proj Pos Pixels = "+VectorToQStringLine(ScreenSpaceToPixels(toolProj)));
   //meshOp->ChangeCamera(viewCam);
   if(meshOp->SelectFaces(ScreenSpaceToPixels(toolProj),10.0f,10)) {
     mb::Vector dirNorm = leapReader->getToolMotionDirection();
@@ -612,7 +631,10 @@ void Leap_Updater::ToolSmoothMove() {
 
 __inline void Leap_Updater::checkToolIntersection() {
   if(leapReader->isTool) {
-    if(meshOp->CheckIntersection(tool->GetBoundingBox(0))) {
+    if(meshOp->CheckIntersection(tool->GetBoundingBox(1))) {
+      mblog("Tool bounding box Pos = "+VectorToQStringLine(tool->GetBoundingBox(0).Center()));
+     // mblog("Test Tool bounding box Pos = "+VectorToQStringLine(mb::AxisAlignedBoundingBox(tool->GetPos(0),0.2f).Center()));
+
       //Set the undo list to iterate on.
       if(meshOp->firstUse) {
         meshOp->firstUse = false;
@@ -632,12 +654,16 @@ __inline void Leap_Updater::checkToolIntersection() {
 void Leap_Updater::OnEvent(const mb::EventGate &cEvent) {
   if(cEvent == frameEvent) {
     if(leapReader->updateAll()) {
-      if((leapReader->ishands || leapReader->isTool )&& leapReader->isConnected) {
+      if((leapReader->ishands || leapReader->isTool) && leapReader->isConnected) {
         //mblog("Getting CameraID\n");
         int viewcamID = idList->getViewCam();
         viewCam = new cameraWrapper(viewcamID);
-        mb::Vector cameraPivot = fitToCameraSpace();
-        SetHandAndFingerPositions(cameraPivot);
+        if(pivotHandsOnMesh) {
+          cameraPivot = fitToCameraSpace();
+        } else {
+          cameraPivot = mb::Vector(0,0,0);
+        }
+        SetHandAndFingerPositions();
         //If Circle Anti-Clockwise
         if(inMenu_R) {
           MenuSettings_R();
@@ -646,9 +672,9 @@ void Leap_Updater::OnEvent(const mb::EventGate &cEvent) {
         } else {
           checkNavigationGestures();
           checkMenuGesture();
-          checkScreenTapGesture(cameraPivot);
+          checkScreenTapGesture();
           checkUndoGesture();
-          checkGrabbingGesture(cameraPivot);
+          checkGrabbingGesture();
           checkToolIntersection();
         }
       }

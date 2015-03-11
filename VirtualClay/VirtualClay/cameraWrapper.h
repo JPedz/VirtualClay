@@ -25,9 +25,9 @@ class cameraWrapper {
     void selectPoints(mb::Vector v);
     void deleteCam(void);
     mb::Vector getForward(void);
-    void cameraWrapper::setRotation(mb::Vector &ypr);
-    void cameraWrapper::setPosition(mb::Vector &pos);
-    void cameraWrapper::MoveForward(float dist);
+    void setRotation(mb::Vector &ypr);
+    void setPosition(mb::Vector &pos);
+    void MoveForward(float dist);
 };
 
 #endif
