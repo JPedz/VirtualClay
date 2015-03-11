@@ -50,11 +50,11 @@ public:
   void SelectObject(cameraWrapper *viewCam, mb::Vector screenPos);
   void SelectFaces(QList<mb::Vector> &poly);
   bool SelectFaces(mb::AxisAlignedBoundingBox box,float spreadDist = 0);
-  bool SelectFaces();
+  bool SelectFaces(float size = 30, float strength = 10);
   bool SelectFaces(mb::Vector centrePoint, float widthHeight, float dropOffRate);
   bool SelectFaces(mb::Vector centrePoint, float width, float height, float dropOffRate);
   //Select in a box with corners v1 and v2 (Z is ignored)
-  void boxSelect(mb::Vector &v1,mb::Vector &v2);
+  void boxSelect(mb::Vector &v1,mb::Vector &v2, float maxDist = 30, float strength = 10);
   void boxSelect2(mb::Vector &v1,mb::Vector &v2);
   void boxSelect(mb::Vector &v1,mb::Vector &v2,mb::Image *stamp);
   void boxSelect2(mb::Vector &v1,mb::Vector &v2,mb::Image *stamp);

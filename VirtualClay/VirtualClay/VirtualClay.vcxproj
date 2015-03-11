@@ -78,7 +78,7 @@
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LinkIncremental>true</LinkIncremental>
+    <LinkIncremental>false</LinkIncremental>
     <TargetExt>.mp</TargetExt>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -143,6 +143,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_USRDLL;FILEEVENTHANDLER_EXPORTS;MB_USE_QT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(MUDBOX_SDK_DIR)\include;$(LEAP_SDK_DIR)\include\;C:\Program Files\Autodesk\Mudbox 2015\SDK\include\QtCore;C:\Program Files\Autodesk\Mudbox 2015\SDK\include\QtGui;C:\Program Files\Autodesk\Mudbox 2015\SDK\include\QtOpenGL;C:\Program Files\Autodesk\Mudbox 2015\SDK\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

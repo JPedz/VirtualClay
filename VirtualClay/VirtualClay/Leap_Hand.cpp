@@ -179,6 +179,7 @@ float Leap_Hand::AvgDistFromThumb() {
   for(int f = 1 ; f < 5 ; f++) {
     sumdist += fings.at(f).at(0)->GetPos().DistanceFrom(thumb);
   }
+  return sumdist*0.25;
 }
 
 void Leap_Hand::AddRot(mb::Vector v) {

@@ -199,7 +199,7 @@ bool MeshOps::ToolManip(mb::Vector centrePoint, float size, float dropOffRate) {
   return false;
 }
 
-bool MeshOps::SelectFaces() {
+bool MeshOps::SelectFaces(float size, float strength) {
   bool linearDropoff = true;
   if(pMesh != NULL) {
     //ssp = curCam->GetScreenSpacePicker();
@@ -214,7 +214,6 @@ bool MeshOps::SelectFaces() {
       polyScreenVector.y = midH+poly.at(i).y*midH;
       polyScreen.push_back(polyScreenVector);
     }*/
-
     mb::Vector vS = mb::Vector(midW-40,midH-40,0);
     mb::Vector vE = mb::Vector(midW + 40, midH + 40, 0);
     //mb::Kernel()->Interface()->SetStatus(mudbox::Interface::stNormal,pMesh->Name());
@@ -226,7 +225,7 @@ bool MeshOps::SelectFaces() {
     midV->vI = 0;
     mblog("SelectingBox\n");
     //polygonSelect(polyScreen,points,faces,vertices);
-    boxSelect(vS,vE);
+    boxSelect(vS,vE,size,strength);
     mblog("Selected face Count "+QString::number(faces->size())+"\n");
     
     if(faces->size() > 0) {
@@ -530,7 +529,7 @@ bool checkIsInside(QList<mb::Vector> &points,mb::Vector point,mb::Vector extreme
 //}
 
 
-void MeshOps::boxSelect(mb::Vector &v1,mb::Vector &v2) {
+void MeshOps::boxSelect(mb::Vector &v1,mb::Vector &v2,float maxDist, float strength) {
   int x = (v1.x + v2.x)*0.5;
   int y = (v1.y + v2.y)*0.5;
   mb::SurfacePoint p;
@@ -550,7 +549,7 @@ void MeshOps::boxSelect(mb::Vector &v1,mb::Vector &v2) {
       t->start();
       for( unsigned int i = 0 ; i < pMesh->VertexCount() ; i++) {
         dist = pMesh->VertexPosition(i).DistanceFrom(midPos);
-        if(dist < 30) {
+        if(dist < maxDist) {
           if(checkUniqueInVertexList(i)) {
             vertexCountInRange++;
             vMI.vI = (int)i;
