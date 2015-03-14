@@ -142,6 +142,24 @@ int Leap_Updater::countIntersectingFingers(LR lOrR) {
   return counter;
 }
 
+int Leap_Updater::countTouchingFingers(LR lOrR) {
+  int counter = 0;
+  if(lOrR == l) {
+    for(int i = 0; i < 5 ; i++) {
+      if(meshOp->CheckTouching(hand_l->GetFingerBoundingBox(fingerEnum(i)))) {
+        counter++;
+      }
+    }
+  } else {
+    for(int i = 0; i < 5 ; i++) {
+      if(meshOp->CheckTouching(hand_r->GetFingerBoundingBox(fingerEnum(i)))) {
+        counter++;
+      }
+    }
+  }
+  return counter;
+}
+
 bool Leap_Updater::ThumbSelect() {
   mb::Vector thumbPos = hand_l->GetFingerPos(THUMB,TIP);
   mb::Vector thumbProj = viewCam->getCamera()->Project(thumbPos);
@@ -284,9 +302,9 @@ void Leap_Updater::SetHandAndFingerPositions() {
     tool->SetPos(0,tmp);
     tmp = cameraPivot+toolLocs.at(1);
     tool->SetPos(1,tmp);
-//    tmp = (mb::Vector(-1,1,-1)*camRot)+leapReader->GetToolDirection();
-//    tool->SetRot( tmp);
-    tmp = -1*camRot;
+    tmp = (mb::Vector(-1,1,-1)*camRot)+leapReader->GetToolDirection();
+    tool->SetRot( tmp);
+    tmp = (-1*camRot)/2;
     tool->RotateAroundPivot(tmp,cameraPivot);
     tool->RotateAroundPivot(tmp,cameraPivot);
   } else {
@@ -568,7 +586,7 @@ __inline void Leap_Updater::checkUndoGesture() {
 
 __inline void Leap_Updater::checkGrabbingGesture() {
   if(thumbGrabModeToggle) {
-    if((meshOp->CheckIntersection(hand_l->GetFingerBoundingBox(THUMB,TIP)))) {
+    if((meshOp->CheckTouching(hand_l->GetFingerBoundingBox(THUMB,TIP)))) {
       if(meshOp->firstUse) {
         meshOp->firstUse = false;
       }
@@ -646,10 +664,11 @@ void Leap_Updater::ToolSmoothMove() {
 
 __inline void Leap_Updater::checkToolIntersection() {
   if(leapReader->isTool) {
-    if(meshOp->CheckIntersection(tool->GetBoundingBox(0))) {
+    if(meshOp->CheckTouching(tool->GetBoundingBox(0))) {
+    tool->SendToServer(true);
       mblog("Tool bounding box Pos = "+VectorToQStringLine(tool->GetBoundingBox(0).Center()));
      // mblog("Test Tool bounding box Pos = "+VectorToQStringLine(mb::AxisAlignedBoundingBox(tool->GetPos(0),0.2f).Center()));
-
+      //http://www.sciencedirect.com/science/article/pii/S0010448512002734
       //Set the undo list to iterate on.
       if(meshOp->firstUse) {
         meshOp->firstUse = false;
@@ -660,6 +679,7 @@ __inline void Leap_Updater::checkToolIntersection() {
         ToolSmoothMove();
       }
     } else {
+      tool->SendToServer(false);
       //Set the undo list to iterate on.
       meshOp->firstUse = true;
     }

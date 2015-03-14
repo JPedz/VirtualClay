@@ -126,8 +126,6 @@ void Leap_Fingers::SetPos(mb::Vector &v) {
     TNode->SetPosition(v);
 }
 
-
-
 void Leap_Fingers::SetRot(mb::Vector v) {
   if(TNode != NULL)
     TNode->SetRotation(v);
@@ -142,8 +140,6 @@ void Leap_Fingers::SetRotMatrix(mb::Vector &rotation) {
     TNode->SetRotation(rotationMatrix);
   }
 }
-
-
 
 void Leap_Fingers::AddRot(mb::Vector v) {
   if(TNode != NULL)
@@ -184,13 +180,7 @@ void Leap_Fingers::BuildGeo() {
 }
 
 mb::AxisAlignedBoundingBox Leap_Fingers::GetBoundingBox() {
-  if(GeoNode != NULL) {
-    //mblog("Finger Volume:"+QString::number( GeoNode->HighestLevel()->BoundingBox(true).Volume())+"\n");
-    return GeoNode->HighestLevel()->BoundingBox(true);
-  } else {
-    mblog("Returning new axis box");
-    return mb::AxisAlignedBoundingBox(TNode->Position(),0.2f);
-  }
+  return mb::AxisAlignedBoundingBox(TNode->Position(),3.0f);
 }
 
 //Old rotation matrix stuff;

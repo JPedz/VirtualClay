@@ -151,13 +151,14 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(MUDBOX_SDK_DIR)\lib;$(LEAP_SDK_DIR)\lib\x64\;C:\Program Files\Autodesk\Mudbox 2015\SDK\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Leap.lib;QtGui4.lib;MudboxFramework.lib;QtCore4.lib;QtScript4.lib;opengl32.lib;Cg.lib;CgGL.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Leap.lib;QtGui4.lib;MudboxFramework.lib;QtCore4.lib;QtNetwork4.lib;QtScript4.lib;opengl32.lib;Cg.lib;CgGL.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AirPen_Server.h" />
     <ClInclude Include="cameraWrapper.h" />
     <ClInclude Include="Leap_Fingers.h" />
     <ClInclude Include="Leap_Hand.h" />
@@ -176,6 +177,7 @@
     <ClInclude Include="VirtualClay.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AirPen_Server.cpp" />
     <ClCompile Include="cameraWrapper.cpp" />
     <ClCompile Include="Leap_Fingers.cpp" />
     <ClCompile Include="ID_List.cpp" />

@@ -66,6 +66,9 @@
     <ClInclude Include="VirtualClay.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="AirPen_Server.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -111,6 +114,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Leap_Tool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AirPen_Server.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

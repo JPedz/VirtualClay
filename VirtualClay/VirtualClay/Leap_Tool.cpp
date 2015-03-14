@@ -26,6 +26,17 @@ Leap_Tool::Leap_Tool(void)
   stamp->ConvertFromQImage(*img);
   mblog("luminance at 0,0 = "+QString::number(stamp->ColorAt(0.0f,0.0f).Luminance())+"\n");
   mblog("luminance at 100,100 = "+QString::number(stamp->ColorAt(100.0f,100.0f).Luminance())+"\n");
+
+  server = new AirPen_Server();
+  mblog("Started server!\n");
+}
+
+void Leap_Tool::SendToServer(bool onOff) {
+    if(onOff) {
+      server->SendMsg(true);
+    } else {
+      server->SendMsg(false);
+    }
 }
 
 Leap_Tool::Leap_Tool(Leap_Hand *copyNode)
@@ -43,6 +54,8 @@ Leap_Tool::Leap_Tool(Leap_Hand *copyNode)
   img->mirrored();
   stamp = mb::CreateInstance<mb::Image>();
   stamp->ConvertFromQImage(*img);
+  server = new AirPen_Server();
+  mblog("Started server!\n");
 }
 
 

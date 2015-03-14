@@ -32,6 +32,7 @@ class Leap_Updater : public mb::Node {
   bool selectMesh(mb::Vector &camPos);
   bool selectMeshPinch(mb::Vector &camPos);
   int countIntersectingFingers(LR lOrR);
+  int countTouchingFingers(LR lOrR);
   void Extrusion();
   void MenuSettings_R();
   void MenuSettings_L();

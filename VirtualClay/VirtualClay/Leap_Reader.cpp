@@ -72,10 +72,10 @@ bool Leap_Reader::updateAll(void) {
         hl = (*gl).hands();
         if(hl[0].isLeft()) {
           gestureHand = l;
-          mblog("LeftHand");
+          //mblog("LeftHand");
         } else {
           gestureHand = r;
-          mblog("RightHand");
+          //mblog("RightHand");
         }
         switch ((*gl).type()) {
           case Leap::Gesture::TYPE_CIRCLE:
@@ -89,7 +89,7 @@ bool Leap_Reader::updateAll(void) {
                 break;
               case Leap::Gesture::STATE_STOP:
                 if(gestureHand == r) {
-                  mblog("RightHand");
+                  //mblog("RightHand");
                   if(!ext_r.at(0) && ext_r.at(1) && ext_r.at(2) && !ext_r.at(3) && !ext_r.at(4)) {
                     if(circleGesture.pointable().direction().angleTo(circleGesture.normal()) <= Leap::PI/2) {
                       mblog("circle Radius: "+QString::number(circleGesture.radius())+"\n");
@@ -101,7 +101,7 @@ bool Leap_Reader::updateAll(void) {
                     }
                   }
                 } else {
-                  mblog("LeftHand");
+                  //mblog("LeftHand");
                     if(!ext_l.at(0) && ext_l.at(1) && ext_l.at(2) && !ext_l.at(3) && !ext_l.at(4)) {
                     if(circleGesture.pointable().direction().angleTo(circleGesture.normal()) <= Leap::PI/2) {
                       mblog("circle Radius: "+QString::number(circleGesture.radius())+"\n");

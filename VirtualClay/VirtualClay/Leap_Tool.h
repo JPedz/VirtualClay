@@ -2,6 +2,7 @@
 #include "stdafx.h"
 #include "Leap_Fingers.h"
 #include "Leap_Hand.h"
+#include "AirPen_Server.h"
 
 class Leap_Tool
 {
@@ -9,6 +10,7 @@ class Leap_Tool
   mb::Image *stamp;
   QImage *img;
   QImage *OriginalImg;
+  AirPen_Server *server;
 public:
   //Constructor
   Leap_Tool(void);
@@ -31,5 +33,6 @@ public:
   void RotateAroundPivot(mb::Vector &a, mb::Vector &pivot);
   mb::Vector GetPos(int i);
   mb::AxisAlignedBoundingBox GetBoundingBox(int i);
+  void SendToServer(bool onOff);
 };
 

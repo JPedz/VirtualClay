@@ -65,6 +65,7 @@ public:
   void MoveVertices(mb::Vector v);
   void MoveVertices(float dist);
   bool CheckIntersection(mb::AxisAlignedBoundingBox box1);
+  bool CheckTouching(mb::AxisAlignedBoundingBox box1);
   void DeselectAllFaces();
 
   //Tools:
