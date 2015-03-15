@@ -29,8 +29,8 @@ class Leap_Updater : public mb::Node {
   void ScreenTap();
   mb::Vector GetRelativeScreenSpaceFromWorldPos(mb::Vector wPos);
   void MoveMesh();
-  bool selectMesh(mb::Vector &camPos);
-  bool selectMeshPinch(mb::Vector &camPos);
+  bool selectMesh();
+  bool selectMeshPinch();
   int countIntersectingFingers(LR lOrR);
   int countTouchingFingers(LR lOrR);
   void Extrusion();

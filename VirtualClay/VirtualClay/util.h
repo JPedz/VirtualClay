@@ -21,4 +21,5 @@ mb::Matrix createTranslation(float x,float y, float z);
 mb::Vector RotateVectorAroundPivot(mb::Vector &currPos,mb::Vector &pivot, mb::Vector &rotation);
 mb::Vector ScreenSpaceToPixels(mb::Vector);
 mb::Vector AngleBetweenTwoPoints(mb::Vector p1, mb::Vector p2);
+mb::Vector findDisplacementUV(mb::Base &base, mb::Vector &p0, mb::Vector &p1);
 //https://hci.rwth-aachen.de/materials/publications/jung2014a.pdf

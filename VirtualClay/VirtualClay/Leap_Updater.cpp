@@ -77,7 +77,7 @@ mb::Vector Leap_Updater::GetRelativeScreenSpaceFromWorldPos(mb::Vector wPos) {
   return activeCam->Project(wPos);
 }
 
-bool Leap_Updater::selectMeshPinch(mb::Vector &camPos) {
+bool Leap_Updater::selectMeshPinch() {
   meshOp->ChangeCamera(viewCam);
   mb::Vector indexPos = hand_l->GetFingerPos(INDEX);
   mb::Vector thumbPos = hand_l->GetFingerPos(THUMB);
@@ -92,7 +92,7 @@ bool Leap_Updater::selectMeshPinch(mb::Vector &camPos) {
   }
 }
 
-bool Leap_Updater::selectMesh(mb::Vector &camPos) {
+bool Leap_Updater::selectMesh() {
   int leftCamID = idList->getCam(l);
   cameraWrapper *leftHand = new cameraWrapper(leftCamID);
   meshOp->ChangeCamera(leftHand);
@@ -255,7 +255,7 @@ void Leap_Updater::SetHandAndFingerPositions() {
   rightHand->getTNode()->SetRotation(hand_r->GetRot()+mb::Vector(80,0,0));
   rightHand->getTNode()->SetPosition(hand_r->GetPos());
   rightHand->MoveForward(-20.0f);
-  bool leftColl = false;
+  //bool leftColl = false;
   //mblog("Finger IntersectCount = "+QString::number(countIntersectingFingers(l))+"\n");
 
   //For Coll detection and replacement:
@@ -505,7 +505,7 @@ void Leap_Updater::Extrusion() {
   mblog("Finger IntersectCount = "+QString::number(countIntersectingFingers(l))+"\n");
   if(!facesAreSelected) {
     if(countIntersectingFingers(l) > 3) {
-      if(selectMesh(cameraPivot) ) {
+      if(selectMesh() ) {
         facesAreSelected = true;
         firstmoveswitch = true;
         mblog("Succesfully Selected\n");

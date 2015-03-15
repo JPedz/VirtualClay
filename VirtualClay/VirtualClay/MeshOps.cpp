@@ -211,7 +211,7 @@ bool MeshOps::ToolManip(mb::Vector centrePoint, float size, float dropOffRate) {
 }
 
 bool MeshOps::SelectFaces(float size, float strength) {
-  bool linearDropoff = true;
+  //bool linearDropoff = true;
   if(pMesh != NULL) {
     //ssp = curCam->GetScreenSpacePicker();
     //mb::Kernel()->Log("\nSSP:"+curCam->Name()+" "+ssp->Name()+"\n");
@@ -375,7 +375,7 @@ void MeshOps::boxSelect(mb::Vector &v1,mb::Vector &v2,float maxDist, float stren
 void MeshOps::boxSelect2(mb::Vector &v1,mb::Vector &v2) {
   int xSize = abs(v1.x - v2.x);
   int ySize = abs(v1.y - v2.y);
-  size_t boxSize = xSize*ySize;
+  //size_t boxSize = xSize*ySize;
   mblog("Getting Screen Space Picker: "+curCam->Name()+"\n");
   ssp = curCam->GetScreenSpacePicker();
   if(ssp == NULL) {
@@ -440,8 +440,8 @@ void MeshOps::boxSelect(mb::Vector &v1,mb::Vector &v2,mb::Image *stamp) {
   
   int x = (v1.x + v2.x)*0.5;
   int y = (v1.y + v2.y)*0.5;
-
-  int height = 5;
+  int height = 20;
+  mblog("StampHeight = "+QString::number(stamp->Height()));
   mb::SurfacePoint p;
   std::vector<int> faceIndices;
   int vertexCountInRange = 0;
@@ -505,12 +505,7 @@ void MeshOps::boxSelect(mb::Vector &v1,mb::Vector &v2,mb::Image *stamp) {
 
               uvPoint = worldPoint - (planeNormal*overallDist);
               mblog("uvPoint = "+VectorToQStringLine(uvPoint));
-              Leap::Vector vX = mbVecToLeapVec(basePlane.Axis(0).Normalize());
-              Leap::Vector vY = mbVecToLeapVec(basePlane.Axis(1).Normalize());
-              Leap::Vector vZ = mbVecToLeapVec(basePlane.Axis(2).Normalize());
-              Leap::Vector p2 = mbVecToLeapVec(worldPoint-midPos);
-              Leap::Matrix *m = new Leap::Matrix(vX,vY,vZ);
-              mb::Vector newPos = leapVecToMBVec(m->transformPoint(p2));
+              mb::Vector newPos = findDisplacementUV(basePlane,midPos,worldPoint);
               
               mblog("LEAP Vertex Positon = "+VectorToQStringLine(newPos)+"\n");
               
