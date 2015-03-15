@@ -52,6 +52,17 @@ mb::Vector ScreenSpaceToPixels(mb::Vector v) {
   return pixels;
 }
 
+
+mb::Vector fidDisplacementUV(mb::Base &base, mb::Vector &p0, mb::Vector &p1) {
+  
+  Leap::Vector vX = mbVecToLeapVec(base.Axis(0).Normalize());
+  Leap::Vector vY = mbVecToLeapVec(base.Axis(1).Normalize());
+  Leap::Vector vZ = mbVecToLeapVec(base.Axis(2).Normalize());
+  Leap::Vector p2 = mbVecToLeapVec(p1-p0);
+  Leap::Matrix *m = new Leap::Matrix(vX,vY,vZ);
+  mb::Vector newPos = leapVecToMBVec(m->transformPoint(p2));
+  
+}
 mb::Vector leapVecToMBVec(Leap::Vector v) {
   return mb::Vector(v.x,v.y,v.z);
 }

@@ -3,6 +3,8 @@
 #include "stdafx.h"
 #include "cameraWrapper.h"
 #include <QtCore/QTime>
+#include "LeapMath.h"
+#include "Leap.h"
 
 namespace mb = mudbox;
 

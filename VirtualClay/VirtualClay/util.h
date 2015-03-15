@@ -13,6 +13,7 @@ namespace mb = mudbox;
 QString VectorToQStringLine(mudbox::Vector v);
 QString VectorToQString(mudbox::Vector v);
 mb::Vector leapVecToMBVec(Leap::Vector v);
+Leap::Vector mbVecToLeapVec(mb::Vector v);
 mb::Matrix createRotateXMatrix(float b);
 mb::Matrix createRotateYMatrix(float b);
 mb::Matrix createRotateZMatrix(float b);

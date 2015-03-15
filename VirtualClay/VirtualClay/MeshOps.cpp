@@ -441,7 +441,7 @@ void MeshOps::boxSelect(mb::Vector &v1,mb::Vector &v2,mb::Image *stamp) {
   int x = (v1.x + v2.x)*0.5;
   int y = (v1.y + v2.y)*0.5;
 
-  int height = stamp->Height();
+  int height = 5;
   mb::SurfacePoint p;
   std::vector<int> faceIndices;
   int vertexCountInRange = 0;
@@ -487,13 +487,13 @@ void MeshOps::boxSelect(mb::Vector &v1,mb::Vector &v2,mb::Image *stamp) {
         for(int c = 0 ; c < pMesh->SideCount() ; c++) {
           vi = pMesh->QuadIndex(fi,c);*/
           //dist = pMesh->QuadVertexPosition(fi,c).DistanceFrom(midPos) ;
-          dist = pMesh->VertexPosition(i).DistanceFrom(midPos);
+          worldPoint = pMesh->VertexPosition(i);
+          dist = worldPoint.DistanceFrom(midPos);
           if(dist < height) {
             mblog("Vertex in range\n");
             if(checkUniqueInVertexList(i)) {
-              worldPoint = pMesh->VertexPosition(i);
               mblog("Mid Point = "+VectorToQStringLine(midPos));
-              bpVector = basePlane.TransformTo(pMesh->VertexPosition(i));
+              bpVector = basePlane.TransformTo(worldPoint);
               mblog("Vertex position = "+VectorToQStringLine(pMesh->VertexPosition(i)));
               mblog("Vertex Base Plane Position = "+VectorToQStringLine(bpVector));
               
@@ -505,7 +505,14 @@ void MeshOps::boxSelect(mb::Vector &v1,mb::Vector &v2,mb::Image *stamp) {
 
               uvPoint = worldPoint - (planeNormal*overallDist);
               mblog("uvPoint = "+VectorToQStringLine(uvPoint));
-
+              Leap::Vector vX = mbVecToLeapVec(basePlane.Axis(0).Normalize());
+              Leap::Vector vY = mbVecToLeapVec(basePlane.Axis(1).Normalize());
+              Leap::Vector vZ = mbVecToLeapVec(basePlane.Axis(2).Normalize());
+              Leap::Vector p2 = mbVecToLeapVec(worldPoint-midPos);
+              Leap::Matrix *m = new Leap::Matrix(vX,vY,vZ);
+              mb::Vector newPos = leapVecToMBVec(m->transformPoint(p2));
+              
+              mblog("LEAP Vertex Positon = "+VectorToQStringLine(newPos)+"\n");
               
               bpVector = basePlane.TransformTo(uvPoint);
               mblog("NEW Vertex Base Plane Position = "+VectorToQStringLine(bpVector)+"\n");
