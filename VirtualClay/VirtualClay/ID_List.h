@@ -19,6 +19,7 @@ public:
   int getViewCam(void);
   int getCam(LR lr);
   int getToolCam();
+  void setViewCam();
   void storeHandID(int ID,LR lr);
   void storeFingerID(int ID,fingerEnum f, jointEnum j, LR lr);
   void storeBoneID(int ID,fingerEnum f, boneEnum j, LR lr);

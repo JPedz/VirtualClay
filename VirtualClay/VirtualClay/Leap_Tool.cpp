@@ -39,6 +39,24 @@ void Leap_Tool::SendToServer(bool onOff) {
     }
 }
 
+
+float Leap_Tool::GetStampStrength(mb::Vector &uv) {
+  unsigned int u = stamp->Width()*0.5 + uv.x;
+  unsigned int v = stamp->Height()*0.5 + uv.z;
+  if(u < 0) {
+    u = 0;
+  } else if(u >= stamp->Width()) {
+    u = stamp->Width()-1;
+  }
+  if(v < 0) {
+    v = 0;
+  } else if(v >= stamp->Height()) {
+    v = stamp->Height()-1;
+  }
+  mblog("Getting stamp co-ordinates "+QString::number(u)+" "+QString::number(v)+" = "+QString::number(stamp->ColorAt(u,v).Luminance())+"\n");
+  return stamp->ColorAt(u,v).Luminance();
+}
+
 Leap_Tool::Leap_Tool(Leap_Hand *copyNode)
 {
   tools.resize(2);
@@ -83,9 +101,17 @@ void Leap_Tool::ReleaseStamp() {
 }
 
 void Leap_Tool::ResizeStamp(float x, float y) {
-  if(img != NULL)
-    if(img->width() != x && img->height() != y)
-      img->scaled(x,y);
+  if(img != NULL) {
+    if(img->width() != x && img->height() != y) {
+      img = new QImage(img->scaled(x,y));
+      mblog("NEW IMG HEIGHT"+QString::number(img->height())+"\n");
+      stamp->ConvertFromQImage(*img);
+    } else {
+      mblog("OLD IMG HEIGHT"+QString::number(img->height())+"\n");
+    }
+  } else {
+    mblog("img null\n");
+  }
 }
 
 mb::Image* Leap_Tool::GetStamp() {

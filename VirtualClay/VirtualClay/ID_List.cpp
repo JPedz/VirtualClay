@@ -15,11 +15,8 @@ ID_List::ID_List(void) {
     }
   }
   HandList.resize(2,-1);
-  viewCam = mudbox::Kernel()->Scene()->ActiveCamera()->ID();
   ToolCam = -1;
-  cameraWrapper *viewCam_tmp = new cameraWrapper(viewCam);
-  viewCam_tmp->getTNode()->SetRotation(mb::Vector(0,0,0));
-  viewCam_tmp->getTNode()->SetPosition(mb::Vector(0,0,800));
+  setViewCam();
 }
 
 int ID_List::getFinger(fingerEnum fn, jointEnum j, LR lr) {
@@ -36,6 +33,9 @@ int ID_List::getHand(LR lr) {
 int ID_List::getViewCam(void) {
   return viewCam;
  // return mudbox::Kernel()->Scene()->ActiveCamera()->ID();
+}
+void ID_List::setViewCam() {
+  viewCam = mudbox::Kernel()->Scene()->ActiveCamera()->ID(); 
 }
 int ID_List::getCam(LR lr) {
   return HandCamList.at(lr);

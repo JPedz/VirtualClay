@@ -27,6 +27,10 @@ MeshOps::MeshOps(mb::Mesh *m) {
 
 void MeshOps::setMesh(mb::Mesh *m) {
   pMesh = m;
+  if(!pMesh->HasTC()) {
+    mb::SubdivisionLevel *subdiv= MeshGeo->ActiveLevel();
+    subdiv->RecreateUVs(false);
+  }
   pMesh->SetSelected(true);
 }
 
@@ -73,10 +77,10 @@ void MeshOps::ChangeCamera(cameraWrapper *cam) {
 }
 
 
-bool SelectFaces(mb::Vector centrePoint, float width, float height, float dropOffRate) {
-  mblog("Wrong faces select");
-  return false;
-}
+//bool SelectFaces(mb::Vector centrePoint, float width, float height, float dropOffRate) {
+//  mblog("Wrong faces select");
+//  return false;
+//}
 
 bool MeshOps::SelectFaces(mb::AxisAlignedBoundingBox box,float spreadDist) {
   if(pMesh != NULL) {
@@ -166,7 +170,7 @@ bool MeshOps::SelectFaces(mb::Vector centrePoint, float widthHeight, float dropO
 
 
 
-bool MeshOps::ToolManip(mb::Vector centrePoint, float widthHeight, mb::Image *stamp) {
+bool MeshOps::ToolManip(mb::Vector centrePoint, float widthHeight, Leap_Tool *tool) {
   if(pMesh != NULL) {
     //mb::MeshChange *mC = pMesh->StartChange();
     mb::Vector vS = centrePoint - mb::Vector(widthHeight,widthHeight,0);
@@ -179,7 +183,7 @@ bool MeshOps::ToolManip(mb::Vector centrePoint, float widthHeight, mb::Image *st
     mblog("SelectingBox\n");
     QTime *t = new QTime();
     t->start();
-    boxSelect(vS,vE,stamp);
+    boxSelect(vS,vE,tool);
     mblog("Box SelectTime Mesh time: "+QString::number(t->elapsed())+"\n");
     if(faces->size() > 0) {
       mbstatus(QString("Polygon SELECTED"+QString::number(points->size())));
@@ -206,9 +210,9 @@ bool MeshOps::ToolManip(mb::Vector centrePoint, float widthHeight, mb::Image *st
   return false;
 }
 
-bool MeshOps::ToolManip(mb::Vector centrePoint, float size, float dropOffRate) {
-  return false;
-}
+//bool MeshOps::ToolManip(mb::Vector centrePoint, float size, float dropOffRate) {
+//  return false;
+//}
 
 bool MeshOps::SelectFaces(float size, float strength) {
   //bool linearDropoff = true;
@@ -436,105 +440,57 @@ void MeshOps::boxSelect2(mb::Vector &v1,mb::Vector &v2) {
 }
 
 
-void MeshOps::boxSelect(mb::Vector &v1,mb::Vector &v2,mb::Image *stamp) {
+void MeshOps::boxSelect(mb::Vector &v1,mb::Vector &v2,Leap_Tool *tool) {
   
   int x = (v1.x + v2.x)*0.5;
   int y = (v1.y + v2.y)*0.5;
   int height = 20;
-  mblog("StampHeight = "+QString::number(stamp->Height()));
+  mblog("StampHeight = "+QString::number(tool->GetStamp()->Height()));
   mb::SurfacePoint p;
   std::vector<int> faceIndices;
   int vertexCountInRange = 0;
   VertexModifyInfo vMI;
   float dist;
   mb::Base basePlane;
-  mb::Vector bpVector;
+  mb::Vector uvSpace;
   //http://geomalgorithms.com/a04-_planes.html
-  mb::Vector planeNormal;
-  mb::Vector planeWorldPoint;
   mb::Vector worldPoint;
-  mb::Vector overallDist;
-  mb::Vector uvPoint;
-  mb::Vector uvDist;
-  float    sb, sn, sd;
   if(curCam->Pick(x,y,p)) {
-
     if(p.Mesh()->ID() == pMesh->ID()) {
       basePlane = p.TangentBase();
       faceIndices.push_back(p.FaceIndex());
       faces->push_back(p.FaceIndex());
-      //Search for closest to middle point
-      //for(int c = 0 ; c < pMesh->SideCount() ; c++) {
-      //  posi = pMesh->QuadVertexPosition(faceIndices.back(),c);
-      //  curDist = posi.DistanceFrom(p.WorldPosition());
-      //  //mblog("Picking X "+QString::number(x)+" Y "+QString::number(y)+" World Pos: "+VectorToQString(p.WorldPosition())+" curDist "+QString::number(curDist)+"\n");
-      //  if(curDist < closestDist) {
-      //    //mbliog("Closest dist for X "+QString::number(x)+" Y"+QString::number(y)+" "+QString::number(curDist)+"\n");
-      //    closestDist = curDist;
-      //    closestCorner = c;
-      //  }
-      //}
-      planeNormal = p.WorldNormal();
-      sd = planeNormal|planeNormal;
       midPos = p.WorldPosition();
       QTime *t = new QTime();
-      //while(faceIndices.size() > 0) {
       t->start();
       for( unsigned int i = 0 ; i < pMesh->VertexCount() ; i++) {
-        /*start = false;
-        fi = faceIndices.back();
-        faceIndices.pop_back();
-        for(int c = 0 ; c < pMesh->SideCount() ; c++) {
-          vi = pMesh->QuadIndex(fi,c);*/
-          //dist = pMesh->QuadVertexPosition(fi,c).DistanceFrom(midPos) ;
-          worldPoint = pMesh->VertexPosition(i);
-          dist = worldPoint.DistanceFrom(midPos);
-          if(dist < height) {
-            mblog("Vertex in range\n");
-            if(checkUniqueInVertexList(i)) {
-              mblog("Mid Point = "+VectorToQStringLine(midPos));
-              bpVector = basePlane.TransformTo(worldPoint);
-              mblog("Vertex position = "+VectorToQStringLine(pMesh->VertexPosition(i)));
-              mblog("Vertex Base Plane Position = "+VectorToQStringLine(bpVector));
-              
-              sn = -(planeNormal|(worldPoint - midPos));
-
-              sb = sn / sd;
-              overallDist = worldPoint + sb * planeNormal;
-              mblog("OverallDIST = "+VectorToQStringLine(overallDist));
-
-              uvPoint = worldPoint - (planeNormal*overallDist);
-              mblog("uvPoint = "+VectorToQStringLine(uvPoint));
-              mb::Vector newPos = findDisplacementUV(basePlane,midPos,worldPoint);
-              
-              mblog("LEAP Vertex Positon = "+VectorToQStringLine(newPos)+"\n");
-              
-              bpVector = basePlane.TransformTo(uvPoint);
-              mblog("NEW Vertex Base Plane Position = "+VectorToQStringLine(bpVector)+"\n");
-              
-              mblog("X Axis = "+VectorToQStringLine(basePlane.Axis(0)));
-              mblog("Y Axis = "+VectorToQStringLine(basePlane.Axis(1)));
-              mblog("Z Axis = "+VectorToQStringLine(basePlane.Axis(2)));
-              mblog("\n");
-              vertexCountInRange++;
-              vMI.vI = (int)i;
-              vMI.strength = MIN(10/dist,1);
-              vertices->push_back(vMI);
-            }
-          //}
+        worldPoint = pMesh->VertexPosition(i);
+        dist = worldPoint.DistanceFrom(midPos);
+        if(dist < height) {
+          mblog("Vertex in range\n");
+          if(checkUniqueInVertexList(i)) {
+            mblog("MID POINT COORDINATES = "+VectorToQStringLine(midPos));
+            mblog("WORLD POINT COORDINATES = "+VectorToQStringLine(worldPoint));
+            mblog("NORMAL = "+VectorToQStringLine(p.WorldNormal().Normalized()));
+            uvSpace = findDisplacementUV(basePlane,midPos,worldPoint);
+            mblog("UVSPACE COORDINATES = "+VectorToQStringLine(uvSpace));
+            mblog("\n");
+            vertexCountInRange++;
+            vMI.vI = (int)i;
+            vMI.strength = tool->GetStampStrength(uvSpace);
+            mblog("\n");
+            vertices->push_back(vMI);
+          }
         } else {
           mblog("dist = "+QString::number(dist));
         }
       }
       mblog("Box Select VerticesLoop: "+QString::number(t->elapsed())+"\n");
-
-  //    }//End of VertexCountInRange
-
     }//End of checking for PMeshID
   }
 }
 
-void MeshOps::boxSelect2(mb::Vector &v1,mb::Vector &v2,mb::Image *stamp) {
+void MeshOps::boxSelect2(mb::Vector &v1,mb::Vector &v2,Leap_Tool *tool) {
   int xSize = abs(v1.x - v2.x);
   int ySize = abs(v1.y - v2.y);
   mblog("Getting Screen Space Picker: "+curCam->Name()+"\n");
@@ -617,7 +573,7 @@ void MeshOps::boxSelect2(mb::Vector &v1,mb::Vector &v2,mb::Image *stamp) {
       x++;
     }
     mblog("ShortestDist = "+QString::number(closestDist)+"\n");
-    vertices->at(k).strength = stamp->ColorAt(closestX,closestY).Luminance();
+    //vertices->at(k).strength = stamp->ColorAt(closestX,closestY).Luminance();
     mblog("Vertex : "+QString::number(k)+" Strength = "+QString::number(vertices->at(k).strength)+"\n");
   }
    mblog("Box Select Second Loop: "+QString::number(t->elapsed())+"\n");
@@ -859,7 +815,7 @@ bool MeshOps::checkUniqueInVertexList(int vi) {
   return true;//unique
 }
 
-bool checkIsInside(QList<mb::Vector> &points,mb::Vector point,mb::Vector extreme) {
+bool checkIsInside(QList<mb::Vector> &points,mb::Vector point) {
   bool isInside = false;
   int j = points.size()-1;
   float x = point.x;

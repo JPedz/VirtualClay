@@ -5,6 +5,7 @@
 #include <QtCore/QTime>
 #include "LeapMath.h"
 #include "Leap.h"
+#include "Leap_Tool.h"
 
 namespace mb = mudbox;
 
@@ -57,8 +58,8 @@ public:
   //Select in a box with corners v1 and v2 (Z is ignored)
   void boxSelect(mb::Vector &v1,mb::Vector &v2, float maxDist = 30, float strength = 10);
   void boxSelect2(mb::Vector &v1,mb::Vector &v2);
-  void boxSelect(mb::Vector &v1,mb::Vector &v2,mb::Image *stamp);
-  void boxSelect2(mb::Vector &v1,mb::Vector &v2,mb::Image *stamp);
+  void boxSelect(mb::Vector &v1,mb::Vector &v2,Leap_Tool *tool);
+  void boxSelect2(mb::Vector &v1,mb::Vector &v2,Leap_Tool *tool);
   void polygonSelect(QList<mb::Vector> &points, QList<mb::SurfacePoint>&sp,
                          QList<int> &faces, QList<int> &vertices);
   void addVertex(int fi);
@@ -72,7 +73,7 @@ public:
 
   //Tools:
   bool firstUse;
-  bool ToolManip(mb::Vector centrePoint, float size, mb::Image *stamp);
+  bool ToolManip(mb::Vector centrePoint, float size, Leap_Tool *tool);
   bool ToolManip(mb::Vector centrePoint, float size, float dropOffRate);
 };
 

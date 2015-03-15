@@ -29,7 +29,7 @@ Leap_Hand::Leap_Hand(ID_List *idl,LR lOrR,Leap_Hand *copyHand)
   }
 
   idList = idl;
-  AddHand();
+  CopyHand(copyHand);
   AddLeap_Fingers();
 }
 

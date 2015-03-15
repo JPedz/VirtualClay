@@ -34,5 +34,6 @@ public:
   mb::Vector GetPos(int i);
   mb::AxisAlignedBoundingBox GetBoundingBox(int i);
   void SendToServer(bool onOff);
+  float GetStampStrength(mb::Vector &uv);
 };
 

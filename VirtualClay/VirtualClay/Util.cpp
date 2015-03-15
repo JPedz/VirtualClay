@@ -70,8 +70,8 @@ Leap::Vector mbVecToLeapVec(mb::Vector v) {
   return Leap::Vector(v.x,v.y,v.z);
 }
 
-mb::Vector AngleBetweenTwoPoints(mb::Vector p1, mb::Vector p2) {
-
-  
-  return mb::Vector(0,0,0);
-}
+//mb::Vector AngleBetweenTwoPoints(mb::Vector p1, mb::Vector p2) {
+//
+//  
+//  return mb::Vector(0,0,0);
+//}

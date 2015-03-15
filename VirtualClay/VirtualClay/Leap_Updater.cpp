@@ -630,9 +630,9 @@ void Leap_Updater::ToolStampMove() {
   mblog("Tool Proj Pos = "+VectorToQStringLine(toolProj));
   toolProj = toolProj * mb::Vector(1,-1,1);
   mblog("Tool Proj Pos Pixels = "+VectorToQStringLine(ScreenSpaceToPixels(toolProj)));
-  if(meshOp->ToolManip(ScreenSpaceToPixels(toolProj),20.0f,tool->GetStamp())) {
+  tool->ResizeStamp(35,35);
+  if(meshOp->ToolManip(ScreenSpaceToPixels(toolProj),20.0f,tool)) {
     mblog("Moving vertices maybe?\n");
-    tool->ResizeStamp(20,20);
     meshOp->MoveVertices(10);
   }
   tool->SetVisi(true);
