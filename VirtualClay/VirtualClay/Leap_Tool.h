@@ -33,7 +33,8 @@ public:
   void RotateAroundPivot(mb::Vector &a, mb::Vector &pivot);
   mb::Vector GetPos(int i);
   mb::AxisAlignedBoundingBox GetBoundingBox(int i);
-  void SendToServer(bool onOff);
+  mb::AxisAlignedBoundingBox GetInteractionBox();
+  void SendToServer(int stage);
   float GetStampStrength(mb::Vector &uv);
 };
 

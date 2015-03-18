@@ -14,6 +14,7 @@ Leap_Updater::Leap_Updater(ID_List *idl,Leap_Hand *l,Leap_Hand *r)
   tool = new Leap_Tool(hand_l);
   tool->SetStamp(RESOURCESDIR+"stamp1.png");
   meshOp = new MeshOps();
+  meshOp_R = new MeshOps();
 
   //mblog("Listing Nodes\n");
   //for(mb::Node *nodes = mb::Node::First() ; nodes ; nodes = nodes->Next()) {
@@ -21,6 +22,7 @@ Leap_Updater::Leap_Updater(ID_List *idl,Leap_Hand *l,Leap_Hand *r)
   //}
   //mblog("Listed Nodes\n");
   meshOp->ChangeCamera(new cameraWrapper(idList->getCam(LR(0))));
+  meshOp_R->ChangeCamera(new cameraWrapper(idList->getCam(LR(1))));
   leapReader = new Leap_Reader();
   leapReader->SetScale(mb::Vector(1,1,1));
   frameEvent.Connect(mb::Kernel()->ViewPort()->FrameEvent);
@@ -69,6 +71,7 @@ void Leap_Updater::ScreenTap() {
   projPos = projPos * mb::Vector(1,-1,1);
   mblog(VectorToQString(indexPos)+"Pos"+VectorToQStringLine(projPos));
   meshOp->SelectObject(viewCam,projPos);
+  meshOp_R->SelectObject(viewCam,projPos);
   hand_l->SetVisi(true);
 }
 
@@ -92,36 +95,64 @@ bool Leap_Updater::selectMeshPinch() {
   }
 }
 
-bool Leap_Updater::selectMesh() {
-  int leftCamID = idList->getCam(l);
-  cameraWrapper *leftHand = new cameraWrapper(leftCamID);
-  meshOp->ChangeCamera(leftHand);
-  leftHand->MoveForward(50);
-  hand_l->SetVisi(false);
-  mb::Vector zeroVector = mb::Vector(0.0f,0.0f,0.0f);
-  hand_l->SetPos(zeroVector);
-  mb::Kernel()->Scene()->SetActiveCamera(leftHand->getCamera());
-  mb::Kernel()->ViewPort()->Redraw();
-  float avgSize = hand_l->AvgDistFromThumb();
-  mblog("Brush Size = "+QString::number(avgSize));
-  bool b = meshOp->SelectFaces(avgSize,10);
-  hand_l->SetVisi(true);
+bool Leap_Updater::selectMesh(LR lOrR) {
+  int handCamID = idList->getCam(lOrR);
+  cameraWrapper *handCam = new cameraWrapper(handCamID);
+
+  //handCam->MoveForward(50);
+  bool b =false;
+  float avgSize = 5;
+  if(lOrR == l) {
+    meshOp->ChangeCamera(handCam);
+    hand_l->SetVisi(false);
+    mb::Vector zeroVector = mb::Vector(0.0f,0.0f,0.0f);
+    hand_l->SetPos(zeroVector);
+    mb::Kernel()->Scene()->SetActiveCamera(handCam->getCamera());
+    mb::Kernel()->ViewPort()->Redraw();
+    avgSize = hand_l->AvgDistFromThumb();
+    mblog("Brush Size = "+QString::number(avgSize));
+    b = meshOp->SelectFaces(avgSize,10);
+    hand_l->SetVisi(true);
+  } else {
+    meshOp_R->ChangeCamera(handCam);
+    hand_r->SetVisi(false);
+    mb::Vector zeroVector = mb::Vector(0.0f,0.0f,0.0f);
+    hand_r->SetPos(zeroVector);
+    mb::Kernel()->Scene()->SetActiveCamera(handCam->getCamera());
+    mb::Kernel()->ViewPort()->Redraw();
+    avgSize = hand_r->AvgDistFromThumb();
+    mblog("Brush Size = "+QString::number(avgSize));
+    b = meshOp_R->SelectFaces(avgSize,10);
+    hand_r->SetVisi(true);
+  }
   mb::Kernel()->Scene()->SetActiveCamera(viewCam->getCamera());
   mb::Kernel()->ViewPort()->Redraw();
   return b;
 }
 
-void Leap_Updater::MoveMesh() {
-  mb::Vector currentHandPos = hand_l->GetPos();
-  mb::Vector distanceDiff = currentHandPos - lastFrameHandPos;
+void Leap_Updater::MoveMesh(LR lOrR) {
+  mb::Vector currentHandPos;
+  mb::Vector distanceDiff;
+  if(lOrR == l) {
+  currentHandPos = hand_l->GetPos();
+    distanceDiff = currentHandPos - lastFrameHandPos_L;
+  } else {
+    currentHandPos = hand_r->GetPos();
+    distanceDiff = currentHandPos - lastFrameHandPos_R;
+  }
   if(distanceDiff.x > 10 || distanceDiff.y > 10 || distanceDiff.z > 10) {
     distanceDiff = mb::Vector(0,0,0);
   }
   //mblog("Moving Mesh currentHandPos: "+VectorToQString(currentHandPos)+
-  //  "lastFrameHandPos: "+VectorToQString(lastFrameHandPos)+
+  //  "lastFrameHandPos_L: "+VectorToQString(lastFrameHandPos_L)+
   //  "DistanceDiff: "+VectorToQStringLine(distanceDiff));
-  meshOp->MoveVertices(distanceDiff);
-  lastFrameHandPos = currentHandPos;
+  if(lOrR == l) {
+    meshOp->MoveVertices(distanceDiff);
+    lastFrameHandPos_L = currentHandPos;
+  } else {
+    meshOp_R->MoveVertices(distanceDiff);
+    lastFrameHandPos_R = currentHandPos;
+  }
 }
 
 int Leap_Updater::countIntersectingFingers(LR lOrR) {
@@ -134,7 +165,7 @@ int Leap_Updater::countIntersectingFingers(LR lOrR) {
     }
   } else {
     for(int i = 0; i < 5 ; i++) {
-      if(meshOp->CheckIntersection(hand_r->GetFingerBoundingBox(fingerEnum(i)))) {
+      if(meshOp_R->CheckIntersection(hand_r->GetFingerBoundingBox(fingerEnum(i)))) {
         counter++;
       }
     }
@@ -179,7 +210,7 @@ bool Leap_Updater::ThumbSelect() {
       distanceDiff = mb::Vector(0,0,0);
     }
     //mblog("Moving Mesh currentHandPos: "+VectorToQString(currentHandPos)+
-    //  "lastFrameHandPos: "+VectorToQString(lastFrameHandPos)+
+    //  "lastFrameHandPos_L: "+VectorToQString(lastFrameHandPos_L)+
     //  "DistanceDiff: "+VectorToQStringLine(distanceDiff));
     meshOp->MoveVertices(distanceDiff);
     lastFrameThumbPos = currentThumbPos;
@@ -501,29 +532,55 @@ void Leap_Updater::MenuSettings_L() {
   }
 }
 
-void Leap_Updater::Extrusion() {
-  mblog("Finger IntersectCount = "+QString::number(countIntersectingFingers(l))+"\n");
-  if(!facesAreSelected) {
-    if(countIntersectingFingers(l) > 3) {
-      if(selectMesh() ) {
-        facesAreSelected = true;
-        firstmoveswitch = true;
-        mblog("Succesfully Selected\n");
+void Leap_Updater::Extrusion(LR LorR) {
+  if(LorR == l) {
+    mblog("Finger IntersectCount = "+QString::number(countIntersectingFingers(l))+"\n");
+    if(!facesAreSelected) {
+      if(countIntersectingFingers(l) > 3) {
+        if(selectMesh(l) ) {
+          facesAreSelected = true;
+          firstmoveswitch = true;
+          mblog("Succesfully Selected\n");
+        } else {
+          mbhud("Failed To Select L_Hand, Have you selected the Mesh?");
+          mblog("Failed to select\n");
+        }
+      }
+      mbstatus("Grabbing");
+    } else {
+      if(firstmoveswitch) {
+        lastFrameHandPos_L = hand_l->GetPos();
+        firstmoveswitch = false;
       } else {
-        mb::Kernel()->Interface()->HUDMessageShow("Failed To Select, Have you selected the Mesh?");
-        mblog("Failed to select\n");
+        mbstatus("MovingMesh");
+        mblog("Moving Mesh\n");
+        MoveMesh(l);
       }
     }
-    mbstatus("Grabbing");
   } else {
-    if(firstmoveswitch) {
-      lastFrameHandPos = hand_l->GetPos();
-      firstmoveswitch = false;
+    if(!facesAreSelected_R) {
+      if(countIntersectingFingers(r) > 3) {
+        if(selectMesh(r) ) {
+          facesAreSelected_R = true;
+          firstmoveswitch_R = true;
+          mblog("Succesfully Selected\n");
+        } else {
+          mbhud("Failed To Select with R_Hand, Have you selected the Mesh?");
+          mblog("Failed to select\n");
+        }
+      }
+      mbstatus("Grabbing");
     } else {
-      mbstatus("MovingMesh");
-      mblog("Moving Mesh\n");
-      MoveMesh();
+      if(firstmoveswitch_R) {
+        lastFrameHandPos_R = hand_r->GetPos();
+        firstmoveswitch_R = false;
+      } else {
+        mbstatus("MovingMesh");
+        mblog("Moving Mesh\n");
+        MoveMesh(r);
+      }
     }
+
   }
 }
 
@@ -581,6 +638,7 @@ __inline void Leap_Updater::checkUndoGesture() {
   if(leapReader->isUndo) {
     mb::Kernel()->Interface()->HUDMessageShow("UNDO");
     meshOp->UndoLast();
+    meshOp_R->UndoLast();
   }
 }
 
@@ -604,15 +662,31 @@ __inline void Leap_Updater::checkGrabbingGesture() {
   } else {
   //If they are Grabbing and Thumb Toggle is Off
     if(leapReader->isGrabbing_L ) {
-      Extrusion();
+      Extrusion(l);
+      if(leapReader->isGrabbing_R) {
+        Extrusion(r);
+      }
+    } else if(leapReader->isGrabbing_R) {
+      Extrusion(r); 
+    } else {
+      if(facesAreSelected) {
+        meshOp->DeselectAllFaces();
+        meshOp_R->DeselectAllFaces();
+      }
+      firstmoveswitch = true;
+      facesAreSelected_R = false;
+      facesAreSelected = false;
+    }
+    /*
     } else {
       if(facesAreSelected) {
         meshOp->DeselectAllFaces();
       }
-      firstmoveswitch = true;
+      firstmoveswitch_R = true;
       facesAreSelected = false;
-    }
-    lastFrameHandPos = hand_l->GetPos();
+    }*/
+    lastFrameHandPos_L = hand_l->GetPos();
+    lastFrameHandPos_R = hand_r->GetPos();
   }
 }
 
@@ -664,24 +738,28 @@ void Leap_Updater::ToolSmoothMove() {
 
 __inline void Leap_Updater::checkToolIntersection() {
   if(leapReader->isTool) {
-    if(meshOp->CheckTouching(tool->GetBoundingBox(0))) {
-    tool->SendToServer(true);
-      mblog("Tool bounding box Pos = "+VectorToQStringLine(tool->GetBoundingBox(0).Center()));
-     // mblog("Test Tool bounding box Pos = "+VectorToQStringLine(mb::AxisAlignedBoundingBox(tool->GetPos(0),0.2f).Center()));
-      //http://www.sciencedirect.com/science/article/pii/S0010448512002734
-      //Set the undo list to iterate on.
-      if(meshOp->firstUse) {
-        meshOp->firstUse = false;
-      }
-      if(toolStamp) {
-        ToolStampMove();
+    if(meshOp->CheckTouching(tool->GetInteractionBox())) {
+      tool->SendToServer(1);
+      if(meshOp->CheckTouching(tool->GetBoundingBox(0))) {
+        tool->SendToServer(2);
+        mblog("Tool bounding box Pos = "+VectorToQStringLine(tool->GetBoundingBox(0).Center()));
+       // mblog("Test Tool bounding box Pos = "+VectorToQStringLine(mb::AxisAlignedBoundingBox(tool->GetPos(0),0.2f).Center()));
+        //http://www.sciencedirect.com/science/article/pii/S0010448512002734
+        //Set the undo list to iterate on.
+        if(meshOp->firstUse) {
+          meshOp->firstUse = false;
+        }
+        if(toolStamp) {
+          ToolStampMove();
+        } else {
+          ToolSmoothMove();
+        }
       } else {
-        ToolSmoothMove();
+        //Set the undo list to iterate on.
+        meshOp->firstUse = true;
       }
     } else {
-      tool->SendToServer(false);
-      //Set the undo list to iterate on.
-      meshOp->firstUse = true;
+        tool->SendToServer(0);
     }
   }
 }

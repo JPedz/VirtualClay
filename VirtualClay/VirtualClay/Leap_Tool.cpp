@@ -31,12 +31,8 @@ Leap_Tool::Leap_Tool(void)
   mblog("Started server!\n");
 }
 
-void Leap_Tool::SendToServer(bool onOff) {
-    if(onOff) {
-      server->SendMsg(true);
-    } else {
-      server->SendMsg(false);
-    }
+void Leap_Tool::SendToServer(int stage) {
+  server->SendMsg(stage);
 }
 
 
@@ -168,5 +164,9 @@ mb::Vector Leap_Tool::GetPos(int i) {
 }
 
 mb::AxisAlignedBoundingBox Leap_Tool::GetBoundingBox(int i) {
-  return mb::AxisAlignedBoundingBox(tools.at(i)->GetPos(),5.0f);
+  return mb::AxisAlignedBoundingBox(tools.at(i)->GetPos(),3.0f);
+}
+
+mb::AxisAlignedBoundingBox Leap_Tool::GetInteractionBox() {
+  return mb::AxisAlignedBoundingBox(tools.at(0)->GetPos(),10.0f);
 }
