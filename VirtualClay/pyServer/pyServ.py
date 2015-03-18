@@ -1,5 +1,7 @@
 import socket 
-IPV4 = '127.0.0.1'
+import getIP
+
+IPV4 = getIP.get_lan_ip()
 port = 5000
 serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 serverSocket.bind((IPV4,port))
