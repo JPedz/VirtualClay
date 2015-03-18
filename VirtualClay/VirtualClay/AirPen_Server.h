@@ -10,7 +10,7 @@ class AirPen_Server
 
 public:
   AirPen_Server(void);
-  void SendMsg(bool onOff);
+  void SendMsg(int stage);
   ~AirPen_Server(void);
 };
 
