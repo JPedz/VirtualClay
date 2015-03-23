@@ -84,10 +84,6 @@ void cameraWrapper::setPosition(mb::Vector pos) {
     cam->SetPosition(pos);
 }
 
-void cameraWrapper::selectPoints(mb::Vector v) {
-
-}
-
 void cameraWrapper::MoveForward(float dist) {
   if(dist > 0) 
     cam->MoveForward(dist);

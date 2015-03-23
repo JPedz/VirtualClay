@@ -18,6 +18,8 @@ class Leap_Reader {
   mb::Vector LeapDirectionToMudbox(Leap::Vector dir);
   mb::Vector LeapPositionToMudbox(Leap::Vector dir);
   mb::Vector scale;
+
+  QTime *UndoTimeOut;
 public:
   bool isConnected;
   bool ishands;

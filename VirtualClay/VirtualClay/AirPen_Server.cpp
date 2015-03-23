@@ -8,14 +8,16 @@ AirPen_Server::AirPen_Server(void)
   server = new QTcpSocket();
   server->connectToHost("10.0.0.15", port);
   server->write("0");
-  server->waitForBytesWritten();
+  server->waitForBytesWritten(200);
   server->close();
+  isConnected = false;
 }
 
 
 AirPen_Server::~AirPen_Server(void)
 {
-  server->close();
+  if(isConnected)
+    server->close();
   delete server;
 }
 
@@ -23,10 +25,11 @@ void AirPen_Server::SendMsg(int stage) {
   //LastSent ensures we are not spamming the network.
   //mblog("Conecting\n");
   //mblog("Server socket is valid\n");
+  if(isConnected) 
     if((lastSent != 1) && (stage == 1)) {
       server->connectToHost("10.0.0.15", port);
       server->write("1");
-      server->waitForBytesWritten();
+      server->waitForBytesWritten(200);
       server->flush();
       server->close();
       mblog("Wrote 1\n");
@@ -34,7 +37,7 @@ void AirPen_Server::SendMsg(int stage) {
     } else if((lastSent != 0) && (stage == 0)) {
       server->connectToHost("10.0.0.15", port);
       server->write("0");
-      server->waitForBytesWritten();
+      server->waitForBytesWritten(200);
       server->flush();
       server->close();
       mblog("Wrote 0\n");
@@ -42,7 +45,7 @@ void AirPen_Server::SendMsg(int stage) {
     } else if((lastSent != 2) && (stage == 2)) {
       server->connectToHost("10.0.0.15", port);
       server->write("2");
-      server->waitForBytesWritten();
+      server->waitForBytesWritten(200);
       server->flush();
       server->close();
       mblog("Wrote 2\n");

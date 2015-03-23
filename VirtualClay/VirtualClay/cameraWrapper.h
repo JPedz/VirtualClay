@@ -22,7 +22,6 @@ class cameraWrapper {
     mb::Vector getPosision();
     int getID();
     QString getName();
-    void selectPoints(mb::Vector v);
     void deleteCam(void);
     mb::Vector getForward(void);
     void setRotation(mb::Vector &ypr);

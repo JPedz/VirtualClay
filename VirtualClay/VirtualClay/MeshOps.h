@@ -10,13 +10,7 @@
 namespace mb = mudbox;
 
 class MeshOps {
-  mb::Mesh *pMesh;
-  mb::Geometry *MeshGeo;
-  mb::ScreenSpacePicker *ssp;
-  mb::Picker *p;
-  mb::Camera *curCam;
-  bool checkUniqueInFaceList(int fi);
-  bool checkUniqueInVertexList(int fi);
+  //Types
   typedef struct VertexFaceInfo {
     int vI;
     std::vector<int> fI;
@@ -34,39 +28,56 @@ class MeshOps {
     float strength;
     int vI;
   } VertexModifyInfo;
-  std::vector<int> *faces;
-  std::vector<VertexModifyInfo> *vertices;
-  std::vector<mb::SurfacePoint > *points;
+
+  //Temporary
+  mb::Mesh *pMesh;
+  mb::Geometry *MeshGeo;
+  mb::ScreenSpacePicker *ssp;
+  mb::Picker *p;
+  mb::Camera *curCam;
+  std::vector<int> *faces_L;
+  std::vector<VertexModifyInfo> *vertices_L;
+  std::vector<mb::SurfacePoint > *points_L;
+  std::vector<int> *faces_R;
+  std::vector<VertexModifyInfo> *vertices_R;
+  std::vector<mb::SurfacePoint > *points_R;
   std::vector<std::vector<VertexInfo> > undoQueue;
-  void StoreUndoQueue();
-  void AddToUndoQueue();
-  void AddVFI(int vi, int fi);
+  std::vector<mb::Vector> undoMoveQueue;
   MidVertex *midV;
   mb::Vector midPos;
-  void refreshMesh(void);
 
+  mb::Vector cumulativeMove;
+
+
+  void refreshMesh(void);
+  bool checkUniqueInFaceList(LR lr, int fi);
+  bool checkUniqueInVertexList(LR lr, int fi);
+  void StoreUndoQueue(LR lr);
+  void AddToUndoQueue(LR lr);
+  void AddVFI(int vi, int fi);
+  
 public:
   MeshOps();
   MeshOps(mb::Mesh *m);
   void UndoLast();
   void SelectObject(cameraWrapper *viewCam, mb::Vector screenPos);
   void SelectFaces(QList<mb::Vector> &poly);
-  bool SelectFaces(mb::AxisAlignedBoundingBox box,float spreadDist = 0);
-  bool SelectFaces(float size = 30, float strength = 10);
-  bool SelectFaces(mb::Vector centrePoint, float widthHeight, float dropOffRate);
-  bool SelectFaces(mb::Vector centrePoint, float width, float height, float dropOffRate);
+  bool SelectFaces(LR lr, mb::AxisAlignedBoundingBox box,float spreadDist = 0);
+  bool SelectFaces(LR lr, float size = 30, float strength = 10);
+  bool SelectFaces(LR lr, mb::Vector centrePoint, float widthHeight, float dropOffRate);
+  bool SelectFaces(LR lr, mb::Vector centrePoint, float width, float height, float dropOffRate);
   //Select in a box with corners v1 and v2 (Z is ignored)
-  void boxSelect(mb::Vector &v1,mb::Vector &v2, float maxDist = 30, float strength = 10);
+  void boxSelect(LR lr, mb::Vector &v1,mb::Vector &v2, float maxDist = 30, float strength = 10);
   void boxSelect2(mb::Vector &v1,mb::Vector &v2);
-  void boxSelect(mb::Vector &v1,mb::Vector &v2,Leap_Tool *tool);
+  void boxSelect(LR lr, mb::Vector &v1,mb::Vector &v2,Leap_Tool *tool);
   void boxSelect2(mb::Vector &v1,mb::Vector &v2,Leap_Tool *tool);
   void polygonSelect(QList<mb::Vector> &points, QList<mb::SurfacePoint>&sp,
                          QList<int> &faces, QList<int> &vertices);
-  void addVertex(int fi);
+  void addVertex(LR lr, int fi);
   void setMesh(mb::Mesh *m);
   void ChangeCamera(cameraWrapper *cam);
-  void MoveVertices(mb::Vector v);
-  void MoveVertices(float dist);
+  void MoveVertices(LR lr, mb::Vector v);
+  void MoveVertices(LR lr, float dist);
   bool CheckIntersection(mb::AxisAlignedBoundingBox box1);
   bool CheckTouching(mb::AxisAlignedBoundingBox box1);
   void DeselectAllFaces();
@@ -75,6 +86,13 @@ public:
   bool firstUse;
   bool ToolManip(mb::Vector centrePoint, float size, Leap_Tool *tool);
   bool ToolManip(mb::Vector centrePoint, float size, float dropOffRate);
+
+
+  //Movement
+  void SelectWholeMesh();
+  void MoveObject(mb::Vector dist);
+  void UndoLastMove();
+  void StoreLastMoveUndoQueue();
 };
 
 #endif

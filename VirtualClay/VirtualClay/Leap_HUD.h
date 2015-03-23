@@ -17,10 +17,13 @@ public:
   mb::aenum menuChoice;
   mb::Vector menuPosition;
   void SetCentre(mb::Vector &c);
+  void SetSize(float s);
   private:
   float cX;
+  float size;
   float cY;
 	//mb::CGcontext m_CGContext;
+  mb::Texture* brushSize;
 	mb::Texture* menuMiddle_L;
 	mb::Texture* menuUp_L;
 	mb::Texture* menuRight_L;

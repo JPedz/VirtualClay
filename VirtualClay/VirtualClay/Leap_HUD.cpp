@@ -30,12 +30,44 @@ static void drawFullScreenQuad(mb::Texture* const outputTexture,mb::Texture* con
 	glEnd();
 }
 
+static void drawBrushSize(mb::Texture* const outputTexture,mb::Texture* const overlay, const float ratio, const float size) {
+	glMatrixMode( GL_PROJECTION );
+	glLoadIdentity();
+	glMatrixMode( GL_MODELVIEW );
+	glLoadIdentity();     
+  glColor3f(1.0f,1.0f,1.0f);
+  if(overlay != NULL)
+    glBindTexture(GL_TEXTURE_2D,overlay->OpenGLName());
+
+	glBegin( GL_QUADS );
+  
+	glTexCoord2f( 0, 0 );
+	glVertex2f( 0-size, (0-size)*ratio );
+  
+	glTexCoord2f( 1, 0 );
+	glVertex2f( 0+size, (0-size)*ratio );
+  
+	glTexCoord2f( 1, 1 );
+	glVertex2f( 0+size, (0+size)*ratio );
+  
+	glTexCoord2f( 0, 1 );
+	glVertex2f( 0-size, (0+size)*ratio );
+
+	glEnd();
+}
+
 
 
 // Renders full screens quad to texture specified
 static void gpuTransform(mb::Texture* const outputTexture,mb::Texture* const overlay, const float ratio, const float cX, const float cY) {
 	outputTexture->SetAsRenderTarget();
   drawFullScreenQuad(outputTexture,overlay,ratio,cX,cY);
+	outputTexture->RestoreRenderTarget();
+}
+
+static void gpuTransform(mb::Texture* const outputTexture,mb::Texture* const overlay, const float ratio,const float size) {
+	outputTexture->SetAsRenderTarget();
+  drawBrushSize(outputTexture,overlay,ratio,size);
 	outputTexture->RestoreRenderTarget();
 }
 
@@ -59,11 +91,11 @@ Leap_HUD::Leap_HUD():
     menuChoice.AddItem("Right_R");
     menuChoice.AddItem("Down_R");
     menuChoice.AddItem("Left_R");
+    menuChoice.AddItem("BrushSize");
     menuChoice.SetValue(0);
     cX = 0;
     cY = 0;
-    QString loc = QString("C:/Users/Pedz/Documents/VirtualClay/VirtualClay/VirtualClay/VirtualClay/Resources/");
-	  menuMiddle_L = mb::CreateInstance<mb::Texture>();
+    menuMiddle_L = mb::CreateInstance<mb::Texture>();
     menuMiddle_L->CreateFromFile(RESOURCESDIR + QString("menuMiddle_L.png"));
 	  menuMiddle_L->SetLocation( mb::TexturePool::locationGPU );
 	  menuUp_L = mb::CreateInstance<mb::Texture>();
@@ -93,6 +125,9 @@ Leap_HUD::Leap_HUD():
     menuRight_R = mb::CreateInstance<mb::Texture>();
     menuRight_R->CreateFromFile(RESOURCESDIR + QString("menuRight_R.png"));
 	  menuRight_R->SetLocation( mb::TexturePool::locationGPU );
+    brushSize = mb::CreateInstance<mb::Texture>();
+    brushSize->CreateFromFile(RESOURCESDIR + QString("brushsize.png"));
+	  brushSize->SetLocation( mb::TexturePool::locationGPU );
 }
 
 void Leap_HUD::SetCentre(mb::Vector &c) {
@@ -100,6 +135,10 @@ void Leap_HUD::SetCentre(mb::Vector &c) {
   cX = MIN(MAX(c.x,-0.6),0.6);
   cY = MIN(MAX(c.y,-0.4),0.4);
   mblog("LEAPHUD "+QString::number(cX)+" "+QString::number(cY)+"\n");
+}
+
+void Leap_HUD::SetSize(float s) {
+  size = s;
 }
 
 void Leap_HUD::Process(mb::ViewPortState &s) {
@@ -138,6 +177,9 @@ void Leap_HUD::Process(mb::ViewPortState &s) {
   case 9:
     currTex = menuLeft_R;
     break;
+  case 10:
+    currTex = brushSize;
+    break;
   }
   if(currTex == NULL) {
     mblog("NULL TEXTURE!");
@@ -151,8 +193,11 @@ void Leap_HUD::Process(mb::ViewPortState &s) {
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP);
-
-  gpuTransform(s.m_pColor,currTex,cameraAspectRatio,cX,cY);
+  if(menuChoice == 10) {
+    gpuTransform(s.m_pColor,currTex,cameraAspectRatio,size);
+  } else {
+    gpuTransform(s.m_pColor,currTex,cameraAspectRatio,cX,cY);
+  }
   //s.m_pColor = s.m_pColor;
   s.m_pColor = s.m_pColor;
 }
