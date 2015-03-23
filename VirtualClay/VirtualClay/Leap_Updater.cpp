@@ -389,10 +389,10 @@ void Leap_Updater::CameraZoom(LR lOrR) {
   if(abs(handRot.z) > deadzone) {
       if(handRot.z > 0) {
         mblog("Forward\n");
-        viewCam->getCamera()->MoveForward(mb::Vector(5,0,0));
+        viewCam->getCamera()->MoveForward(mb::Vector(10,0,0));
       } else {
         mbhud("Backward\n");
-        viewCam->getCamera()->MoveBackward(mb::Vector(5,0,0));
+        viewCam->getCamera()->MoveBackward(mb::Vector(10,0,0));
       }
     }
   //viewCam->getTNode()->SetPosition(sceneRotate);
