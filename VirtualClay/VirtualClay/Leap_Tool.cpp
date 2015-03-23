@@ -31,6 +31,26 @@ Leap_Tool::Leap_Tool(void)
   mblog("Started server!\n");
 }
 
+Leap_Tool::Leap_Tool(Leap_Hand *copyNode)
+{
+  tools.resize(2);
+  tools.at(0) = new Leap_Fingers("ToolTIP");
+  tools.at(1) = new Leap_Fingers("ToolBase");
+  tools.at(0)->CopyGeo(copyNode->GetPalm());
+  tools.at(1)->CopyGeo(copyNode->GetPalm());
+  tools.at(0)->SetScale(mb::Vector(0.1f,0.05f,0.05f));
+  tools.at(1)->SetScale(mb::Vector(0.1f,0.1f,0.1f));
+  img = new QImage();
+  OriginalImg = new QImage(RESOURCESDIR+"stamp1.png");
+  *img = OriginalImg->copy();
+  img->mirrored();
+  stamp = mb::CreateInstance<mb::Image>();
+  stamp->ConvertFromQImage(*img);
+  server = new AirPen_Server();
+  mblog("Started server!\n");
+}
+
+
 void Leap_Tool::SendToServer(int stage) {
   server->SendMsg(stage);
 }
@@ -51,25 +71,6 @@ float Leap_Tool::GetStampStrength(mb::Vector &uv) {
   }
   mblog("Getting stamp co-ordinates "+QString::number(u)+" "+QString::number(v)+" = "+QString::number(stamp->ColorAt(u,v).Luminance())+"\n");
   return stamp->ColorAt(u,v).Luminance();
-}
-
-Leap_Tool::Leap_Tool(Leap_Hand *copyNode)
-{
-  tools.resize(2);
-  tools.at(0) = new Leap_Fingers("ToolTIP");
-  tools.at(1) = new Leap_Fingers("ToolBase");
-  tools.at(0)->CopyGeo(copyNode->GetPalm());
-  tools.at(1)->CopyGeo(copyNode->GetPalm());
-  tools.at(0)->SetScale(mb::Vector(0.1f,0.05f,0.05f));
-  tools.at(1)->SetScale(mb::Vector(0.1f,0.1f,0.1f));
-  img = new QImage();
-  OriginalImg = new QImage(RESOURCESDIR+"stamp1.png");
-  *img = OriginalImg->copy();
-  img->mirrored();
-  stamp = mb::CreateInstance<mb::Image>();
-  stamp->ConvertFromQImage(*img);
-  server = new AirPen_Server();
-  mblog("Started server!\n");
 }
 
 

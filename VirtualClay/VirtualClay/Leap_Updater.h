@@ -9,6 +9,9 @@
 #include "Leap_Tool.h"
 
 namespace mb = mudbox;
+static const float menuDeadZone = 0.15f;
+static const float menuActivateZone = 0.35f;
+
 class Leap_Updater : public mb::Node {
   mudbox::Vector dir;
   ID_List *idList;
@@ -57,20 +60,32 @@ class Leap_Updater : public mb::Node {
   bool brushSizeMenuToggle;
   bool SceneNavigationToggle;
   bool pivotHandsOnMesh;
+  bool moveObjectMode;
+  bool saveCurrentHandPivot;
+  bool resetHandPivotToZero;
   bool ThumbSmoothMove();
   float thumbMoveStrength;
   mb::Vector menuStartSpace;
   Leap_HUD *menuFilter;
   
+  float brushSize;
+  mb::Vector brushSizeStartFingerStartPos;
+  void BrushSize();
+
   __inline void checkNavigationGestures();
   __inline void checkMenuGesture();
   __inline void checkScreenTapGesture();
   __inline void checkUndoGesture();
   __inline void checkGrabbingGesture();
   __inline void checkToolIntersection();
-
+  __inline void checkMoveObjGesture();
+  __inline void checkUndoMoveGesture();
+  //Moveing Object:
+  void MoveSelectedObject(LR lr);
+  bool isFirstGrab;
 
   mb::Vector cameraPivot;
+  mb::Vector savedHandPivotPoint;
   //Tools:
   Leap_Tool *tool;
   void ToolSmoothMove();

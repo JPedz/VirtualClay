@@ -14,9 +14,11 @@ Leap_Reader::Leap_Reader(void) {
   controller.config().setFloat("Gesture.ScreenTap.MinDistance", 10.0f);
   controller.config().setFloat("Gesture.Swipe.MinLength", 300.0);
   controller.config().setFloat("Gesture.Swipe.MinVelocity", 1000.0);
-  controller.config().setFloat("Gesture.Circle.MinRadius", 15.0);
-  controller.config().setFloat("Gesture.Circle.MinArc", 2.5*PI);
+  controller.config().setFloat("Gesture.Circle.MinRadius", 18.0);
+  controller.config().setFloat("Gesture.Circle.MinArc", 3*PI);
   controller.config().save();
+  UndoTimeOut = new QTime();
+  UndoTimeOut->start();
   QTime *t = new QTime();
   t->start();
   while(!controller.isConnected()) {
@@ -142,9 +144,12 @@ bool Leap_Reader::updateAll(void) {
           break;
         case Leap::Gesture::TYPE_SWIPE:
             swipeGesture = SwipeGesture(*gl);
-            if(swipeGesture.direction().x < 0 ) {
-              if(CheckFingerExtensions(gestureHand,1,1,1,1,1))
-                isUndo = true;
+            if(UndoTimeOut->elapsed() > 500) {
+              if(swipeGesture.direction().x < 0 ) {
+                if(CheckFingerExtensions(gestureHand,1,1,1,1,1))
+                  isUndo = true;
+                  UndoTimeOut->restart();
+              }
             }
             //Handle swipe gestures
             break;
