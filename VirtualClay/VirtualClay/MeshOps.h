@@ -45,6 +45,7 @@ class MeshOps {
   std::vector<mb::Vector> undoMoveQueue;
   MidVertex *midV;
   mb::Vector midPos;
+  
 
   mb::Vector cumulativeMove;
 

@@ -1,6 +1,6 @@
 #pragma once
-#include <QtNetwork\qtcpserver.h>
-#include <QtNetwork\qtcpsocket.h>
+#include <QtNetwork/qtcpserver.h>
+#include <QtNetwork/qtcpsocket.h>
 class AirPen_Server
 {
   bool isConnected;

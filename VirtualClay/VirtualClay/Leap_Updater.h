@@ -41,7 +41,8 @@ class Leap_Updater : public mb::Node {
   void Extrusion(LR LorR);
   void MenuSettings_R();
   void MenuSettings_L();
-  bool facesAreSelected;
+  bool facesAreSelected_L;
+  bool facesAreSelected_Tool;
   bool facesAreSelected_R;
   bool firstmoveswitch;
   bool firstmoveswitch_R;

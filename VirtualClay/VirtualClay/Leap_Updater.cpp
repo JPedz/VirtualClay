@@ -196,8 +196,8 @@ bool Leap_Updater::ThumbSelect() {
   //thumbProj.x = thumbProj.y;
   //thumbProj.y = save;
   meshOp->ChangeCamera(viewCam);
-  if(!facesAreSelected && meshOp->SelectFaces(l,ScreenSpaceToPixels(thumbProj),10.0f,5)) {
-    facesAreSelected = true;
+  if(!facesAreSelected_L&& meshOp->SelectFaces(l,ScreenSpaceToPixels(thumbProj),10.0f,5)) {
+    facesAreSelected_L= true;
   } else {
     mb::Vector currentThumbPos = hand_l->GetFingerPos(THUMB,TIP);
     mb::Vector distanceDiff = currentThumbPos - lastFrameThumbPos;
@@ -537,7 +537,6 @@ void Leap_Updater::MenuSettings_L() {
   }
 }
 
-
 void Leap_Updater::BrushSize() {
   if(leapReader->isScreenTap) {
     mblog("got tap\n");
@@ -565,10 +564,10 @@ void Leap_Updater::BrushSize() {
 void Leap_Updater::Extrusion(LR LorR) {
   if(LorR == l) {
     mblog("Finger IntersectCount = "+QString::number(countIntersectingFingers(l))+"\n");
-    if(!facesAreSelected) {
+    if(!facesAreSelected_L){
       if(countIntersectingFingers(l) > 3) {
         if(selectMesh(l) ) {
-          facesAreSelected = true;
+          facesAreSelected_L= true;
           firstmoveswitch = true;
           mblog("Succesfully Selected\n");
         } else {
@@ -684,10 +683,10 @@ __inline void Leap_Updater::checkGrabbingGesture() {
         ThumbSmoothMove();
     } else {
       meshOp->firstUse = true;
-      if(facesAreSelected) {
+      if(facesAreSelected_L){
         meshOp->DeselectAllFaces();
       }
-      facesAreSelected = false;
+      facesAreSelected_L= false;
     }
   } else {
   //If they are Grabbing and Thumb Toggle is Off
@@ -700,21 +699,22 @@ __inline void Leap_Updater::checkGrabbingGesture() {
     } else if(leapReader->isGrabbing_R) {
       Extrusion(r); 
     } else {
-      if(facesAreSelected_R) {
+      if(facesAreSelected_R || facesAreSelected_L){
+        mblog("going to deselect faces");
         meshOp->DeselectAllFaces();
         //meshOp_R->DeselectAllFaces();
       }
       firstmoveswitch = true;
       facesAreSelected_R = false;
-      facesAreSelected = false;
+      facesAreSelected_L= false;
     }
     /*
     } else {
-      if(facesAreSelected) {
+      if(facesAreSelected_L){
         meshOp->DeselectAllFaces();
       }
       firstmoveswitch_R = true;
-      facesAreSelected = false;
+      facesAreSelected_L= false;
     }*/
     lastFrameHandPos_L = hand_l->GetPos();
     lastFrameHandPos_R = hand_r->GetPos();
@@ -737,6 +737,7 @@ void Leap_Updater::ToolStampMove() {
   mblog("Tool Proj Pos Pixels = "+VectorToQStringLine(ScreenSpaceToPixels(toolProj)));
   tool->ResizeStamp(35,35);
   if(meshOp->ToolManip(ScreenSpaceToPixels(toolProj),20.0f,tool)) {
+    facesAreSelected_Tool = true;
     mblog("Moving vertices maybe?\n");
     meshOp->MoveVertices(r,2);
   }
@@ -759,6 +760,7 @@ void Leap_Updater::ToolSmoothMove() {
   mblog("Tool Proj Pos Pixels = "+VectorToQStringLine(ScreenSpaceToPixels(toolProj)));
   //meshOp->ChangeCamera(viewCam);
   if(meshOp->SelectFaces(r,ScreenSpaceToPixels(toolProj),10.0f,10)) {
+    facesAreSelected_Tool = true;
     mb::Vector dirNorm = leapReader->getToolMotionDirection();
     mblog("Normalised Direction = "+VectorToQStringLine(dirNorm));
     mb::Vector dist = dirNorm*thumbMoveStrength;
@@ -786,6 +788,10 @@ __inline void Leap_Updater::checkToolIntersection() {
           ToolSmoothMove();
         }
       } else {
+        if(facesAreSelected_Tool) {
+          meshOp->DeselectAllFaces();
+        }
+        facesAreSelected_Tool = false;
         //Set the undo list to iterate on.
         meshOp->firstUse = true;
       }

@@ -38,9 +38,27 @@ void MeshOps::setMesh(mb::Mesh *m) {
 }
 
 void MeshOps::refreshMesh(void) {
-  MeshGeo->ChangeActiveLevel(MeshGeo->LowestLevel());
-  MeshGeo->ChangeActiveLevel(MeshGeo->HighestLevel());
+  //MeshGeo->ChangeActiveLevel(MeshGeo->LowestLevel());
+  //MeshGeo->ChangeActiveLevel(MeshGeo->HighestLevel());
+  QTime *t = new QTime();
+  t->start();
+  mb::LayerMeshData *lmd = pMesh->AddLayer();
+  mblog("Add Layer Time: "+QString::number(t->elapsed())+"\n");
+  
+  t->restart();
+  int lvi = lmd->LayerVertexIndex(1);
+  mblog("Add Vertex Index Time: "+QString::number(t->elapsed())+"\n");
+  
+  t->restart();
+  lmd->SetVertexDelta(lvi,1,mb::Vector(0,1,1),true);
+  mblog("Vertex Delta Time Time: "+QString::number(t->elapsed())+"\n");
+  
+  t->restart();
+  lmd->FinishChanges();
+  mblog("Finish changes time: "+QString::number(t->elapsed())+"\n");
+  t->restart();
   mb::Kernel()->ViewPort()->Redraw();
+  mblog("Redraw Time: "+QString::number(t->elapsed())+"\n");
 }
 
 
@@ -64,10 +82,12 @@ void MeshOps::SelectObject(cameraWrapper *viewCam, mb::Vector screenPos) {
         mblog("Found GEO FROM PARENT\n");
         MeshGeo = geoPotential;
         MeshGeo->ChangeActiveLevel(MeshGeo->HighestLevel());
+        mb::Kernel()->Scene()->SetActiveGeometry(MeshGeo);
       }
     }
     mbstatus("Selected Mesh: "+pMesh->Name());
     mb::Kernel()->Log(pMesh->Name()+" "+QString::number(sp.FaceIndex()));
+
   } else {
     mbstatus("No ObjectSelected");
   }
@@ -228,9 +248,7 @@ bool MeshOps::SelectFaces(LR lr, float size, float strength) {
         mb::Kernel()->Log(QString::number(i)+" "+QString::number(faces->at(i))+"\n");
         pMesh->SetFaceSelected(faces->at(i));
       }
-      MeshGeo->ChangeActiveLevel(MeshGeo->LowestLevel());
-      MeshGeo->ChangeActiveLevel(MeshGeo->HighestLevel());
-      mb::Kernel()->ViewPort()->Redraw();
+      refreshMesh();
       StoreUndoQueue(lr);
       return true;
     } else {
@@ -563,8 +581,8 @@ void MeshOps::boxSelect(LR lr, mb::Vector &v1,mb::Vector &v2,Leap_Tool *tool) {
 void MeshOps::DeselectAllFaces() {
   //TODO: 
   if(pMesh != NULL) {
+    mblog("Deselecting faces\n");
     pMesh->SetSelected(false);
-    refreshMesh();
   }
 }
 
@@ -610,7 +628,7 @@ void MeshOps::MoveVertices(LR lr, mb::Vector v) {
   }
   if(MeshGeo != NULL) {
     refreshMesh();
-    pMesh->RecalculateNormals();
+    //pMesh->RecalculateNormals();
   }
 }
 
@@ -645,9 +663,10 @@ void MeshOps::MoveVertices(LR lr, float dist) {
     refreshMesh();
     mblog("Refresh Mesh time: "+QString::number(t->elapsed())+"\n");
 
-  }    
-  pMesh->RecalculateNormals();
-  mb::Kernel()->ViewPort()->Redraw();
+  } 
+  refreshMesh();
+  //pMesh->RecalculateNormals();
+  //mb::Kernel()->ViewPort()->Redraw();
 }
 
 void MeshOps::StoreUndoQueue(LR lr) {
@@ -681,34 +700,46 @@ void MeshOps::StoreUndoQueue(LR lr) {
 }
 
 void MeshOps::AddToUndoQueue(LR lr) {
-  //mblog("Storing Undo\n");
+  mblog("Adding Undo\n");
   VertexInfo vertInfo;
-  std::vector<VertexModifyInfo> *vertices;
-  if(lr == l) 
-    vertices = vertices_L;
-  else 
-    vertices = vertices_R;
-
-  //mb::VertexAdjacency *vA = new mb::VertexAdjacency();
-  std::vector<VertexInfo> vertInfoList = undoQueue.back();
-  bool newVert = true;
-  for(int i = 0 ; i < vertices->size(); i++) {
-    //if(pMesh != NULL) {
-    //  mblog("getting vertexAdjacency\n");
-    //  vA = &pMesh->VertexAdjacency(vertices->at(i));
-    //}
-    for(int j = 0 ; i < vertInfoList.size() ; j++) {
-      if(vertices->at(i).vI == vertInfoList.at(j).vI) {
-        newVert = false;
-        break;
+  bool atleastOneNewVert = false;
+  if(undoQueue.size() > 0) {
+    std::vector<VertexModifyInfo> *vertices;
+    if(lr == l)
+      vertices = vertices_L;
+    else
+      vertices = vertices_R;
+    //mb::VertexAdjacency *vA = new mb::VertexAdjacency();
+    mblog("Getting last vertex info list");
+    std::vector<VertexInfo> vertInfoList = undoQueue.back();
+    bool newVert = true;
+    for(int i = 0 ; i < vertices->size(); i++) {
+      //if(pMesh != NULL) {
+      //  mblog("getting vertexAdjacency\n");
+      //  vA = &pMesh->VertexAdjacency(vertices->at(i));
+      //}
+      mblog("vertex "+ QString::number(i)+"\n");
+      for(int j = 0 ; j < vertInfoList.size() ; j++) {
+        if(vertices->at(i).vI == vertInfoList.at(j).vI) {
+          newVert = false;
+          break;
+        }
       }
+      vertInfo.vI = vertices->at(i).vI;
+      if(newVert) {
+        atleastOneNewVert = true;
+        mblog("new vertex "+ QString::number(i)+"\n");
+        vertInfo.pos = pMesh->VertexPosition(vertInfo.vI);
+        vertInfoList.push_back(vertInfo);
+      }
+      //mblog("Storing: "+QString::number(vertInfo.vI)+" "+VectorToQStringLine(vertInfo.pos));
     }
-    vertInfo.vI = vertices->at(i).vI;
-    if(newVert) {
-      vertInfo.pos = pMesh->VertexPosition(vertInfo.vI);
-      vertInfoList.push_back(vertInfo); 
+    if(atleastOneNewVert) {
+      undoQueue.pop_back();
+      undoQueue.push_back(vertInfoList);
     }
-    //mblog("Storing: "+QString::number(vertInfo.vI)+" "+VectorToQStringLine(vertInfo.pos));
+  } else {
+    StoreUndoQueue(lr);
   }
   //mblog("Stored Undo\n");
 }
@@ -716,7 +747,7 @@ void MeshOps::AddToUndoQueue(LR lr) {
 void MeshOps::UndoLast() {
   if(pMesh != NULL) {
     if(undoQueue.size() > 0) {
-      //mb::MeshChange *mC = pMesh->StartChange();
+      mb::MeshChange *mC = pMesh->StartChange();
       std::vector<VertexInfo> vertInfoList = undoQueue.back();
       undoQueue.pop_back();
       for(int i = 0 ; i < vertInfoList.size() ; i++) {
@@ -724,14 +755,15 @@ void MeshOps::UndoLast() {
         //mC->Add(vertInfoList.at(i).vI,vertInfoList.at(i).fI,false);
         mblog("Retrieving: "+QString::number(vertInfoList.at(i).vI)+" "+VectorToQStringLine(vertInfoList.at(i).pos));
       }
-      //mC->Finish();
-      //MeshGeo->ContentChanged();
-      //mblog("contentchanging\n");
-      //MeshGeo->ContentChanged();
-      //mblog("contentchanged\n");
-      //pMesh->SetVersion(pMesh->Version()+1);
-      //pMesh->Modified.Trigger();
-      //pMesh->ContentChanged();
+      mC->Finish();
+      MeshGeo->ContentChanged();
+      mblog("contentchanging\n");
+      MeshGeo->ContentChanged();
+      mblog("contentchanged\n");
+      pMesh->SetVersion(pMesh->Version()+1);
+      pMesh->Modified.Trigger();
+      pMesh->ContentChanged();
+      mb::Kernel()->Redraw();
       //MeshGeo->ChangeActiveLevel(MeshGeo->LowestLevel());
       //MeshGeo->ChangeActiveLevel(MeshGeo->HighestLevel());
       refreshMesh();
