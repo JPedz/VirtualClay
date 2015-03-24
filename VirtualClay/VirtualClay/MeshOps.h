@@ -27,12 +27,14 @@ class MeshOps {
   typedef struct VertexModifyInfo {
     float strength;
     int vI;
+    unsigned int lVI;
   } VertexModifyInfo;
 
   //Temporary
   mb::Mesh *pMesh;
   mb::Geometry *MeshGeo;
   mb::ScreenSpacePicker *ssp;
+  mb::LayerMeshData *meshLayer;
   mb::Picker *p;
   mb::Camera *curCam;
   std::vector<int> *faces_L;

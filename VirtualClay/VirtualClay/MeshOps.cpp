@@ -6,10 +6,12 @@
 MeshOps::MeshOps() {
   pMesh = NULL;
   MeshGeo = NULL;
+  meshLayer = NULL;
   cumulativeMove = mb::Vector(0,0,0);
   if(mb::Kernel()->Scene()->SelectedGeometryCount() > 0) {
     MeshGeo = mb::Kernel()->Scene()->SelectedGeometry(0);
     pMesh = MeshGeo->ActiveLevel();
+    meshLayer = pMesh->AddLayer();
   }
   curCam = mb::Kernel()->Scene()->ActiveCamera();
   ssp = curCam->GetScreenSpacePicker();
@@ -25,11 +27,17 @@ MeshOps::MeshOps() {
 
 MeshOps::MeshOps(mb::Mesh *m) {
   pMesh = m;
+  meshLayer = pMesh->AddLayer();
+  meshLayer->SetTransparency(1.0f);
+  meshLayer->SetVisible(true);
   curCam = mb::Kernel()->Scene()->ActiveCamera();
 }
 
 void MeshOps::setMesh(mb::Mesh *m) {
   pMesh = m;
+  meshLayer = pMesh->AddLayer();
+  meshLayer->SetTransparency(1.0f);
+  meshLayer->SetVisible(true);
   if(!pMesh->HasTC()) {
     mb::SubdivisionLevel *subdiv= MeshGeo->ActiveLevel();
     subdiv->RecreateUVs(true);
@@ -40,6 +48,7 @@ void MeshOps::setMesh(mb::Mesh *m) {
 void MeshOps::refreshMesh(void) {
   //MeshGeo->ChangeActiveLevel(MeshGeo->LowestLevel());
   //MeshGeo->ChangeActiveLevel(MeshGeo->HighestLevel());
+  mblog("Mesh Layer Count = "+QString::number(meshLayer->VertexCount())+"\n");
   QTime *t = new QTime();
   t->start();
   mb::LayerMeshData *lmd = pMesh->AddLayer();
@@ -50,11 +59,10 @@ void MeshOps::refreshMesh(void) {
   mblog("Add Vertex Index Time: "+QString::number(t->elapsed())+"\n");
   
   t->restart();
-  lmd->SetVertexDelta(lvi,1,mb::Vector(0,1,1),true);
+  meshLayer->SetVertexDelta(lvi,1,mb::Vector(0,1,1),false);
   mblog("Vertex Delta Time Time: "+QString::number(t->elapsed())+"\n");
-  
   t->restart();
-  lmd->FinishChanges();
+  //lmd->FinishChanges();
   mblog("Finish changes time: "+QString::number(t->elapsed())+"\n");
   t->restart();
   mb::Kernel()->ViewPort()->Redraw();
@@ -76,12 +84,15 @@ void MeshOps::SelectObject(cameraWrapper *viewCam, mb::Vector screenPos) {
   if(b) {
     mb::Kernel()->Log("\n Hit MeshOps\n");
     pMesh = sp.Mesh();
+    meshLayer = pMesh->AddLayer();
+    meshLayer->SetTransparency(1.0f);
+    meshLayer->SetVisible(true);
     if(pMesh->Parent()->IsKindOf(mb::Geometry::StaticClass())) {
       mb::Geometry *geoPotential = dynamic_cast<mb::Geometry *>(pMesh->Parent());
       MB_SAFELY(geoPotential) {
         mblog("Found GEO FROM PARENT\n");
         MeshGeo = geoPotential;
-        MeshGeo->ChangeActiveLevel(MeshGeo->HighestLevel());
+        //MeshGeo->ChangeActiveLevel(MeshGeo->HighestLevel());
         mb::Kernel()->Scene()->SetActiveGeometry(MeshGeo);
       }
     }
@@ -123,6 +134,8 @@ bool MeshOps::SelectFaces(LR lr, mb::AxisAlignedBoundingBox box,float spreadDist
     faces->clear();
     vertices->clear();
     points->clear();
+    pMesh->RemoveLayer(meshLayer);
+    meshLayer = pMesh->AddLayer();
     //p->SetMesh(pMesh);
     //p->SetTolerance(spreadDist);
     int fi;
@@ -180,6 +193,8 @@ bool MeshOps::SelectFaces(LR lr, mb::Vector centrePoint, float widthHeight, floa
     faces->clear();
     vertices->clear();
     points->clear();
+    pMesh->RemoveLayer(meshLayer);
+    meshLayer = pMesh->AddLayer();
     midV->pos = mb::Vector(0,0,0);
     midV->vI = 0;
     mblog("SelectingBox\n");
@@ -199,7 +214,7 @@ bool MeshOps::SelectFaces(LR lr, mb::Vector centrePoint, float widthHeight, floa
             vertices->at(i).strength = 0;
         }
       }
-      refreshMesh();
+      //refreshMesh();
       //MeshGeo->ContentChanged();
       //if(firstUse) {
       StoreUndoQueue(r);
@@ -248,7 +263,7 @@ bool MeshOps::SelectFaces(LR lr, float size, float strength) {
         mb::Kernel()->Log(QString::number(i)+" "+QString::number(faces->at(i))+"\n");
         pMesh->SetFaceSelected(faces->at(i));
       }
-      refreshMesh();
+      //refreshMesh();
       StoreUndoQueue(lr);
       return true;
     } else {
@@ -283,7 +298,7 @@ bool MeshOps::ToolManip(mb::Vector centrePoint, float widthHeight, Leap_Tool *to
       }
       //MeshGeo->ContentChanged();
       t->restart();
-      refreshMesh();
+      //refreshMesh();
       mblog("Refresh Mesh time: "+QString::number(t->elapsed())+"\n");
       if(firstUse) {
         t->restart();
@@ -347,6 +362,13 @@ void MeshOps::boxSelect(LR lr, mb::Vector &v1,mb::Vector &v2,float maxDist, floa
             mblog("Vertex Base Plane Position = "+VectorToQStringLine(bpVector));
             vertexCountInRange++;
             vMI.vI = (int)i;
+            if(meshLayer == NULL) {
+                mblog("Meshlayer Null\n");
+            } else { 
+              mblog("int i = "+QString::number(i)+"\n");
+            }
+            vMI.lVI = meshLayer->LayerVertexIndex(i);
+              mblog("int lvi = "+QString::number(vMI.lVI)+"\n");
             vMI.strength = MIN(10/dist,1);
             vertices->push_back(vMI);
             fi = i%4;
@@ -474,6 +496,7 @@ void MeshOps::boxSelect(LR lr, mb::Vector &v1,mb::Vector &v2,Leap_Tool *tool) {
             mblog("\n");
             vertexCountInRange++;
             vMI.vI = (int)i;
+            vMI.lVI = meshLayer->LayerVertexIndex((int)i);
             vMI.strength = tool->GetStampStrength(uvSpace);
             mblog("\n");
             vertices->push_back(vMI);
@@ -609,8 +632,10 @@ bool MeshOps::CheckIntersection(mb::AxisAlignedBoundingBox box1) {
 void MeshOps::MoveVertices(LR lr, mb::Vector v) {
   //Move distance of the vector and in vector direction.
   int vi;
+  int lvi;
   float strength;
-  int strokeID;  
+  int strokeID;
+  mb::Vector curDelta;
   std::vector<VertexModifyInfo> *vertices;
   if(lr == l) 
     vertices = vertices_L;
@@ -618,12 +643,16 @@ void MeshOps::MoveVertices(LR lr, mb::Vector v) {
     vertices = vertices_R;
   for(int i = 0 ; i < vertices->size(); i++) {
     vi = vertices->at(i).vI;
+    lvi = vertices->at(i).lVI;
     strength = vertices->at(i).strength;
-    //mblog("Moving Vertex "+QString::number(i)+"by "+VectorToQStringLine(v*strength));
+    mblog("Moving Vertex "+QString::number(i)+"by "+VectorToQStringLine(v*strength));
     //mb::Kernel()->Log(QString::number(vi)+ " " + QString::number(v.x)+"\n");
-    pMesh->AddVertexPosition(vi,v*strength);
-    strokeID = pMesh->VertexStrokeID(vi);
-    pMesh->SetVertexStrokeID(vi,strokeID++);
+    curDelta = meshLayer->VertexDelta(lvi);
+    mblog("Current Delta = "+VectorToQStringLine(curDelta));
+    meshLayer->SetVertexDelta(lvi,vi,curDelta+(v*strength),true);
+    //pMesh->AddVertexPosition(vi,v*strength);
+    //strokeID = pMesh->VertexStrokeID(vi);
+    //pMesh->SetVertexStrokeID(vi,strokeID++);
     //mb::Kernel()->Log(QString::number(vi)+ " " + QString::number(v2.x)+"\n"); 
   }
   if(MeshGeo != NULL) {
@@ -632,11 +661,39 @@ void MeshOps::MoveVertices(LR lr, mb::Vector v) {
   }
 }
 
+//void MeshOps::MoveVertices(LR lr, mb::Vector v) {
+//  //Move distance of the vector and in vector direction.
+//  int vi;
+//  float strength;
+//  int strokeID;  
+//  std::vector<VertexModifyInfo> *vertices;
+//  if(lr == l) 
+//    vertices = vertices_L;
+//  else 
+//    vertices = vertices_R;
+//  for(int i = 0 ; i < vertices->size(); i++) {
+//    vi = vertices->at(i).vI;
+//    strength = vertices->at(i).strength;
+//    //mblog("Moving Vertex "+QString::number(i)+"by "+VectorToQStringLine(v*strength));
+//    //mb::Kernel()->Log(QString::number(vi)+ " " + QString::number(v.x)+"\n");
+//    pMesh->AddVertexPosition(vi,v*strength);
+//    strokeID = pMesh->VertexStrokeID(vi);
+//    pMesh->SetVertexStrokeID(vi,strokeID++);
+//    //mb::Kernel()->Log(QString::number(vi)+ " " + QString::number(v2.x)+"\n"); 
+//  }
+//  if(MeshGeo != NULL) {
+//    refreshMesh();
+//    //pMesh->RecalculateNormals();
+//  }
+//}
+
+
+
 void MeshOps::MoveVertices(LR lr, float dist) {
   //move in direction of normals
   QTime *t = new QTime();
   t->start();
-  int vi;
+  int vi,lvi;
   float strength;
   int strokeID;
   mb::Vector v = mb::Vector(0,0,0);
@@ -647,14 +704,18 @@ void MeshOps::MoveVertices(LR lr, float dist) {
     vertices = vertices_R;
   for(int i = 0 ; i < vertices->size(); i++) {
     vi = vertices->at(i).vI;
+    lvi = vertices->at(i).lVI;
     strength = vertices->at(i).strength;
     v = pMesh->VertexNormal(vi);
     //mblog("Vertex Normal = "+VectorToQStringLine(v));
     //mblog("Moving Vertex "+QString::number(i)+"by "+VectorToQStringLine(v*dist));
     //mb::Kernel()->Log(QString::number(vi)+ " " + QString::number(v.x)+"\n");
-    pMesh->AddVertexPosition(vi,v*strength*dist);
-    strokeID = pMesh->VertexStrokeID(vi);
-    pMesh->SetVertexStrokeID(vi,strokeID++);
+    
+    mblog("Moving Vertex "+QString::number(i)+" "+QString::number(lvi)+"by "+VectorToQStringLine(v*strength));
+    meshLayer->SetVertexDelta(lvi,vi,v*strength,true);
+    //pMesh->AddVertexPosition(vi,v*strength*dist);
+    //strokeID = pMesh->VertexStrokeID(vi);
+    //pMesh->SetVertexStrokeID(vi,strokeID++);
     //mb::Kernel()->Log(QString::number(vi)+ " " + QString::number(v2.x)+"\n"); 
   }
   mblog("MoveVertices time: "+QString::number(t->elapsed())+"\n");
@@ -668,6 +729,43 @@ void MeshOps::MoveVertices(LR lr, float dist) {
   //pMesh->RecalculateNormals();
   //mb::Kernel()->ViewPort()->Redraw();
 }
+//
+//void MeshOps::MoveVertices2(LR lr, float dist) {
+//  //move in direction of normals
+//  QTime *t = new QTime();
+//  t->start();
+//  int vi;
+//  float strength;
+//  int strokeID;
+//  mb::Vector v = mb::Vector(0,0,0);
+//  std::vector<VertexModifyInfo> *vertices;
+//  if(lr == l) 
+//    vertices = vertices_L;
+//  else 
+//    vertices = vertices_R;
+//  for(int i = 0 ; i < vertices->size(); i++) {
+//    vi = vertices->at(i).vI;
+//    strength = vertices->at(i).strength;
+//    v = pMesh->VertexNormal(vi);
+//    //mblog("Vertex Normal = "+VectorToQStringLine(v));
+//    //mblog("Moving Vertex "+QString::number(i)+"by "+VectorToQStringLine(v*dist));
+//    //mb::Kernel()->Log(QString::number(vi)+ " " + QString::number(v.x)+"\n");
+//    pMesh->AddVertexPosition(vi,v*strength*dist);
+//    strokeID = pMesh->VertexStrokeID(vi);
+//    pMesh->SetVertexStrokeID(vi,strokeID++);
+//    //mb::Kernel()->Log(QString::number(vi)+ " " + QString::number(v2.x)+"\n"); 
+//  }
+//  mblog("MoveVertices time: "+QString::number(t->elapsed())+"\n");
+//  if(MeshGeo != NULL) {
+//    t->restart();
+//    refreshMesh();
+//    mblog("Refresh Mesh time: "+QString::number(t->elapsed())+"\n");
+//
+//  } 
+//  refreshMesh();
+//  //pMesh->RecalculateNormals();
+//  //mb::Kernel()->ViewPort()->Redraw();
+//}
 
 void MeshOps::StoreUndoQueue(LR lr) {
   VertexInfo vertInfo;
@@ -784,6 +882,7 @@ void MeshOps::addVertex(LR lr, int  fi) {
       v = pMesh->QuadPrimaryIndex(false,fi,i);
       if(checkUniqueInVertexList(lr,v)) {
         vMI.vI = v;
+        vMI.lVI = meshLayer->LayerVertexIndex(v);
         vMI.strength = 1;
         vertices->push_back(vMI);
       }
@@ -793,6 +892,7 @@ void MeshOps::addVertex(LR lr, int  fi) {
       v = pMesh->TrianglePrimaryIndex(false,fi,i);
       if(checkUniqueInVertexList(lr,v)) {
         vMI.vI = v;
+        vMI.lVI = meshLayer->LayerVertexIndex(v);
         vMI.strength = 1;
         vertices->push_back(vMI);
       }
