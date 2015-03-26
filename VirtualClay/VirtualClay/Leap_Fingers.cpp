@@ -83,6 +83,7 @@ int Leap_Fingers::ImportGeo(void) {
           mblog("found the geo node\n");
           GeoNode = geoPotential;
           GeoNode->SetActiveLevel(GeoNode->HighestLevel());
+          GeoNode->ChangeActiveLevel(GeoNode->LowestLevel());
         }
       }
 	  }

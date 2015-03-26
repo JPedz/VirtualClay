@@ -165,9 +165,9 @@ mb::Vector Leap_Tool::GetPos(int i) {
 }
 
 mb::AxisAlignedBoundingBox Leap_Tool::GetBoundingBox(int i) {
-  return mb::AxisAlignedBoundingBox(tools.at(i)->GetPos(),3.0f);
+  return mb::AxisAlignedBoundingBox(tools.at(i)->GetPos(),2.0f);
 }
 
 mb::AxisAlignedBoundingBox Leap_Tool::GetInteractionBox() {
-  return mb::AxisAlignedBoundingBox(tools.at(0)->GetPos(),10.0f);
+  return mb::AxisAlignedBoundingBox(tools.at(0)->GetPos(),6.0f);
 }

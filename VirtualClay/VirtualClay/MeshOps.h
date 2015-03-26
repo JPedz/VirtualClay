@@ -6,6 +6,7 @@
 #include "LeapMath.h"
 #include "Leap.h"
 #include "Leap_Tool.h"
+#include <omp.h>
 
 namespace mb = mudbox;
 
@@ -27,12 +28,14 @@ class MeshOps {
   typedef struct VertexModifyInfo {
     float strength;
     int vI;
+    unsigned int lVI;
   } VertexModifyInfo;
 
   //Temporary
   mb::Mesh *pMesh;
   mb::Geometry *MeshGeo;
   mb::ScreenSpacePicker *ssp;
+  mb::LayerMeshData *meshLayer;
   mb::Picker *p;
   mb::Camera *curCam;
   std::vector<int> *faces_L;
@@ -45,6 +48,7 @@ class MeshOps {
   std::vector<mb::Vector> undoMoveQueue;
   MidVertex *midV;
   mb::Vector midPos;
+  
 
   mb::Vector cumulativeMove;
 

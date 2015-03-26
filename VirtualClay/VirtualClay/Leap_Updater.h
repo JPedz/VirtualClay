@@ -7,7 +7,7 @@
 #include "Leap_HUD.h"
 #include <Mudbox/image.h>
 #include "Leap_Tool.h"
-
+#include <QTCore/QTime>
 namespace mb = mudbox;
 static const float menuDeadZone = 0.15f;
 static const float menuActivateZone = 0.35f;
@@ -31,7 +31,7 @@ class Leap_Updater : public mb::Node {
   mb::Vector lastFrameThumbPos;
   void setDir(mudbox::Vector dir);
   void SetHandAndFingerPositions();
-  void ScreenTap();
+  void ScreenTap(LR lr);
   mb::Vector GetRelativeScreenSpaceFromWorldPos(mb::Vector wPos);
   void MoveMesh(LR lOrR);
   bool selectMesh(LR lOrR);
@@ -41,7 +41,8 @@ class Leap_Updater : public mb::Node {
   void Extrusion(LR LorR);
   void MenuSettings_R();
   void MenuSettings_L();
-  bool facesAreSelected;
+  bool facesAreSelected_L;
+  bool facesAreSelected_Tool;
   bool facesAreSelected_R;
   bool firstmoveswitch;
   bool firstmoveswitch_R;
@@ -51,9 +52,10 @@ class Leap_Updater : public mb::Node {
   bool menuRight;
   bool menuDown;
   bool menuLeft;
-  bool collisionToggle;
+
+  bool selectWithBrushSize;
+  bool reqIntersectionForSelection;
   bool thumbGrabModeToggle;
-  bool ThumbSelect();
   bool stickyMovement;
   bool pinchGrab;
   bool toolStamp;
@@ -68,6 +70,7 @@ class Leap_Updater : public mb::Node {
   mb::Vector menuStartSpace;
   Leap_HUD *menuFilter;
   
+  bool ThumbSelect();
   float brushSize;
   mb::Vector brushSizeStartFingerStartPos;
   void BrushSize();
