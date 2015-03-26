@@ -30,7 +30,7 @@ class Leap_Updater : public mb::Node {
   mb::Vector lastFrameHandPos_R;
   mb::Vector lastFrameThumbPos;
   void setDir(mudbox::Vector dir);
-  void SetHandAndFingerPositions();
+  __inline void SetHandAndFingerPositions();
   void ScreenTap(LR lr);
   mb::Vector GetRelativeScreenSpaceFromWorldPos(mb::Vector wPos);
   void MoveMesh(LR lOrR);

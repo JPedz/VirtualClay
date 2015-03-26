@@ -250,24 +250,30 @@ bool Leap_Updater::ThumbSmoothMove() {
   return false;
 }
 
-void Leap_Updater::SetHandAndFingerPositions() {
+__inline void Leap_Updater::SetHandAndFingerPositions() {
   //TODO:
   // Do I need to actually rotate the fingers?? If so, by what metric?
   // hand_l->SetFingerRot(fingerEnum(i),leapReader->getFingerDirection_L(fingerEnum(i)));
+  QTime *overall = new QTime();
+  overall->start();
   QTime *t = new QTime();
   t->start();
   mb::Vector camRot = viewCam->getTNode()->Rotation();
   hand_l->SetVisi(leapReader->isVisible(l));
   hand_r->SetVisi(leapReader->isVisible(r));
-
+  mblog(" Set Visi Time: "+QString::number(t->elapsed())+"\n");
+  t->restart();
   int leftCamID = idList->getCam(l);
   int rightCamID = idList->getCam(r);
+  mblog(" get Cam IDs Time: "+QString::number(t->elapsed())+"\n");
+  
   // Set hand position and orientation
   mb::Vector tmp = cameraPivot + leapReader->getPosition_L();
   hand_l->SetPos(tmp);
   tmp = cameraPivot + leapReader->getPosition_R();
   hand_r->SetPos(tmp);
-
+  
+  mblog(" Step 1 Time: "+QString::number(t->elapsed())+"\n");
   t->restart();
   //Rotate the hands XZY
   mb::Vector rotation = (mb::Vector(1,1,-1)*camRot) + leapReader->getDirection_L();
@@ -284,7 +290,7 @@ void Leap_Updater::SetHandAndFingerPositions() {
   mb::Matrix rotationMatrix_r = rZ_r*rX_r*rY_r;
   hand_r->GetTNode()->SetRotation(rotationMatrix_r);
   
-  mblog("Rotation Matrix Calc Time: "+QString::number(t->elapsed())+"\n");
+  mblog(" Rotation Matrix Calc Time: "+QString::number(t->elapsed())+"\n");
   t->restart();
   hand_l->RotateAroundPivot(-1*camRot,cameraPivot);
   hand_r->RotateAroundPivot(-1*camRot,cameraPivot);
@@ -305,7 +311,7 @@ void Leap_Updater::SetHandAndFingerPositions() {
   mb::Vector fingerPos_L = mb::Vector(0,0,0);
   mb::Vector fingerPos_R = mb::Vector(0,0,0);
   
-  mblog("Hand Set Time Calc Time: "+QString::number(t->elapsed())+"\n");
+  mblog(" Hand Set Time Calc Time: "+QString::number(t->elapsed())+"\n");
   t->restart();
   for(int i = 0 ; i < 5 ; i++) {
     for(int j = 0 ; j < 4 ; j++) {
@@ -340,7 +346,7 @@ void Leap_Updater::SetHandAndFingerPositions() {
       //mblog("Updated Bone Pos\n");
       }
     }
-  mblog("Loop for Fingers: "+QString::number(t->elapsed())+"\n");
+  mblog(" Loop for Fingers: "+QString::number(t->elapsed())+"\n");
   t->restart();
   if(leapReader->isTool) {
     tool->SetVisi(true);
@@ -357,7 +363,8 @@ void Leap_Updater::SetHandAndFingerPositions() {
   } else {
     tool->SetVisi(false);
   }
-  mblog("Tools Time: "+QString::number(t->elapsed())+"\n");
+  mblog(" Tools Time: "+QString::number(t->elapsed())+"\n");
+  mblog("  Overall time"+QString::number(overall->elapsed())+"\n");
 }
 
 void Leap_Updater::CameraRotate(LR lOrR) {

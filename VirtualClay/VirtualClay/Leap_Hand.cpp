@@ -194,13 +194,15 @@ void Leap_Hand::SetPos(mb::Vector &v) {
 }
 
 void Leap_Hand::SetVisi(bool vis) {
-  TNode->SetVisible(vis);
-  for(int i = 0 ; i < 5 ; i++) {
-    for(int j = 0 ; j < 4 ; j++) {
-      //TODO: Remove finger tip limitation #Code:111
-//      if(j <= 1) {
-        fings.at(i).at(j)->SetVisi(vis);
-//      }
+  if(vis != TNode->Visible()) {
+    TNode->SetVisible(vis);
+    for(int i = 0 ; i < 5 ; i++) {
+      for(int j = 0 ; j < 4 ; j++) {
+        //TODO: Remove finger tip limitation #Code:111
+  //      if(j <= 1) {
+          fings.at(i).at(j)->SetVisi(vis);
+  //      }
+      }
     }
   }
 }
