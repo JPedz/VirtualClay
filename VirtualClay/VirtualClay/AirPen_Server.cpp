@@ -6,11 +6,11 @@ AirPen_Server::AirPen_Server(void)
 {
   lastSent = 0;
   server = new QTcpSocket();
-  server->connectToHost("10.0.0.15", port);
+  server->connectToHost(IP, port);
   server->write("0");
   server->waitForBytesWritten(200);
   server->close();
-  isConnected = false;
+  isConnected = true;
 }
 
 
@@ -27,7 +27,7 @@ void AirPen_Server::SendMsg(int stage) {
   //mblog("Server socket is valid\n");
   if(isConnected) 
     if((lastSent != 1) && (stage == 1)) {
-      server->connectToHost("10.0.0.15", port);
+      server->connectToHost(IP, port);
       server->write("1");
       server->waitForBytesWritten(200);
       server->flush();
@@ -35,7 +35,7 @@ void AirPen_Server::SendMsg(int stage) {
       mblog("Wrote 1\n");
       lastSent = 1;
     } else if((lastSent != 0) && (stage == 0)) {
-      server->connectToHost("10.0.0.15", port);
+      server->connectToHost(IP, port);
       server->write("0");
       server->waitForBytesWritten(200);
       server->flush();

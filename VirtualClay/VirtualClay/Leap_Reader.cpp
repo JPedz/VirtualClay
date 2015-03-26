@@ -57,7 +57,8 @@ bool Leap_Reader::updateAll(void) {
     Frame f = controller.frame();
     if(f.id() != lastFrameID) {
       HandSetup(f);
-      isScreenTap = false;
+      isScreenTap_L = false;
+      isScreenTap_R = false;
       isUndo = false;
       isCircleCW_R = false;
       isCircleCCW_R = false;
@@ -133,7 +134,10 @@ bool Leap_Reader::updateAll(void) {
               //Handle continuing gestures
               break;
             case Leap::Gesture::STATE_STOP:
-              isScreenTap = true;
+              if(gestureHand == l) 
+                isScreenTap_L = true;
+              else
+                isScreenTap_R = true;
               //Handle ending gestures
               break;
             default:

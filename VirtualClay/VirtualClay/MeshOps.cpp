@@ -97,6 +97,7 @@ void MeshOps::SelectObject(cameraWrapper *viewCam, mb::Vector screenPos) {
       }
     }
     mbstatus("Selected Mesh: "+pMesh->Name());
+    mbhud("Mesh Selected: "+pMesh->Name()+"\nGeo: "+MeshGeo->Name());
     mb::Kernel()->Log(pMesh->Name()+" "+QString::number(sp.FaceIndex()));
 
   } else {
@@ -162,7 +163,8 @@ bool MeshOps::SelectFaces(LR lr, mb::AxisAlignedBoundingBox box,float spreadDist
         mb::Kernel()->Log(QString::number(i)+" "+QString::number(faces->at(i))+"\n");
         pMesh->SetFaceSelected(faces->at(i));
       }
-
+      MeshGeo->ChangeActiveLevel(MeshGeo->LowestLevel());
+      MeshGeo->ChangeActiveLevel(MeshGeo->HighestLevel());
       return true;
     }
   } else {
@@ -217,6 +219,8 @@ bool MeshOps::SelectFaces(LR lr, mb::Vector centrePoint, float widthHeight, floa
       //refreshMesh();
       //MeshGeo->ContentChanged();
       //if(firstUse) {
+      MeshGeo->ChangeActiveLevel(MeshGeo->LowestLevel());
+      MeshGeo->ChangeActiveLevel(MeshGeo->HighestLevel());
       StoreUndoQueue(r);
         
       //} else {
@@ -265,6 +269,8 @@ bool MeshOps::SelectFaces(LR lr, float size, float strength) {
       }
       //refreshMesh();
       StoreUndoQueue(lr);
+      MeshGeo->ChangeActiveLevel(MeshGeo->LowestLevel());
+      MeshGeo->ChangeActiveLevel(MeshGeo->HighestLevel());
       return true;
     } else {
       mblog("No faces\n");
@@ -296,6 +302,8 @@ bool MeshOps::ToolManip(mb::Vector centrePoint, float widthHeight, Leap_Tool *to
         mb::Kernel()->Log(QString::number(i)+" "+QString::number(faces_R->at(i))+"\n");
         pMesh->SetFaceSelected(faces_R->at(i));
       }
+      MeshGeo->ChangeActiveLevel(MeshGeo->LowestLevel());
+      MeshGeo->ChangeActiveLevel(MeshGeo->HighestLevel());
       //MeshGeo->ContentChanged();
       t->restart();
       //refreshMesh();
@@ -371,10 +379,10 @@ void MeshOps::boxSelect(LR lr, mb::Vector &v1,mb::Vector &v2,float maxDist, floa
               mblog("int lvi = "+QString::number(vMI.lVI)+"\n");
             vMI.strength = MIN(10/dist,1);
             vertices->push_back(vMI);
-            fi = i%4;
-            if((fi != 0) && checkUniqueInFaceList(lr,fi)) {
-              faces->push_back(fi);
-            }
+            //fi = floor(i/4);
+            //if(((fi != 0)|| (fi != 1) || (fi != 2) || (fi != 3)) && checkUniqueInFaceList(lr,fi)) {
+            //  faces->push_back(fi);
+            //}
           }
         }
       }
@@ -453,6 +461,7 @@ void MeshOps::boxSelect(LR lr, mb::Vector &v1,mb::Vector &v2,float maxDist, floa
 
 void MeshOps::boxSelect(LR lr, mb::Vector &v1,mb::Vector &v2,Leap_Tool *tool) {
   std::vector<int> *faces;
+  int fi;
   std::vector<VertexModifyInfo> *vertices;
   if(lr == l) {
     faces = faces_L;
@@ -488,18 +497,22 @@ void MeshOps::boxSelect(LR lr, mb::Vector &v1,mb::Vector &v2,Leap_Tool *tool) {
         if(dist < height) {
           mblog("Vertex in range\n");
           if(checkUniqueInVertexList(lr,i)) {
-            mblog("MID POINT COORDINATES = "+VectorToQStringLine(midPos));
-            mblog("WORLD POINT COORDINATES = "+VectorToQStringLine(worldPoint));
-            mblog("NORMAL = "+VectorToQStringLine(p.WorldNormal().Normalized()));
+            //mblog("MID POINT COORDINATES = "+VectorToQStringLine(midPos));
+            //mblog("WORLD POINT COORDINATES = "+VectorToQStringLine(worldPoint));
+            //mblog("NORMAL = "+VectorToQStringLine(p.WorldNormal().Normalized()));
             uvSpace = findDisplacementUV(basePlane,midPos,worldPoint);
-            mblog("UVSPACE COORDINATES = "+VectorToQStringLine(uvSpace));
-            mblog("\n");
+            //mblog("UVSPACE COORDINATES = "+VectorToQStringLine(uvSpace));
+            //mblog("\n");
             vertexCountInRange++;
             vMI.vI = (int)i;
             vMI.lVI = meshLayer->LayerVertexIndex((int)i);
             vMI.strength = tool->GetStampStrength(uvSpace);
             mblog("\n");
             vertices->push_back(vMI);
+            /*fi = i%4;
+            if(((fi != 0)|| (fi != 1) || (fi != 2) || (fi != 3)) && checkUniqueInFaceList(lr,fi)) {
+              faces->push_back(fi);
+            }*/
           }
         } else {
           mblog("dist = "+QString::number(dist));
@@ -606,6 +619,9 @@ void MeshOps::DeselectAllFaces() {
   if(pMesh != NULL) {
     mblog("Deselecting faces\n");
     pMesh->SetSelected(false);
+    MeshGeo->ChangeActiveLevel(MeshGeo->LowestLevel());
+    MeshGeo->ChangeActiveLevel(MeshGeo->HighestLevel());
+
   }
 }
 

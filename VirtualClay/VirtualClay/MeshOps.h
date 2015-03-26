@@ -6,6 +6,7 @@
 #include "LeapMath.h"
 #include "Leap.h"
 #include "Leap_Tool.h"
+#include <omp.h>
 
 namespace mb = mudbox;
 

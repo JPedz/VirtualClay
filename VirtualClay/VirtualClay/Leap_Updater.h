@@ -31,7 +31,7 @@ class Leap_Updater : public mb::Node {
   mb::Vector lastFrameThumbPos;
   void setDir(mudbox::Vector dir);
   void SetHandAndFingerPositions();
-  void ScreenTap();
+  void ScreenTap(LR lr);
   mb::Vector GetRelativeScreenSpaceFromWorldPos(mb::Vector wPos);
   void MoveMesh(LR lOrR);
   bool selectMesh(LR lOrR);
@@ -52,9 +52,10 @@ class Leap_Updater : public mb::Node {
   bool menuRight;
   bool menuDown;
   bool menuLeft;
-  bool collisionToggle;
+
+  bool selectWithBrushSize;
+  bool reqIntersectionForSelection;
   bool thumbGrabModeToggle;
-  bool ThumbSelect();
   bool stickyMovement;
   bool pinchGrab;
   bool toolStamp;
@@ -69,6 +70,7 @@ class Leap_Updater : public mb::Node {
   mb::Vector menuStartSpace;
   Leap_HUD *menuFilter;
   
+  bool ThumbSelect();
   float brushSize;
   mb::Vector brushSizeStartFingerStartPos;
   void BrushSize();

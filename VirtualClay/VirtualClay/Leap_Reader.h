@@ -1,5 +1,5 @@
 #pragma once
-#include "Leap.h"
+#include "Leap.h"Controller
 #include <QTCore/QTime>
 #include "Leap_Listener.h"
 using namespace Leap;
@@ -23,7 +23,8 @@ class Leap_Reader {
 public:
   bool isConnected;
   bool ishands;
-  bool isScreenTap;
+  bool isScreenTap_L;
+  bool isScreenTap_R;
   bool isGrabbing_L;
   bool grabswitch;
   bool isGrabbing_R;
