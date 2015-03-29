@@ -27,6 +27,7 @@ Leap_Reader::Leap_Reader(void) {
        "Leap Motion Connection",
        "Unable to connect to Leap Motion Controller. Please make sure it is plugged in",
        2,0);
+      t->restart();
       break;
     }
     mb::Kernel()->Interface()->SetStatus(mb::Interface::stNormal,"Leap Not Connected");

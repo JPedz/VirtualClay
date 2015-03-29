@@ -136,12 +136,16 @@ void Leap_Tool::SetPos(std::vector<mb::Vector> &pos) {
   }
 }
 
+
+
 void Leap_Tool::SetRot(int i, mb::Vector &pos) {
   if(i < 2)
     tools.at(i)->SetRot(pos);
   else 
     mblog("Tool Position Index out of Range\n");
 }
+
+
 
 void Leap_Tool::SetRot(mb::Vector &rotation) {
     tools.at(0)->SetRotMatrix(rotation);

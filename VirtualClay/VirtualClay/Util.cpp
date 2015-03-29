@@ -75,3 +75,41 @@ Leap::Vector mbVecToLeapVec(mb::Vector v) {
 //  
 //  return mb::Vector(0,0,0);
 //}
+__inline mb::Matrix matrixFromVectors(mb::Vector v1,mb::Vector v2,mb::Vector v3) {
+  return mb::Matrix(v1.x,v1.y,v1.z,0.0f,v2.x,v2.y,v2.z,0,v3.x,v3.y,v3.z,0.0f,0.0f,0.0f,0.0f,0.0f);
+}
+
+
+mb::Vector GetAimRotation(mb::Vector constrained,mb::Vector target) {
+  mb::Matrix m = AimConstraint(constrained,target);
+  float RD =Leap::RAD_TO_DEG;;
+  mb::Vector rotation;
+  rotation.x = asinf(-m._23)* RD;
+  rotation.y = atan2f(m._13,m._33)*RD;
+  rotation.z = atan2f(m._21,m._22)*RD;
+  return mb::Vector(rotation.z,rotation.y,rotation.x);
+}
+
+mb::Matrix AimConstraint(mb::Vector constrained, mb::Vector target) {
+  mb::Vector PassThoughVect = constrained - target;
+  PassThoughVect.Normalize();
+  mb::Vector upVect = mb::Vector(0,1,0);
+  mb::Vector unconst = upVect&PassThoughVect;
+  unconst.Normalize();
+  upVect = unconst&PassThoughVect;
+  upVect.Normalize();
+  return matrixFromVectors(unconst,upVect,PassThoughVect);
+}
+
+#ifdef Q_OS_WIN
+ #include <windows.h> // for Sleep
+#else
+ #include <unistd.h>
+#endif
+void LeapSleep(unsigned int ms) {
+  #ifdef Q_OS_WIN
+    Sleep(ms);
+  #else
+    sleep(unsigned int(ms/1000));
+  #endif
+}

@@ -12,6 +12,7 @@ namespace mb = mudbox;
 static const float menuDeadZone = 0.15f;
 static const float menuActivateZone = 0.35f;
 
+
 class Leap_Updater : public mb::Node {
   mudbox::Vector dir;
   ID_List *idList;

@@ -261,11 +261,11 @@ __inline void Leap_Updater::SetHandAndFingerPositions() {
   mb::Vector camRot = viewCam->getTNode()->Rotation();
   hand_l->SetVisi(leapReader->isVisible(l));
   hand_r->SetVisi(leapReader->isVisible(r));
-  mblog(" Set Visi Time: "+QString::number(t->elapsed())+"\n");
+  //mblog(" Set Visi Time: "+QString::number(t->elapsed())+"\n");
   t->restart();
   int leftCamID = idList->getCam(l);
   int rightCamID = idList->getCam(r);
-  mblog(" get Cam IDs Time: "+QString::number(t->elapsed())+"\n");
+  //mblog(" get Cam IDs Time: "+QString::number(t->elapsed())+"\n");
   
   // Set hand position and orientation
   mb::Vector tmp = cameraPivot + leapReader->getPosition_L();
@@ -273,7 +273,7 @@ __inline void Leap_Updater::SetHandAndFingerPositions() {
   tmp = cameraPivot + leapReader->getPosition_R();
   hand_r->SetPos(tmp);
   
-  mblog(" Step 1 Time: "+QString::number(t->elapsed())+"\n");
+  //mblog(" Step 1 Time: "+QString::number(t->elapsed())+"\n");
   t->restart();
   //Rotate the hands XZY
   mb::Vector rotation = (mb::Vector(1,1,-1)*camRot) + leapReader->getDirection_L();
@@ -290,7 +290,7 @@ __inline void Leap_Updater::SetHandAndFingerPositions() {
   mb::Matrix rotationMatrix_r = rZ_r*rX_r*rY_r;
   hand_r->GetTNode()->SetRotation(rotationMatrix_r);
   
-  mblog(" Rotation Matrix Calc Time: "+QString::number(t->elapsed())+"\n");
+  //mblog(" Rotation Matrix Calc Time: "+QString::number(t->elapsed())+"\n");
   t->restart();
   hand_l->RotateAroundPivot(-1*camRot,cameraPivot);
   hand_r->RotateAroundPivot(-1*camRot,cameraPivot);
@@ -310,8 +310,7 @@ __inline void Leap_Updater::SetHandAndFingerPositions() {
   //For Coll detection and replacement:
   mb::Vector fingerPos_L = mb::Vector(0,0,0);
   mb::Vector fingerPos_R = mb::Vector(0,0,0);
-  
-  mblog(" Hand Set Time Calc Time: "+QString::number(t->elapsed())+"\n");
+  //mblog(" Hand Set Time Calc Time: "+QString::number(t->elapsed())+"\n");
   t->restart();
   for(int i = 0 ; i < 5 ; i++) {
     for(int j = 0 ; j < 4 ; j++) {
@@ -346,7 +345,9 @@ __inline void Leap_Updater::SetHandAndFingerPositions() {
       //mblog("Updated Bone Pos\n");
       }
     }
-  mblog(" Loop for Fingers: "+QString::number(t->elapsed())+"\n");
+  hand_l->SetAllFingerJointRots();
+  hand_r->SetAllFingerJointRots();
+  //mblog(" Loop for Fingers: "+QString::number(t->elapsed())+"\n");
   t->restart();
   if(leapReader->isTool) {
     tool->SetVisi(true);
@@ -357,14 +358,15 @@ __inline void Leap_Updater::SetHandAndFingerPositions() {
     tool->SetPos(1,tmp);
     tmp = (mb::Vector(-1,1,-1)*camRot)+leapReader->GetToolDirection();
     tool->SetRot( tmp);
+    tool->SetRot(0,GetAimRotation(tool->GetPos(0),mb::Vector(0,0,0)));
     tmp = (-1*camRot)/2;
     tool->RotateAroundPivot(tmp,cameraPivot);
     tool->RotateAroundPivot(tmp,cameraPivot);
   } else {
     tool->SetVisi(false);
   }
-  mblog(" Tools Time: "+QString::number(t->elapsed())+"\n");
-  mblog("  Overall time"+QString::number(overall->elapsed())+"\n");
+  //mblog(" Tools Time: "+QString::number(t->elapsed())+"\n");
+  //mblog("  Overall time"+QString::number(overall->elapsed())+"\n");
 }
 
 void Leap_Updater::CameraRotate(LR lOrR) {
@@ -895,7 +897,7 @@ void Leap_Updater::OnEvent(const mb::EventGate &cEvent) {
   if(cEvent == frameEvent) {
     t->restart();
     if(leapReader->updateAll()) {
-      mblog("Update All Time "+QString::number(t->elapsed())+"\n");
+      //mblog("Update All Time "+QString::number(t->elapsed())+"\n");
       if((leapReader->ishands || leapReader->isTool) && leapReader->isConnected) {
         //mblog("Getting CameraID\n");
         int viewcamID = idList->getViewCam();
@@ -907,7 +909,7 @@ void Leap_Updater::OnEvent(const mb::EventGate &cEvent) {
         }
         t->restart();
         SetHandAndFingerPositions();
-        mblog("Set Hands and Finger Position Times: "+QString::number(t->elapsed())+"\n");
+        //mblog("Set Hands and Finger Position Times: "+QString::number(t->elapsed())+"\n");
         //If Circle Anti-Clockwise
         if(inMenu_R) {
           MenuSettings_R();
@@ -920,41 +922,41 @@ void Leap_Updater::OnEvent(const mb::EventGate &cEvent) {
           //enter menus at any time!
           t->restart();
           checkMenuGesture();
-          mblog("Check Menu Gesture Times: "+QString::number(t->elapsed())+"\n");
+          //mblog("Check Menu Gesture Times: "+QString::number(t->elapsed())+"\n");
           t->restart();
           checkNavigationGestures();
-          mblog("Check Nav Gesture Times: "+QString::number(t->elapsed())+"\n");
+          //mblog("Check Nav Gesture Times: "+QString::number(t->elapsed())+"\n");
           t->restart();
           checkScreenTapGesture();
-          mblog("Check Screen Tap Gesture Times: "+QString::number(t->elapsed())+"\n");
+          //mblog("Check Screen Tap Gesture Times: "+QString::number(t->elapsed())+"\n");
           t->restart();
           checkUndoMoveGesture();
-          mblog("Check Undo Gesture Times: "+QString::number(t->elapsed())+"\n");
+          //mblog("Check Undo Gesture Times: "+QString::number(t->elapsed())+"\n");
           t->restart();
           checkMoveObjGesture();
-          mblog("Check Move Obj Gesture Times: "+QString::number(t->elapsed())+"\n");
+          //mblog("Check Move Obj Gesture Times: "+QString::number(t->elapsed())+"\n");
         } else {
           t->restart();
           checkNavigationGestures();
-          mblog("Check Nav Gesture Times: "+QString::number(t->elapsed())+"\n");
+          //mblog("Check Nav Gesture Times: "+QString::number(t->elapsed())+"\n");
           t->restart();
           checkMenuGesture();
-          mblog("Check Menu Gesture Times: "+QString::number(t->elapsed())+"\n");
+          //mblog("Check Menu Gesture Times: "+QString::number(t->elapsed())+"\n");
           t->restart();
           checkScreenTapGesture();
-          mblog("Check Screen Tap Gesture Times: "+QString::number(t->elapsed())+"\n");
+          //mblog("Check Screen Tap Gesture Times: "+QString::number(t->elapsed())+"\n");
           t->restart();
           checkUndoGesture();
-          mblog("Check Undo Gesture Times: "+QString::number(t->elapsed())+"\n");
+          //mblog("Check Undo Gesture Times: "+QString::number(t->elapsed())+"\n");
           t->restart();
           checkGrabbingGesture();
-          mblog("Check Grabbing Gesture Times: "+QString::number(t->elapsed())+"\n");
+          //mblog("Check Grabbing Gesture Times: "+QString::number(t->elapsed())+"\n");
           t->restart();
           checkToolIntersection();
-          mblog("Check Tool Intersection Times: "+QString::number(t->elapsed())+"\n");
+          //mblog("Check Tool Intersection Times: "+QString::number(t->elapsed())+"\n");
         }
       }
     }
   }
-  mblog("Full Loop Time: "+QString::number(overall->elapsed())+"\n");
+  //mblog("Full Loop Time: "+QString::number(overall->elapsed())+"\n");
 }

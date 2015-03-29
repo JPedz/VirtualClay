@@ -49,9 +49,7 @@ class MeshOps {
   MidVertex *midV;
   mb::Vector midPos;
   
-
   mb::Vector cumulativeMove;
-
 
   void refreshMesh(void);
   bool checkUniqueInFaceList(LR lr, int fi);
@@ -60,6 +58,8 @@ class MeshOps {
   void AddToUndoQueue(LR lr);
   void AddVFI(int vi, int fi);
   
+  void SelectObjectFromHands();
+
 public:
   MeshOps();
   MeshOps(mb::Mesh *m);
@@ -97,6 +97,8 @@ public:
   void MoveObject(mb::Vector dist);
   void UndoLastMove();
   void StoreLastMoveUndoQueue();
+
+  void Tesselate();
 };
 
 #endif

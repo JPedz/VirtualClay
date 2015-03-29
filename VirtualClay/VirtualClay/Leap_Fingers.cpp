@@ -132,6 +132,11 @@ void Leap_Fingers::SetRot(mb::Vector v) {
     TNode->SetRotation(v);
 }
 
+void Leap_Fingers::SetRot(mb::Matrix m) {
+  if(TNode != NULL)
+    TNode->SetRotation(m);
+}
+
 void Leap_Fingers::SetRotMatrix(mb::Vector &rotation) {
   if(TNode != NULL) {
     mb::Matrix rX = createRotateXMatrix(rotation.x);
@@ -172,8 +177,11 @@ void Leap_Fingers::SetScale(mb::Vector v) {
 
 
 void Leap_Fingers::SetVisi(bool visi) {
-  if(TNode != NULL)
-    TNode->SetVisible(visi);
+  if(TNode != NULL) {
+    if(TNode->Visible() != visi) {
+      TNode->SetVisible(visi);
+    }
+  }
 }
 
 void Leap_Fingers::BuildGeo() {

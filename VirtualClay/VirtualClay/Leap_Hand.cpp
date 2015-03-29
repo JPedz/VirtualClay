@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Leap_Hand.h"
 
+static const bool FullHands = true;
 Leap_Hand::Leap_Hand(ID_List *idl,LR lOrR)
 {
   lr = lOrR;
@@ -114,7 +115,11 @@ void Leap_Hand::AddLeap_Fingers(void) {
         //}
         idList->storeFingerID(id,fingerEnum(i),jointEnum(j),lr);
         //TODO: Store ID's
-        fings.at(i).at(j)->SetScale(mb::Vector(0.03f,0.03f,0.03f));
+        if(j > 0) {
+          fings.at(i).at(j)->SetScale(mb::Vector(0.03f,0.03f,0.06f));
+        } else {
+          fings.at(i).at(j)->SetScale(mb::Vector(0.03f,0.03f,0.03f));
+        }
       
         //int idBone;
         //idBone = bones.at(i).at(j)->ImportGeo();
@@ -194,14 +199,29 @@ void Leap_Hand::SetPos(mb::Vector &v) {
 }
 
 void Leap_Hand::SetVisi(bool vis) {
-  if(vis != TNode->Visible()) {
-    TNode->SetVisible(vis);
-    for(int i = 0 ; i < 5 ; i++) {
-      for(int j = 0 ; j < 4 ; j++) {
-        //TODO: Remove finger tip limitation #Code:111
-  //      if(j <= 1) {
+  if(FullHands) {
+    if(vis != TNode->Visible()) {
+      TNode->SetVisible(vis);
+      for(int i = 0 ; i < 5 ; i++) {
+        for(int j = 0 ; j < 4 ; j++) {
+          //TODO: Remove finger tip limitation #Code:111
+    //      if(j <= 1) {
           fings.at(i).at(j)->SetVisi(vis);
-  //      }
+    //      }
+        }
+      }
+    }
+  } else {
+    if(vis != TNode->Visible()) {
+      TNode->SetVisible(vis);
+      for(int i = 0 ; i < 5 ; i++) {
+        for(int j = 0 ; j < 4 ; j++) {
+          if(j <= 1) {
+          fings.at(i).at(j)->SetVisi(vis);
+          } else {
+            fings.at(i).at(j)->SetVisi(false);
+          }
+        }
       }
     }
   }
@@ -263,6 +283,15 @@ mb::AxisAlignedBoundingBox Leap_Hand::getCollisionBox(mb::Vector &pos, mb::Vecto
 mb::AxisAlignedBoundingBox Leap_Hand::getCollisionBox() {
   return palm->GetCollisionBox();
 }
+
+void Leap_Hand::SetAllFingerJointRots() {
+  for(int i = 0 ; i < 5 ; i++) {
+    for(int j = 1 ; j < 4 ; j++) {
+      fings.at(i).at(j)->SetRot(GetAimRotation(fings.at(i).at(j)->GetPos(),fings.at(i).at(j-1)->GetPos()));
+    }
+  }
+}
+
 Leap_Hand::~Leap_Hand(void)
 {
 }

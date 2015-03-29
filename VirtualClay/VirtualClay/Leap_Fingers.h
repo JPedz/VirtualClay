@@ -28,6 +28,7 @@ class Leap_Fingers {
     void SetPos(mb::Vector &v);
     mb::Vector GetPos(void);
     void SetRot(mb::Vector r);
+    void SetRot(mb::Matrix m);
     void SetRotMatrix(mb::Vector &r);
     void AddRot(mb::Vector r);
     mb::Vector GetRot();

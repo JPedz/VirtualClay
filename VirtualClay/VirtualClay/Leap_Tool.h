@@ -28,6 +28,7 @@ public:
   void SetPos(int i, mb::Vector &pos);
   void SetPos(std::vector<mb::Vector> &pos);
   void SetRot(int i, mb::Vector &pos);
+
   void SetRot(mb::Vector &rotation);
   void RotateAroundPivot(int i, mb::Vector &a, mb::Vector &pivot);
   void RotateAroundPivot(mb::Vector &a, mb::Vector &pivot);

@@ -1,5 +1,5 @@
 #pragma once
-#include "Leap.h"Controller
+#include "Leap.h"
 #include <QTCore/QTime>
 #include "Leap_Listener.h"
 using namespace Leap;

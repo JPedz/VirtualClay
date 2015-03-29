@@ -51,6 +51,9 @@ public:
   mb::AxisAlignedBoundingBox getCollisionBox(mb::Vector &pos, mb::Vector &pivot, mb::Vector &a);
   mb::AxisAlignedBoundingBox getCollisionBox(fingerEnum f);
   mb::AxisAlignedBoundingBox getCollisionBox();
+
+  
+void SetAllFingerJointRots();
 /*
   mb::Vector GetFingerPos(fingerEnum fn);*/
 //TODO: 
