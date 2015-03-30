@@ -21,6 +21,8 @@ MeshOps::MeshOps() {
   faces_L = new std::vector<int>();
   vertices_L = new std::vector<VertexModifyInfo>();
   points_L = new std::vector<mb::SurfacePoint>();
+  tessInfo_L = new std::vector<TessInfo>();
+  tessInfo_R = new std::vector<TessInfo>();
   midV = new MidVertex;
   firstUse = true;
 }
@@ -54,124 +56,251 @@ void MeshOps::setMesh(mb::Mesh *m) {
     subdiv->RecreateUVs(true);
   }
   pMesh->SetSelected(true);
-  //Tesselate();
 }
 
+int MeshOps::UniqueTessInfo(LR lr,TessInfo &tI) {
+  std::vector<TessInfo> *tessInfo;
+  if(lr == l) {
+    tessInfo = tessInfo_L;
+  } else {
+    tessInfo = tessInfo_R;
+  }
+  int unique = 0;
+  for(int i = 0 ; i < tessInfo->size() ; i++) {
+    if(tessInfo->at(i).splitA == tI.splitA) {
+      tI.vIA = tessInfo->at(i).vIA;
+      unique++;
+    }
+    if(tessInfo->at(i).splitB == tI.splitA) {
+      tI.vIA = tessInfo->at(i).vIB;
+      unique++;
+    }
+
+    if(tessInfo->at(i).splitA == tI.splitB) {
+      tI.vIB = tessInfo->at(i).vIA;
+      unique++;
+    }
+    if(tessInfo->at(i).splitB == tI.splitB) {
+      tI.vIB = tessInfo->at(i).vIB;
+      unique++;
+    }
+  }
+
+  return MIN(unique,2);
+}
+
+
+void MeshOps::FindTesselationFaces(LR lr) {
+  tessInfo_L->clear();
+  tessInfo_R->clear();
+  std::vector<TessInfo> *tessInfo;
+  std::vector<int> *faces;
+  std::vector<int> *Tesselatefaces;
+  std::vector<VertexModifyInfo> *vertices;
+  std::vector<mb::SurfacePoint > *points;
+  TessInfo tI;
+  if(lr == l) {
+    faces = faces_L;
+    tessInfo = tessInfo_L;
+  } else {
+    tessInfo = tessInfo_R;
+    faces = faces_R;
+  }
+  unsigned int oldVertexCount = pMesh->VertexCount();
+  unsigned int vertIndex = pMesh->VertexCount();
+
+  for (int i = 0 ; i < faces->size(); i++) {
+    mblog("fi = "+QString::number(faces->at(i))+"\n");
+    float distA1 = pMesh->QuadVertexPosition(faces->at(i),0).DistanceFrom(pMesh->QuadVertexPosition(faces->at(i),3));
+    float distA2 = pMesh->QuadVertexPosition(faces->at(i),1).DistanceFrom(pMesh->QuadVertexPosition(faces->at(i),2));
+    float distB1 = pMesh->QuadVertexPosition(faces->at(i),0).DistanceFrom(pMesh->QuadVertexPosition(faces->at(i),1));
+    float distB2 = pMesh->QuadVertexPosition(faces->at(i),2).DistanceFrom(pMesh->QuadVertexPosition(faces->at(i),3));
+    if((distA1+distA2) > (distB1+distB2)) {
+      if((distA1 > 5) || (distA2 > 5)) {
+        tI.type = true;
+        tI.fi = faces->at(i);
+        tI.splitA = 0.5f*(pMesh->QuadVertexPosition(faces->at(i),0)+pMesh->QuadVertexPosition(faces->at(i),3));
+        tI.splitB = 0.5f*(pMesh->QuadVertexPosition(faces->at(i),1)+pMesh->QuadVertexPosition(faces->at(i),2));
+        tI.vIA = vertIndex++;
+        tI.vIB = vertIndex++;
+        vertIndex -= UniqueTessInfo(lr,tI);
+        tessInfo->push_back(tI);
+      }
+    } else {
+      if((distB1 > 5) || (distB2 > 5)) {
+        tI.type = false;
+        tI.fi = faces->at(i);
+        tI.splitA = 0.5f*(pMesh->QuadVertexPosition(faces->at(i),0)+pMesh->QuadVertexPosition(faces->at(i),1));
+        tI.splitB = 0.5f*(pMesh->QuadVertexPosition(faces->at(i),2)+pMesh->QuadVertexPosition(faces->at(i),3));
+        tI.vIA = vertIndex++;
+        tI.vIB = vertIndex++;
+        vertIndex -= UniqueTessInfo(lr,tI);
+        tessInfo->push_back(tI);
+      }
+    }
+  }
+  mblog("TessInfo:"+QString::number(tessInfo->size())+"\n");
+  for(int j = 0 ; j < tessInfo->size() ; j++) {
+    
+    mblog("fi = "+QString::number(tessInfo->at(j).fi)+"\n");
+    //mblog("zero = "+VectorToQStringLine(pMesh->QuadVertexPosition(faces->at(tessInfo->at(j).fi),0)));
+    //mblog("one = "+VectorToQStringLine(pMesh->QuadVertexPosition(faces->at(tessInfo->at(j).fi),1)));
+    //mblog("two = "+VectorToQStringLine(pMesh->QuadVertexPosition(faces->at(tessInfo->at(j).fi),2)));
+    //mblog("three = "+VectorToQStringLine(pMesh->QuadVertexPosition(faces->at(tessInfo->at(j).fi),3)));
+    //
+    mblog("splitA = "+VectorToQStringLine(tessInfo->at(j).splitA));
+    mblog("splitB = "+VectorToQStringLine(tessInfo->at(j).splitB));
+    mblog("vIA = "+QString::number(tessInfo->at(j).vIA)+"\n");
+    mblog("vIB = "+QString::number(tessInfo->at(j).vIB)+"\n");
+    mblog("Type = "+QString::number(tessInfo->at(j).type)+"\n");
+  }
+  Tesselate();
+}
+
+
 void MeshOps::Tesselate() {
+  mb::Mesh *newMesh = mb::Kernel()->Scene()->CreateMesh(mb::Topology::typeQuadric);
+  newMesh = dynamic_cast<mb::Mesh*>(pMesh->Duplicate());
   mblog("Tesselate\n");
-  int fi =1;
-  //mb::GenericFace face = pMesh->Face(1);
-  //unsigned int zero = face.m_aIndices[0];
-  //unsigned int one = face.m_aIndices[1];
-  //unsigned int two = face.m_aIndices[2];
-  //unsigned int three = face.m_aIndices[3];
-  //unsigned int zero = fi*4;
-  //unsigned int one = fi*4+1;
-  //unsigned int two = fi*4+2;
-  //unsigned int three = fi*4+3;
-  //
-  unsigned int zero = pMesh->QuadPrimaryIndex(false,fi,0);
-  unsigned int one = pMesh->QuadPrimaryIndex(false,fi,1);
-  unsigned int two = pMesh->QuadPrimaryIndex(false,fi,2);
-  unsigned int three = pMesh->QuadPrimaryIndex(false,fi,3);
+  for(int i = 0 ; i < tessInfo_L->size() ; i ++ ) {
+    mblog("i\n");
+    int fi =tessInfo_L->at(i).fi;
+    //mb::GenericFace face = pMesh->Face(1);
+    //unsigned int zero = face.m_aIndices[0];
+    //unsigned int one = face.m_aIndices[1];
+    //unsigned int two = face.m_aIndices[2];
+    //unsigned int three = face.m_aIndices[3];
+    //unsigned int zero = fi*4;
+    //unsigned int one = fi*4+1;
+    //unsigned int two = fi*4+2;
+    //unsigned int three = fi*4+3;
+    //
+    
+    mblog("fi = "+QString::number(tessInfo_L->at(i).fi)+"\n");
+    unsigned int zero = newMesh->QuadPrimaryIndex(false,fi,0);
+    unsigned int one = newMesh->QuadPrimaryIndex(false,fi,1);
+    unsigned int two = newMesh->QuadPrimaryIndex(false,fi,2);
+    unsigned int three = newMesh->QuadPrimaryIndex(false,fi,3);
   
-  mblog("Zero = "+VectorToQStringLine(pMesh->VertexPosition(zero)));
-  mblog("One = "+VectorToQStringLine(pMesh->VertexPosition(one)));
-  mblog("Two = "+VectorToQStringLine(pMesh->VertexPosition(two)));
-  mblog("Three = "+VectorToQStringLine(pMesh->VertexPosition(three)));
-  mblog(QString::number(zero)+" "+QString::number(one)+" "+QString::number(two)+" "+QString::number(three)+"\n");
-  mb::Vector pos1 = 0.5f*(pMesh->VertexPosition(one) + pMesh->VertexPosition(two));
-  mb::Vector pos2 = 0.5f*(pMesh->VertexPosition(zero) + pMesh->VertexPosition(three));
-  mblog("Pos1 = "+VectorToQStringLine(pos1));
-  mblog("Pos1 = "+VectorToQStringLine(pos2));
-  int oldVertCount = pMesh->VertexCount();
-  int oldFaceCount = pMesh->FaceCount();
-  int oldTCCount = pMesh->TCCount();
-  mblog("Vert count: "+QString::number(pMesh->VertexCount())+"\n");
-  mblog("Face count: "+QString::number(pMesh->FaceCount())+"\n");
-  mblog("TC count: "+QString::number(pMesh->TCCount())+"\n");
-  pMesh->SetTCCount(oldTCCount+2);
-  pMesh->SetVertexCount(oldVertCount+2);
-  pMesh->SetFaceCount(oldFaceCount+1);
-  mblog("Setting vertex count\n");
-  mblog("Set vertex count\n");
-  pMesh->SetVertexPosition(oldVertCount,pos1);
-  pMesh->SetVertexPosition(oldVertCount+1,pos2);
-  //pMesh->SetVertexPosition(oldVertCount+2,pos1+mb::Vector(0,20,20));
-  //pMesh->SetVertexPosition(oldVertCount+3,pos2+mb::Vector(0,20,20));
-  pMesh->SetQuadIndex(fi, 0, zero);
-	pMesh->SetQuadIndex(fi, 1, one);
-  pMesh->SetQuadIndex(fi, 2, oldVertCount);
-	pMesh->SetQuadIndex(fi, 3, oldVertCount+1);
+    mblog("Zero = "+VectorToQStringLine(newMesh->VertexPosition(zero)));
+    mblog("One = "+VectorToQStringLine(newMesh->VertexPosition(one)));
+    mblog("Two = "+VectorToQStringLine(newMesh->VertexPosition(two)));
+    mblog("Three = "+VectorToQStringLine(newMesh->VertexPosition(three)));
+    mblog(QString::number(zero)+" "+QString::number(one)+" "+QString::number(two)+" "+QString::number(three)+"\n");
+    mb::Vector pos1 = 0.5f*(newMesh->VertexPosition(one) + newMesh->VertexPosition(two));
+    mb::Vector pos2 = 0.5f*(newMesh->VertexPosition(zero) + newMesh->VertexPosition(three));
+    mb::Vector pos3 = 0.5f*(newMesh->VertexPosition(zero) + newMesh->VertexPosition(one));
+    mb::Vector pos4 = 0.5f*(newMesh->VertexPosition(two) + newMesh->VertexPosition(three));
+    mb::Vector pos5 = (pos4+pos3);//Mid
+    mblog("Pos1 = "+VectorToQStringLine(pos1));
+    mblog("Pos1 = "+VectorToQStringLine(pos2));
+    int oldVertCount = newMesh->VertexCount();
+    int oldFaceCount = newMesh->FaceCount();
+    int oldTCCount = newMesh->TCCount();
+    mblog("Vert count: "+QString::number(newMesh->VertexCount())+"\n");
+    mblog("Face count: "+QString::number(newMesh->FaceCount())+"\n");
+    mblog("TC count: "+QString::number(newMesh->TCCount())+"\n");
+    newMesh->SetTCCount(oldTCCount+5);
+    newMesh->SetVertexCount(oldVertCount+5);
+    newMesh->SetFaceCount(oldFaceCount+3);
+    mblog("Setting vertex count\n");
+    mblog("Set vertex count\n");
+    newMesh->SetVertexPosition(oldVertCount,pos1);
+    newMesh->SetVertexPosition(oldVertCount+1,pos2);
+    newMesh->SetVertexPosition(oldVertCount+2,pos3);
+    newMesh->SetVertexPosition(oldVertCount+3,pos4);
+    newMesh->SetVertexPosition(oldVertCount+4,pos5);
+    //newMesh->SetVertexPosition(oldVertCount+2,pos1+mb::Vector(0,20,20));
+    //newMesh->SetVertexPosition(oldVertCount+3,pos2+mb::Vector(0,20,20));
+    newMesh->SetQuadIndex(fi, 0, zero);
+	  newMesh->SetQuadIndex(fi, 1, one);
+    newMesh->SetQuadIndex(fi, 2, oldVertCount);
+	  newMesh->SetQuadIndex(fi, 3, oldVertCount+1);
   
-  pMesh->SetQuadIndex(oldFaceCount, 0, oldVertCount+1);
-	pMesh->SetQuadIndex(oldFaceCount, 1, oldVertCount);
-  pMesh->SetQuadIndex(oldFaceCount, 2, two);
-	pMesh->SetQuadIndex(oldFaceCount, 3, three);  
+    newMesh->SetQuadIndex(oldFaceCount, 0, oldVertCount+1);
+	  newMesh->SetQuadIndex(oldFaceCount, 1, oldVertCount);
+    newMesh->SetQuadIndex(oldFaceCount, 2, two);
+	  newMesh->SetQuadIndex(oldFaceCount, 3, three);  
   
- // pMesh->SetQuadIndex(fi, 0, zero);
-	//pMesh->SetQuadIndex(fi, 1, one);
- // pMesh->SetQuadIndex(fi, 2, two);
-	//pMesh->SetQuadIndex(fi, 3, three);
-  /*
-  pMesh->SetQuadIndex(oldFaceCount, 0, oldVertCount);
-	pMesh->SetQuadIndex(oldFaceCount, 1, oldVertCount+1);
-  pMesh->SetQuadIndex(oldFaceCount, 2, oldVertCount+2);
-	pMesh->SetQuadIndex(oldFaceCount, 3, oldVertCount+3);*/
+   // newMesh->SetQuadIndex(fi, 0, zero);
+	  //newMesh->SetQuadIndex(fi, 1, one);
+   // newMesh->SetQuadIndex(fi, 2, two);
+	  //newMesh->SetQuadIndex(fi, 3, three);
+    /*
+    newMesh->SetQuadIndex(oldFaceCount, 0, oldVertCount);
+	  newMesh->SetQuadIndex(oldFaceCount, 1, oldVertCount+1);
+    newMesh->SetQuadIndex(oldFaceCount, 2, oldVertCount+2);
+	  newMesh->SetQuadIndex(oldFaceCount, 3, oldVertCount+3);*/
 
-  //mb::TC zeroTC = pMesh->VertexTC(zero);
-  //mb::TC oneTC = pMesh->VertexTC(one);
-  //mb::TC twoTC = pMesh->VertexTC(two);
-  //mb::TC threeTC = pMesh->VertexTC(three);
-  //
-  mb::TC zeroTC = pMesh->QuadVertexTC(fi,0);
-  mb::TC oneTC = pMesh->QuadVertexTC(fi,1);
-  mb::TC twoTC = pMesh->QuadVertexTC(fi,2);
-  mb::TC threeTC = pMesh->QuadVertexTC(fi,3);
-  int zeroTCI = pMesh->QuadTCI(fi,0);
-  int oneTCI = pMesh->QuadTCI(fi,1);
-  int twoTCI = pMesh->QuadTCI(fi,2);
-  int threeTCI = pMesh->QuadTCI(fi,3);
-  //int zeroTCI2 = pMesh->QuadTCI(oldFaceCount,0);
-  //int oneTCI2 = pMesh->QuadTCI(oldFaceCount,1);
-  //int twoTCI2 = pMesh->QuadTCI(oldFaceCount,2);
-  //int threeTCI2 = pMesh->QuadTCI(oldFaceCount,3);
-  mblog("TCI: "+QString::number(zeroTCI)+" "+QString::number(oneTCI)+" "+QString::number(twoTCI)+" "+QString::number(threeTCI)+"\n");
-  //mblog("TCI2: "+QString::number(zeroTCI2)+" "+QString::number(oneTCI2)+" "+QString::number(twoTCI2)+" "+QString::number(threeTCI2)+"\n");
-  mb::Vector oldNormal = pMesh->FaceNormal(fi);
-  mb::TC newTC1 = (oneTC+twoTC)*0.5f;
-  mb::TC newTC2 = (zeroTC+threeTC)*0.5f;
-  pMesh->m_pTCs[oldTCCount] = newTC1;
-  pMesh->m_pTCs[oldTCCount+1] = newTC2;
-  mblog("NewTC1 = "+QString::number(newTC1.u)+" "+QString::number(newTC1.v)+"\n");
-  mblog("NewTC2 = "+QString::number(newTC2.u)+" "+QString::number(newTC2.v)+"\n");
-  pMesh->SetVertexTC(oldTCCount,newTC1);
-  pMesh->SetVertexTC(oldTCCount+1,newTC2);
+    //mb::TC zeroTC = newMesh->VertexTC(zero);
+    //mb::TC oneTC = newMesh->VertexTC(one);
+    //mb::TC twoTC = newMesh->VertexTC(two);
+    //mb::TC threeTC = newMesh->VertexTC(three);
+    //
+    mb::TC zeroTC = newMesh->QuadVertexTC(fi,0);
+    mb::TC oneTC = newMesh->QuadVertexTC(fi,1);
+    mb::TC twoTC = newMesh->QuadVertexTC(fi,2);
+    mb::TC threeTC = newMesh->QuadVertexTC(fi,3);
+    int zeroTCI = newMesh->QuadTCI(fi,0);
+    int oneTCI = newMesh->QuadTCI(fi,1);
+    int twoTCI = newMesh->QuadTCI(fi,2);
+    int threeTCI = newMesh->QuadTCI(fi,3);
+    //int zeroTCI2 = newMesh->QuadTCI(oldFaceCount,0);
+    //int oneTCI2 = newMesh->QuadTCI(oldFaceCount,1);
+    //int twoTCI2 = newMesh->QuadTCI(oldFaceCount,2);
+    //int threeTCI2 = newMesh->QuadTCI(oldFaceCount,3);
+    mblog("TCI: "+QString::number(zeroTCI)+" "+QString::number(oneTCI)+" "+QString::number(twoTCI)+" "+QString::number(threeTCI)+"\n");
+    //mblog("TCI2: "+QString::number(zeroTCI2)+" "+QString::number(oneTCI2)+" "+QString::number(twoTCI2)+" "+QString::number(threeTCI2)+"\n");
+    mb::Vector oldNormal = newMesh->FaceNormal(fi);
+    mb::TC newTC1 = (oneTC+twoTC)*0.5f;
+    mb::TC newTC2 = (zeroTC+threeTC)*0.5f;
+    newMesh->m_pTCs[oldTCCount] = newTC1;
+    newMesh->m_pTCs[oldTCCount+1] = newTC2;
+    mblog("NewTC1 = "+QString::number(newTC1.u)+" "+QString::number(newTC1.v)+"\n");
+    mblog("NewTC2 = "+QString::number(newTC2.u)+" "+QString::number(newTC2.v)+"\n");
+    newMesh->SetVertexTC(oldTCCount,newTC1);
+    newMesh->SetVertexTC(oldTCCount+1,newTC2);
   
-  pMesh->SetQuadTCI(fi,0,zeroTCI);
-  pMesh->SetQuadTCI(fi,1,oneTCI);
-  pMesh->SetQuadTCI(fi,2,oldTCCount);
-  pMesh->SetQuadTCI(fi,3,oldTCCount+1);
+    newMesh->SetQuadTCI(fi,0,zeroTCI);
+    newMesh->SetQuadTCI(fi,1,oneTCI);
+    newMesh->SetQuadTCI(fi,2,oldTCCount);
+    newMesh->SetQuadTCI(fi,3,oldTCCount+1);
   
-  pMesh->SetQuadTCI(oldFaceCount,0,oldTCCount);
-  pMesh->SetQuadTCI(oldFaceCount,1,oldTCCount+1);
-  pMesh->SetQuadTCI(oldFaceCount,2,twoTCI);
-  pMesh->SetQuadTCI(oldFaceCount,3,threeTCI);
+    newMesh->SetQuadTCI(oldFaceCount,0,oldTCCount+1);
+    newMesh->SetQuadTCI(oldFaceCount,1,oldTCCount);
+    newMesh->SetQuadTCI(oldFaceCount,2,twoTCI);
+    newMesh->SetQuadTCI(oldFaceCount,3,threeTCI);
 
   
-  pMesh->SetVertexNormal(oldVertCount,oldNormal);
-  pMesh->SetVertexNormal(oldVertCount+1,oldNormal);
-  pMesh->RecalculateAdjacency();
-	pMesh->RecalculateNormals();
+    newMesh->SetVertexNormal(oldVertCount,oldNormal);
+    newMesh->SetVertexNormal(oldVertCount+1,oldNormal);
+  }
+  mblog("Recalculating normals\n");
+	newMesh->RecalculateNormals();
   mblog("Recalced normals\n");
-  pMesh->RecalculateVertexAdjacency();
+  newMesh->RecalculateAdjacency();
+  newMesh->RecalculateVertexAdjacency();
   mblog("Nope\n");
-  //pMesh->RecalculateTopologicalSymmetry();
+  //newMesh->RecalculateTopologicalSymmetry();
   mblog("Recalced Topological symmetry\n");
-	//(pMesh->HasTC() == false);
-  mblog("Vert count: "+QString::number(pMesh->VertexCount())+"\n");
-  mblog("Face count: "+QString::number(pMesh->FaceCount())+"\n");
-  mblog("TC count: "+QString::number(pMesh->TCCount())+"\n");
+	//(newMesh->HasTC() == false);
+  mblog("Vert count: "+QString::number(newMesh->VertexCount())+"\n");
+  mblog("Face count: "+QString::number(newMesh->FaceCount())+"\n");
+  mblog("TC count: "+QString::number(newMesh->TCCount())+"\n");
+  newMesh->SetName("Subdived_level");
+
+  mb::SubdivisionLevel *newSubDiv = dynamic_cast<mb::SubdivisionLevel*>(newMesh);
+  newSubDiv->RecreateUVs(true);
+  MeshGeo->AddLevel(newSubDiv);
+  MeshGeo->ChangeActiveLevel(newSubDiv);
+  MeshGeo->ContentChanged();
+  newSubDiv->ApplyChanges();
+  while(MeshGeo->LevelCount() > 1) {
+    MeshGeo->RemoveLowestLevel();
+  }
+  setMesh(newMesh);
+  mb::Kernel()->ViewPort()->Redraw();
+  mb::Kernel()->Interface()->RefreshUI();
 }
 
 void MeshOps::refreshMesh(void) {
@@ -212,6 +341,7 @@ void MeshOps::SelectObject(cameraWrapper *viewCam, mb::Vector screenPos) {
   bool b = ssp->Pick(viewCam->getCamera(),screenX,screenY,sp,false);
   if(b) {
     setMesh(sp.Mesh());
+    //Tesselate();
     mb::Kernel()->Log(pMesh->Name()+" "+QString::number(sp.FaceIndex()));
 
   } else {
@@ -494,6 +624,7 @@ void MeshOps::boxSelect(LR lr, mb::Vector &v1,mb::Vector &v2,float maxDist, floa
   float dist;
   mb::Base basePlane;
   mb::Vector bpVector;
+  mb::VertexAdjacency vA;
   if(curCam->Pick(x,y,p)) {
     mblog("Selected :"+p.Mesh()->Name()+" Mesh \n");
     if(p.Mesh()->ID() == pMesh->ID()) {
@@ -522,10 +653,12 @@ void MeshOps::boxSelect(LR lr, mb::Vector &v1,mb::Vector &v2,float maxDist, floa
               mblog("int lvi = "+QString::number(vMI.lVI)+"\n");
             vMI.strength = MIN(10/dist,1);
             vertices->push_back(vMI);
-            //fi = floor(i/4);
-            //if(((fi != 0)|| (fi != 1) || (fi != 2) || (fi != 3)) && checkUniqueInFaceList(lr,fi)) {
-            //  faces->push_back(fi);
-            //}
+            vA = pMesh->VertexAdjacency(i);
+            fi = vA.FaceIndex();
+            faces->push_back(fi);
+            if(checkUniqueInFaceList(lr,fi)) {
+              faces->push_back(fi);
+            }
           }
         }
       }
@@ -624,10 +757,12 @@ void MeshOps::boxSelect(LR lr, mb::Vector &v1,mb::Vector &v2,Leap_Tool *tool) {
   float dist;
   mb::Base basePlane;
   mb::Vector uvSpace;
+  mb::VertexAdjacency vA;
   //http://geomalgorithms.com/a04-_planes.html
   mb::Vector worldPoint;
   if(curCam->Pick(x,y,p)) {
     if(p.Mesh()->ID() == pMesh->ID()) {
+      pMesh->RecalculateAdjacency();
       basePlane = p.TangentBase();
       faceIndices.push_back(p.FaceIndex());
       faces->push_back(p.FaceIndex());
@@ -652,10 +787,11 @@ void MeshOps::boxSelect(LR lr, mb::Vector &v1,mb::Vector &v2,Leap_Tool *tool) {
             vMI.strength = tool->GetStampStrength(uvSpace);
             mblog("\n");
             vertices->push_back(vMI);
-            /*fi = i%4;
-            if(((fi != 0)|| (fi != 1) || (fi != 2) || (fi != 3)) && checkUniqueInFaceList(lr,fi)) {
+            vA = pMesh->VertexAdjacency(i);
+            fi = vA.FaceIndex();
+            if(checkUniqueInFaceList(lr,fi)) {
               faces->push_back(fi);
-            }*/
+            }
           }
         } else {
           mblog("dist = "+QString::number(dist));

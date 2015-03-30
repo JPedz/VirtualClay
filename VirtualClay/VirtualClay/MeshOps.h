@@ -30,6 +30,14 @@ class MeshOps {
     int vI;
     unsigned int lVI;
   } VertexModifyInfo;
+  typedef struct TessInfo {
+    int fi;
+    mb::Vector splitA;
+    mb::Vector splitB;
+    int vIA;
+    int vIB;
+    bool type;
+  } TessInfo;
 
   //Temporary
   mb::Mesh *pMesh;
@@ -59,6 +67,11 @@ class MeshOps {
   void AddVFI(int vi, int fi);
   
   void SelectObjectFromHands();
+
+  //TesselationInfo;
+  int UniqueTessInfo(LR lr,TessInfo &tI);
+  std::vector<TessInfo> *tessInfo_L;
+  std::vector<TessInfo> *tessInfo_R;
 
 public:
   MeshOps();
@@ -99,6 +112,7 @@ public:
   void StoreLastMoveUndoQueue();
 
   void Tesselate();
+  void FindTesselationFaces(LR lr);
 };
 
 #endif

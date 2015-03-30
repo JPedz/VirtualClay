@@ -732,15 +732,16 @@ __inline void Leap_Updater::checkGrabbingGesture() {
     if(leapReader->isGrabbing_L ) {
       Extrusion(l);
       if(leapReader->isGrabbing_R) {
-        mbstatus("Right hand grabbing");
+        mbstatus("Right hand grabbing too\n");
         Extrusion(r);
       }
     } else if(leapReader->isGrabbing_R) {
       Extrusion(r); 
     } else {
       if(facesAreSelected_R || facesAreSelected_L){
+        meshOp->FindTesselationFaces(l);
         mblog("going to deselect faces");
-        meshOp->DeselectAllFaces();
+        //meshOp->DeselectAllFaces();
         //meshOp_R->DeselectAllFaces();
       }
       firstmoveswitch = true;
