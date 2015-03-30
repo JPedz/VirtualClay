@@ -52,6 +52,8 @@ class MeshOps {
   std::vector<int> *faces_R;
   std::vector<VertexModifyInfo> *vertices_R;
   std::vector<mb::SurfacePoint > *points_R;
+  std::vector<bool> *meshStoreToggle;
+  std::vector<mb::Mesh*> *meshStore;
   std::vector<std::vector<VertexInfo> > undoQueue;
   std::vector<mb::Vector> undoMoveQueue;
   MidVertex *midV;

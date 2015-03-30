@@ -50,6 +50,7 @@ Leap_Updater::Leap_Updater(ID_List *idl,Leap_Hand *l,Leap_Hand *r)
   moveObjectMode = false;
   thumbMoveStrength = 10.0f; //Strength and distance for movement intersecting thumb
   savedHandPivotPoint = mb::Vector(0,0,0);
+
 }
 
 mb::Vector Leap_Updater::fitToCameraSpace() {
@@ -736,7 +737,7 @@ __inline void Leap_Updater::checkGrabbingGesture() {
         Extrusion(r);
       }
     } else if(leapReader->isGrabbing_R) {
-      Extrusion(r); 
+      Extrusion(r);
     } else {
       if(facesAreSelected_R || facesAreSelected_L){
         meshOp->FindTesselationFaces(l);
@@ -896,13 +897,16 @@ void Leap_Updater::OnEvent(const mb::EventGate &cEvent) {
   QTime *t = new QTime();
   t->start();
   if(cEvent == frameEvent) {
+    mblog("getting view cam\n");
+    int viewcamID = idList->getViewCam();
+    mblog("got view cam\n");
+    viewCam = new cameraWrapper(viewcamID);
+    mblog("setViewCam\n");
     t->restart();
     if(leapReader->updateAll()) {
       //mblog("Update All Time "+QString::number(t->elapsed())+"\n");
       if((leapReader->ishands || leapReader->isTool) && leapReader->isConnected) {
         //mblog("Getting CameraID\n");
-        int viewcamID = idList->getViewCam();
-        viewCam = new cameraWrapper(viewcamID);
         if(pivotHandsOnMesh) {
           cameraPivot = fitToCameraSpace();
         } else {
