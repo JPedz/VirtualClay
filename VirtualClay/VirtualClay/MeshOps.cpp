@@ -117,8 +117,14 @@ void MeshOps::FindTesselationFaces(LR lr) {
     float distA2 = pMesh->QuadVertexPosition(faces->at(i),1).DistanceFrom(pMesh->QuadVertexPosition(faces->at(i),2));
     float distB1 = pMesh->QuadVertexPosition(faces->at(i),0).DistanceFrom(pMesh->QuadVertexPosition(faces->at(i),1));
     float distB2 = pMesh->QuadVertexPosition(faces->at(i),2).DistanceFrom(pMesh->QuadVertexPosition(faces->at(i),3));
+    
+    mblog("DistA1: "+QString::number(distA1)+"\n");
+    mblog("DistA2: "+QString::number(distA2)+"\n");
+    mblog("DistB1: "+QString::number(distB1)+"\n");
+    mblog("DistB2: "+QString::number(distB2)+"\n");
+
     if((distA1+distA2) > (distB1+distB2)) {
-      if((distA1 > 5) || (distA2 > 5)) {
+      if((distA1 > 30) || (distA2 > 30)) {
         tI.type = true;
         tI.fi = faces->at(i);
         tI.splitA = 0.5f*(pMesh->QuadVertexPosition(faces->at(i),0)+pMesh->QuadVertexPosition(faces->at(i),3));
@@ -129,7 +135,7 @@ void MeshOps::FindTesselationFaces(LR lr) {
         tessInfo->push_back(tI);
       }
     } else {
-      if((distB1 > 5) || (distB2 > 5)) {
+      if((distB1 > 30) || (distB2 > 30)) {
         tI.type = false;
         tI.fi = faces->at(i);
         tI.splitA = 0.5f*(pMesh->QuadVertexPosition(faces->at(i),0)+pMesh->QuadVertexPosition(faces->at(i),1));
@@ -1162,33 +1168,36 @@ void MeshOps::AddToUndoQueue(LR lr) {
 
 void MeshOps::UndoLast() {
   if(pMesh != NULL) {
-    
-    meshStoreToggle->pop_back();
-    meshStoreToggle->pop_back();
-    if(meshStoreToggle->back()) {
-      mblog("getting pmesh\n");
-      mb::Mesh *newMesh = meshStore->back();
-      mblog("Vert count: "+QString::number(newMesh->VertexCount())+"\n");
-      mblog("Face count: "+QString::number(newMesh->FaceCount())+"\n");
-      mblog("TC count: "+QString::number(newMesh->TCCount())+"\n");
-      mblog("Recalculating normals\n");
-      newMesh->RecalculateNormals();
-      mblog("Recalced normals\n");
-      newMesh->RecalculateAdjacency();
-      newMesh->RecalculateVertexAdjacency();
-      mb::SubdivisionLevel *newSubDiv = dynamic_cast<mb::SubdivisionLevel*>(newMesh);
-      newSubDiv->RecreateUVs(true);
-      MeshGeo->AddLevel(newSubDiv);
-      MeshGeo->ChangeActiveLevel(newSubDiv);
-      MeshGeo->ContentChanged();
-      newSubDiv->ApplyChanges();
-      while(MeshGeo->LevelCount() > 1) {
-        MeshGeo->RemoveLowestLevel();
+    if(meshStoreToggle->size() > 0) {
+      meshStoreToggle->pop_back();
+      if(meshStoreToggle->size() > 0) {
+        meshStoreToggle->pop_back();
+        if(meshStoreToggle->back()) {
+          mblog("getting pmesh\n");
+          mb::Mesh *newMesh = meshStore->back();
+          mblog("Vert count: "+QString::number(newMesh->VertexCount())+"\n");
+          mblog("Face count: "+QString::number(newMesh->FaceCount())+"\n");
+          mblog("TC count: "+QString::number(newMesh->TCCount())+"\n");
+          mblog("Recalculating normals\n");
+          newMesh->RecalculateNormals();
+          mblog("Recalced normals\n");
+          newMesh->RecalculateAdjacency();
+          newMesh->RecalculateVertexAdjacency();
+          mb::SubdivisionLevel *newSubDiv = dynamic_cast<mb::SubdivisionLevel*>(newMesh);
+          newSubDiv->RecreateUVs(true);
+          MeshGeo->AddLevel(newSubDiv);
+          MeshGeo->ChangeActiveLevel(newSubDiv);
+          MeshGeo->ContentChanged();
+          newSubDiv->ApplyChanges();
+          while(MeshGeo->LevelCount() > 1) {
+            MeshGeo->RemoveLowestLevel();
+          }
+          setMesh(newMesh);
+          mb::Kernel()->ViewPort()->Redraw();
+          mb::Kernel()->Interface()->RefreshUI();
+          meshStore->pop_back();
+        }
       }
-      setMesh(newMesh);
-      mb::Kernel()->ViewPort()->Redraw();
-      mb::Kernel()->Interface()->RefreshUI();
-      meshStore->pop_back();
     }
     if(undoQueue.size() > 0) {
       std::vector<VertexInfo> vertInfoList = undoQueue.back();
