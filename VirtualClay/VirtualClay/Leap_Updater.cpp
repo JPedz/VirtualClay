@@ -382,7 +382,7 @@ void Leap_Updater::CameraRotate(LR lOrR) {
   if(abs(handRot.x) > deadzone || abs(handRot.y) > deadzone || abs(handRot.z) > deadzone) {
     if(abs(handRot.x) > abs(handRot.y) && abs(handRot.x) > abs(handRot.z)) {
       mblog("Pitch\n");
-      mbhud("Rotate Pitch");
+      //mbhud("Rotate Pitch");
       if(handRot.x > 0)
         rotateCamera(mb::Vector(0.5,0,0));
       else
@@ -390,7 +390,7 @@ void Leap_Updater::CameraRotate(LR lOrR) {
     }
     if(abs(handRot.y) > abs(handRot.x) && abs(handRot.y) > abs(handRot.z)) {
       mblog("Roll\n");
-      mbhud("Rotate Roll");
+      //mbhud("Rotate Roll");
       if(handRot.y > 0)
         rotateCamera(mb::Vector(0,0.5,0));
       else
@@ -398,7 +398,7 @@ void Leap_Updater::CameraRotate(LR lOrR) {
     }
     if(abs(handRot.z) > abs(handRot.x) && abs(handRot.z) > abs(handRot.y)) {
       mblog("Yaw\n");
-      mbhud("Rotate Yaw");
+      //mbhud("Rotate Yaw");
       if(handRot.z > 0)
         rotateCamera(mb::Vector(0,0,0.5));
       else
@@ -740,9 +740,9 @@ __inline void Leap_Updater::checkGrabbingGesture() {
       Extrusion(r);
     } else {
       if(facesAreSelected_R || facesAreSelected_L){
-        meshOp->FindTesselationFaces(l);
+        meshOp->DeselectAllFaces();
+        //meshOp->FindTesselationFaces(l);
         mblog("going to deselect faces");
-        //meshOp->DeselectAllFaces();
         //meshOp_R->DeselectAllFaces();
       }
       firstmoveswitch = true;
@@ -897,11 +897,8 @@ void Leap_Updater::OnEvent(const mb::EventGate &cEvent) {
   QTime *t = new QTime();
   t->start();
   if(cEvent == frameEvent) {
-    mblog("getting view cam\n");
     int viewcamID = idList->getViewCam();
-    mblog("got view cam\n");
     viewCam = new cameraWrapper(viewcamID);
-    mblog("setViewCam\n");
     t->restart();
     if(leapReader->updateAll()) {
       //mblog("Update All Time "+QString::number(t->elapsed())+"\n");
