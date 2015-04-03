@@ -10,7 +10,8 @@
 #include <QTCore/QTime>
 namespace mb = mudbox;
 static const float menuDeadZone = 0.15f;
-static const float menuActivateZone = 0.35f;
+static const float menuActivateZone = 0.3f;
+static const float menuActivateZone2 = 0.6f;
 
 
 class Leap_Updater : public mb::Node {
@@ -49,9 +50,13 @@ class Leap_Updater : public mb::Node {
   bool firstmoveswitch_R;
   bool inMenu_L;
   bool inMenu_R;
-  bool menuUp;
-  bool menuRight;
+  bool menuUp_0;
+  bool menuUp_1;
+  bool menuRight_1;
+  bool menuRight_0;
   bool menuDown;
+  bool menuDown_0;
+  bool menuDown_1;
   bool menuLeft;
 
   bool selectWithBrushSize;
@@ -61,11 +66,10 @@ class Leap_Updater : public mb::Node {
   bool pinchGrab;
   bool toolStamp;
   bool brushSizeMenuToggle;
+  bool brushStrengthMenuToggle;
   bool SceneNavigationToggle;
   bool pivotHandsOnMesh;
   bool moveObjectMode;
-  bool saveCurrentHandPivot;
-  bool resetHandPivotToZero;
   bool ThumbSmoothMove();
   float thumbMoveStrength;
   mb::Vector menuStartSpace;
@@ -74,7 +78,10 @@ class Leap_Updater : public mb::Node {
   bool ThumbSelect();
   float brushSize;
   mb::Vector brushSizeStartFingerStartPos;
+  mb::Vector brushStrengthFingerStartPos;
   void BrushSize();
+  void BrushStrength();
+  float brushStrength;
 
   __inline void checkNavigationGestures();
   __inline void checkMenuGesture();

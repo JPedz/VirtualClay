@@ -62,8 +62,8 @@ class MeshOps {
   mb::Vector cumulativeMove;
 
   void refreshMesh(void);
-  bool checkUniqueInFaceList(LR lr, int fi);
-  bool checkUniqueInVertexList(LR lr, int fi);
+  bool checkUniqueInFaceList(std::vector<int> *faces, int fi);
+  bool checkUniqueInVertexList(std::vector<VertexModifyInfo> *vertices, int fi);
   void StoreUndoQueue(LR lr);
   void AddToUndoQueue(LR lr);
   void AddVFI(int vi, int fi);
@@ -93,7 +93,7 @@ public:
   void polygonSelect(QList<mb::Vector> &points, QList<mb::SurfacePoint>&sp,
                          QList<int> &faces, QList<int> &vertices);
   void addVertex(LR lr, int fi);
-  void setMesh(mb::Mesh *m);
+  void SetMesh(mb::Mesh *m);
   void ChangeCamera(cameraWrapper *cam);
   void MoveVertices(LR lr, mb::Vector v);
   void MoveVertices(LR lr, float dist);
@@ -115,6 +115,7 @@ public:
 
   void Tesselate();
   void FindTesselationFaces(LR lr);
+  void SubDivide();
 };
 
 #endif

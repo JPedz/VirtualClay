@@ -24,15 +24,26 @@ public:
   float cY;
 	//mb::CGcontext m_CGContext;
   mb::Texture* brushSize;
+  mb::Texture* brushStrength;
 	mb::Texture* menuMiddle_L;
 	mb::Texture* menuUp_L;
 	mb::Texture* menuRight_L;
 	mb::Texture* menuDown_L;
 	mb::Texture* menuLeft_L;
+	mb::Texture* menuUp_L_0;
+	mb::Texture* menuUp_L_1;
+	mb::Texture* menuRight_L_0;
+	mb::Texture* menuRight_L_1;
 	mb::Texture* menuMiddle_R;
 	mb::Texture* menuUp_R;
 	mb::Texture* menuRight_R;
 	mb::Texture* menuDown_R;
 	mb::Texture* menuLeft_R;
+	mb::Texture* menuUp_R_0;
+	mb::Texture* menuUp_R_1;
+	mb::Texture* menuRight_R_0;
+	mb::Texture* menuRight_R_1;
+	mb::Texture* menuDown_R_0;
+	mb::Texture* menuDown_R_1;
 };
 

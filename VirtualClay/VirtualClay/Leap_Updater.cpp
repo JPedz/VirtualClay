@@ -31,13 +31,18 @@ Leap_Updater::Leap_Updater(ID_List *idl,Leap_Hand *l,Leap_Hand *r)
   menuFilter = new Leap_HUD();
   mb::Kernel()->ViewPort()->AddFilter(menuFilter);
   menuFilter->SetVisible(false);
-  brushSize = 20;
+  brushSize = 20.0f;
+  brushStrength = 10.0f;
   inMenu_L = false;
   inMenu_R = false;
   menuLeft = false;
   menuDown = false;
-  menuRight = false;
-  menuUp = false;
+  menuRight_0 = false;
+  menuUp_0 = false;
+  menuRight_1 = false;
+  menuUp_1 = false;
+  menuDown_0 = false;
+  menuDown_1 = false;
   reqIntersectionForSelection = false;
   thumbGrabModeToggle = false;
   stickyMovement = false;
@@ -45,11 +50,14 @@ Leap_Updater::Leap_Updater(ID_List *idl,Leap_Hand *l,Leap_Hand *r)
   pinchGrab = true;
   toolStamp = true;
   brushSizeMenuToggle = false;
+  brushStrengthMenuToggle = false;
   SceneNavigationToggle = true;
   pivotHandsOnMesh = true;
   moveObjectMode = false;
   thumbMoveStrength = 10.0f; //Strength and distance for movement intersecting thumb
   savedHandPivotPoint = mb::Vector(0,0,0);
+  brushStrengthFingerStartPos = mb::Vector(0,0,0);
+  brushSizeStartFingerStartPos = mb::Vector(0,0,0);
 
 }
 
@@ -381,7 +389,7 @@ void Leap_Updater::CameraRotate(LR lOrR) {
   mbstatus("HandRot: "+VectorToQString(handRot));
   if(abs(handRot.x) > deadzone || abs(handRot.y) > deadzone || abs(handRot.z) > deadzone) {
     if(abs(handRot.x) > abs(handRot.y) && abs(handRot.x) > abs(handRot.z)) {
-      mblog("Pitch\n");
+      //mblog("Pitch\n");
       //mbhud("Rotate Pitch");
       if(handRot.x > 0)
         rotateCamera(mb::Vector(0.5,0,0));
@@ -389,7 +397,7 @@ void Leap_Updater::CameraRotate(LR lOrR) {
         rotateCamera(mb::Vector(-0.5,0,0));
     }
     if(abs(handRot.y) > abs(handRot.x) && abs(handRot.y) > abs(handRot.z)) {
-      mblog("Roll\n");
+      //mblog("Roll\n");
       //mbhud("Rotate Roll");
       if(handRot.y > 0)
         rotateCamera(mb::Vector(0,0.5,0));
@@ -397,7 +405,7 @@ void Leap_Updater::CameraRotate(LR lOrR) {
         rotateCamera(mb::Vector(0,-0.5,0));
     }
     if(abs(handRot.z) > abs(handRot.x) && abs(handRot.z) > abs(handRot.y)) {
-      mblog("Yaw\n");
+      //mblog("Yaw\n");
       //mbhud("Rotate Yaw");
       if(handRot.z > 0)
         rotateCamera(mb::Vector(0,0,0.5));
@@ -437,11 +445,27 @@ void Leap_Updater::MenuSettings_R() {
   if(PosDifference.y > menuDeadZone) {
     menuFilter->menuChoice = 8;
     if(PosDifference.y > menuActivateZone)
-      menuDown = true;
+      if(PosDifference.x > 0) {
+        menuFilter->menuChoice = 19;
+        if(PosDifference.y > menuActivateZone2)
+          menuDown_0 = true;
+      } else {
+        menuFilter->menuChoice = 20;
+        if(PosDifference.y > menuActivateZone2)
+          menuDown_1 = true;
+      }
   } else if(PosDifference.y < -menuDeadZone) {
     menuFilter->menuChoice = 6;
     if(PosDifference.y < -menuActivateZone)
-      menuUp = true;
+      if(PosDifference.x > 0) {
+        menuFilter->menuChoice = 15;
+        if(PosDifference.y < -menuActivateZone2)
+          menuUp_0 = true;
+      } else {
+        menuFilter->menuChoice = 16;
+        if(PosDifference.y < -menuActivateZone2)
+          menuUp_1 = true;
+      }
   }
   if(abs(PosDifference.x) > abs(PosDifference.y)) {
     if(PosDifference.x > menuDeadZone) {
@@ -452,56 +476,62 @@ void Leap_Updater::MenuSettings_R() {
     } else if(PosDifference.x < -menuDeadZone) {
       menuFilter->menuChoice = 7;
       if(PosDifference.x < -menuActivateZone) {
-        menuRight = true;
+        if(PosDifference.y < 0) {
+          menuFilter->menuChoice = 17;
+          if(PosDifference.x < -menuActivateZone2)
+            menuRight_0 = true;
+        } else {
+          menuFilter->menuChoice = 18;
+          if(PosDifference.x < -menuActivateZone2)
+            menuRight_1 = true;
+        }
       }
     }
-    if(leapReader->isCircleCCW_R) {
-      mbstatus("Got Anti-Clockwise Circle");
+  }
+  if(leapReader->isCircleCCW_R) {
       menuFilter->SetVisible(false);
       inMenu_R = false;
-    }
   }
-  if(menuUp) {
-    pivotHandsOnMesh =! pivotHandsOnMesh;
-    /*thumbGrabModeToggle = !thumbGrabModeToggle;
-    if(thumbGrabModeToggle)
-      mbhud("Thumb Grab Mode: On");
-    else
-      mbhud("Thumb Grab Mode: Off");
-    */
-    if(pivotHandsOnMesh)
-      mbhud("Pivot Hands On Mesh");
-    else
-      mbhud("Pivot Hands On Camera");
+  if(menuUp_0) {
+    //GRAB MODE
+    thumbGrabModeToggle = false;
     menuFilter->SetVisible(false);
     inMenu_R = false;
-    menuUp = false;
-  } else if(menuRight) {
-    //Collision Toggle
-    reqIntersectionForSelection = !reqIntersectionForSelection;
-    selectWithBrushSize = !reqIntersectionForSelection;
-    if(reqIntersectionForSelection)
-      mbhud("Collision Mode: On");
-    else
-      mbhud("Collision Mode: Off");
+    menuUp_0 = false;
+  }  if(menuUp_1) {
+    //PUSH THUMBS MODE
+    thumbGrabModeToggle = true;
     menuFilter->SetVisible(false);
     inMenu_R = false;
-    menuRight = false;
-  } else if(menuDown) {
-    //Move Obj mode
-//    pinchGrab = !pinchGrab;
+    menuUp_1 = false;
+  } else if(menuRight_0) {
+    //SUBDIVIDE MESH
+    meshOp->SubDivide();
+    menuFilter->SetVisible(false);
+    inMenu_R = false;
+    menuRight_0 = false;
+  } else if(menuRight_1) {
     moveObjectMode = !moveObjectMode;
-    //if(pinchGrab)
-    //  mbhud("Pinch Grab On");
-    //else
-    //  mbhud("PinchGrab Off");
     if(moveObjectMode)
-      mbhud("MoveObject Mode On");
+      mbhud("Move Object Mode On");
     else
-      mbhud("MoveObject Mode Off");
+      mbhud("Move Object Mode Off");
     menuFilter->SetVisible(false);
     inMenu_R = false;
-    menuDown = false;
+    menuRight_1 = false;
+  } else if(menuDown_0) {
+    //LOCK CURRENT HAND PIVOT #999
+    savedHandPivotPoint = fitToCameraSpace();
+    pivotHandsOnMesh = false;
+    menuFilter->SetVisible(false);
+    inMenu_R = false;
+    menuDown_0 = false;
+  } else if(menuDown_1) {
+    //LOCK TO CAMERA #999
+    pivotHandsOnMesh = true;
+    menuFilter->SetVisible(false);
+    inMenu_R = false;
+    menuDown_1 = false;
   } else if(menuLeft) {
     //Back
     menuFilter->SetVisible(false);
@@ -520,7 +550,15 @@ void Leap_Updater::MenuSettings_L() {
   } else if(PosDifference.y < -menuDeadZone) {
     menuFilter->menuChoice = 1;
     if(PosDifference.y < -menuActivateZone)
-      menuUp = true;
+      if(PosDifference.x > 0) {
+        menuFilter->menuChoice = 11;
+        if(PosDifference.y < -menuActivateZone2)
+          menuUp_0 = true;
+      } else {
+        menuFilter->menuChoice = 12;
+        if(PosDifference.y < -menuActivateZone2)
+          menuUp_1 = true;
+      }
   }
   if(abs(PosDifference.x) > abs(PosDifference.y)) {
     if(PosDifference.x > menuDeadZone) {
@@ -531,7 +569,15 @@ void Leap_Updater::MenuSettings_L() {
     } else if(PosDifference.x < -menuDeadZone) {
       menuFilter->menuChoice = 2;
       if(PosDifference.x < -menuActivateZone) {
-        menuRight = true;
+        if(PosDifference.y < 0) {
+          menuFilter->menuChoice = 13;
+          if(PosDifference.x < -menuActivateZone2)
+            menuRight_0 = true;
+        } else {
+          menuFilter->menuChoice = 14;
+          if(PosDifference.x < -menuActivateZone2)
+            menuRight_1 = true;
+        }
       }
     }
     if(leapReader->isCircleCCW_L) {
@@ -541,27 +587,40 @@ void Leap_Updater::MenuSettings_L() {
     }
   }
 
-  if(menuUp) {
+  if(menuUp_0) {
     brushSizeMenuToggle = true;
     brushSizeStartFingerStartPos = GetRelativeScreenSpaceFromWorldPos(hand_l->GetFingerPos(INDEX));
     menuFilter->menuChoice = 10;
     inMenu_L = false;
-    menuUp = false;
-  } else if(menuRight) {
-    toolStamp = !toolStamp;
-    if(toolStamp)
-      mbhud("Tool Stamp Mode: On");
-    else
-      mbhud("Tool Stamp Mode: Off");
-    menuFilter->SetVisible(false);
+    menuUp_0 = false;  
+  } else if(menuUp_1) {
+    brushStrengthMenuToggle = true;
+    brushStrengthFingerStartPos = GetRelativeScreenSpaceFromWorldPos(hand_l->GetFingerPos(INDEX));
+    //BRUSH STRENGTH #999
+    menuFilter->menuChoice = 21;
     inMenu_L = false;
-    menuRight = false;
-  } else if(menuDown) {
+    menuUp_1 = false;
+  } else if(menuRight_0) {
+    //Navigation ON/OFF
     SceneNavigationToggle = !SceneNavigationToggle;
     if(SceneNavigationToggle)
       mbhud("SceneNavigation On");
     else
       mbhud("SceneNavigation Off");
+    menuFilter->SetVisible(false);
+    inMenu_L = false;
+    menuRight_0 = false;
+  } else if(menuRight_1) {
+    //Collision On off
+    menuFilter->SetVisible(false);
+    inMenu_L = false;
+    menuRight_0 = false;
+  } else if(menuDown) {
+    toolStamp = !toolStamp;
+    if(toolStamp)
+      mbhud("toolStamp On");
+    else
+      mbhud("toolStamp Off");
     menuFilter->SetVisible(false);
     inMenu_L = false;
     menuDown = false;
@@ -579,7 +638,7 @@ void Leap_Updater::BrushSize() {
     menuFilter->SetVisible(false);
     return;
   }
-  mb::Vector PosDifference = menuStartSpace - GetRelativeScreenSpaceFromWorldPos(hand_l->GetFingerPos(INDEX));
+  mb::Vector PosDifference = brushStrengthFingerStartPos - GetRelativeScreenSpaceFromWorldPos(hand_l->GetFingerPos(INDEX));
   //include a deadzone
   const float scalefactor = 0.5;
   if(PosDifference.y > 0.1f) {
@@ -591,6 +650,30 @@ void Leap_Updater::BrushSize() {
   }
   mb::Kernel()->Interface()->HUDMessageHide();
   mbhud("Brush size = "+QString::number(brushSize));
+  float relativeSize = brushSize/mb::Kernel()->ViewPort()->Height();
+  mblog("Relative size = "+QString::number(relativeSize)+"\n");
+  menuFilter->SetSize(relativeSize);
+}
+
+void Leap_Updater::BrushStrength() {
+  if(leapReader->isScreenTap_L || leapReader->isScreenTap_R) {
+    mblog("got tap\n");
+    brushSizeMenuToggle = false;
+    menuFilter->SetVisible(false);
+    return;
+  }
+  mb::Vector PosDifference = menuStartSpace - GetRelativeScreenSpaceFromWorldPos(hand_l->GetFingerPos(INDEX));
+  const float scalefactor = 0.5;
+  //include a deadzone
+  if(PosDifference.y > 0.1f) {
+    brushStrength = MAX(brushStrength - (PosDifference.y-0.01)*scalefactor,0);
+  } else if(PosDifference.y < 0.1f) {
+    brushStrength = MAX(brushStrength - (PosDifference.y+0.01)*scalefactor,0);
+  } else {
+    return;
+  }
+  mb::Kernel()->Interface()->HUDMessageHide();
+  mbhud("Brush strength = "+QString::number(brushSize));
   float relativeSize = brushSize/mb::Kernel()->ViewPort()->Height();
   mblog("Relative size = "+QString::number(relativeSize)+"\n");
   menuFilter->SetSize(relativeSize);
@@ -919,6 +1002,8 @@ void Leap_Updater::OnEvent(const mb::EventGate &cEvent) {
           MenuSettings_L();
         } else if(brushSizeMenuToggle) {
           BrushSize();
+        } else if(brushStrengthMenuToggle) {
+          BrushStrength();
         } else if(moveObjectMode) {
           //Important to keep this ordering, menus first then other modes, ensures we can exit and
           //enter menus at any time!
