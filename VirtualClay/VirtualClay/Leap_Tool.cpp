@@ -38,7 +38,7 @@ Leap_Tool::Leap_Tool(Leap_Hand *copyNode)
   tools.at(1) = new Leap_Fingers("ToolBase");
   tools.at(0)->CopyGeo(copyNode->GetPalm());
   tools.at(1)->CopyGeo(copyNode->GetPalm());
-  tools.at(0)->SetScale(mb::Vector(0.1f,0.05f,0.05f));
+  tools.at(0)->SetScale(mb::Vector(0.05f,0.05f,0.1f));
   tools.at(1)->SetScale(mb::Vector(0.1f,0.1f,0.1f));
   img = new QImage();
   OriginalImg = new QImage(RESOURCESDIR+"stamp1.png");
@@ -173,5 +173,5 @@ mb::AxisAlignedBoundingBox Leap_Tool::GetBoundingBox(int i) {
 }
 
 mb::AxisAlignedBoundingBox Leap_Tool::GetInteractionBox() {
-  return mb::AxisAlignedBoundingBox(tools.at(0)->GetPos(),6.0f);
+  return mb::AxisAlignedBoundingBox(tools.at(0)->GetPos(),7.0f);
 }

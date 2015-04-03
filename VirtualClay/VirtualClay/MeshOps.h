@@ -81,17 +81,15 @@ public:
   void UndoLast();
   void SelectObject(cameraWrapper *viewCam, mb::Vector screenPos);
   void SelectFaces(QList<mb::Vector> &poly);
-  bool SelectFaces(LR lr, mb::AxisAlignedBoundingBox box,float spreadDist = 0);
+  //bool SelectFaces(LR lr, mb::AxisAlignedBoundingBox box,float spreadDist = 0);
   bool SelectFaces(LR lr, float size = 30, float strength = 10);
   bool SelectFaces(LR lr, mb::Vector centrePoint, float widthHeight, float dropOffRate);
-  bool SelectFaces(LR lr, mb::Vector centrePoint, float width, float height, float dropOffRate);
+//  bool SelectFaces(LR lr, mb::Vector centrePoint, float width, float height, float dropOffRate);
   //Select in a box with corners v1 and v2 (Z is ignored)
   void boxSelect(LR lr, mb::Vector &v1,mb::Vector &v2, float maxDist = 30, float strength = 10);
-  void boxSelect2(mb::Vector &v1,mb::Vector &v2);
-  void boxSelect(LR lr, mb::Vector &v1,mb::Vector &v2,Leap_Tool *tool);
-  void boxSelect2(mb::Vector &v1,mb::Vector &v2,Leap_Tool *tool);
-  void polygonSelect(QList<mb::Vector> &points, QList<mb::SurfacePoint>&sp,
-                         QList<int> &faces, QList<int> &vertices);
+  void boxSelect(LR lr, mb::Vector centrePoint ,Leap_Tool *tool);
+  //void polygonSelect(QList<mb::Vector> &points, QList<mb::SurfacePoint>&sp,
+  //                       QList<int> &faces, QList<int> &vertices);
   void addVertex(LR lr, int fi);
   void SetMesh(mb::Mesh *m);
   void ChangeCamera(cameraWrapper *cam);
@@ -105,7 +103,7 @@ public:
   bool firstUse;
   bool ToolManip(mb::Vector centrePoint, float size, Leap_Tool *tool);
   bool ToolManip(mb::Vector centrePoint, float size, float dropOffRate);
-
+  mb::Vector lastMidPosition;
 
   //Movement
   void SelectWholeMesh();

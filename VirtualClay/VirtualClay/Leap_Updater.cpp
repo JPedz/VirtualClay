@@ -145,7 +145,7 @@ bool Leap_Updater::selectMesh(LR lOrR) {
   mb::Kernel()->Scene()->SetActiveCamera(handCam->getCamera());
   mb::Kernel()->ViewPort()->Redraw();  
   mblog("Brush Size = "+QString::number(avgSize));
-  b = meshOp->SelectFaces(lOrR,avgSize,10);
+  b = meshOp->SelectFaces(lOrR,avgSize,brushStrength);
   hand_l->SetVisi(true);
   mb::Kernel()->Scene()->SetActiveCamera(viewCam->getCamera());
   mb::Kernel()->ViewPort()->Redraw();
@@ -854,14 +854,14 @@ void Leap_Updater::ToolStampMove() {
   meshOp->ChangeCamera(viewCam);
   tool->SetVisi(false);
   mblog("ToolStamp\n");
-  int dist = 10;
+  int dist = 5;
   mb::Vector toolPos = tool->GetPos(0);
   mb::Vector toolProj = viewCam->getCamera()->Project(toolPos);
   mblog("Tool Proj Pos = "+VectorToQStringLine(toolProj));
   toolProj = toolProj * mb::Vector(1,-1,1);
   mblog("Tool Proj Pos Pixels = "+VectorToQStringLine(ScreenSpaceToPixels(toolProj)));
-  tool->ResizeStamp(brushSize,brushSize);
-  if(meshOp->ToolManip(ScreenSpaceToPixels(toolProj),20.0f,tool)) {
+  tool->ResizeStamp(100,100);
+  if(meshOp->ToolManip(ScreenSpaceToPixels(toolProj),brushSize,tool)) {
     facesAreSelected_Tool = true;
     mblog("Moving vertices maybe?\n");
     meshOp->MoveVertices(r,dist);
