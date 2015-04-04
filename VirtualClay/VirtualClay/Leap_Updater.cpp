@@ -54,7 +54,6 @@ Leap_Updater::Leap_Updater(ID_List *idl,Leap_Hand *l,Leap_Hand *r)
   SceneNavigationToggle = true;
   pivotHandsOnMesh = true;
   moveObjectMode = false;
-  thumbMoveStrength = 10.0f; //Strength and distance for movement intersecting thumb
   savedHandPivotPoint = mb::Vector(0,0,0);
   brushStrengthFingerStartPos = mb::Vector(0,0,0);
   brushSizeStartFingerStartPos = mb::Vector(0,0,0);
@@ -238,25 +237,30 @@ bool Leap_Updater::ThumbSelect() {
   return true;
 }
 
-bool Leap_Updater::ThumbSmoothMove() {
-  mb::Vector thumbPos = hand_l->GetFingerPos(THUMB,TIP);
-  mb::Vector thumbProj = viewCam->getCamera()->Project(thumbPos);
-  thumbProj = thumbProj * mb::Vector(1,-1,1);
-  hand_l->SetVisi(false);
+void Leap_Updater::ThumbSmoothMove(LR lr) {
+  mb::Vector thumbPos;
+  if(lr == l) {
+    thumbPos = hand_l->GetFingerPos(THUMB,TIP);
+    hand_l->SetVisi(false);
+  } else {
+    thumbPos = hand_r->GetFingerPos(THUMB,TIP);
+    hand_r->SetVisi(false);
+  }
+  mb::Vector thumbProj = viewCam->getCamera()->Project(thumbPos) * mb::Vector(1,-1,1);
   mblog("Thumb Proj Pos = "+VectorToQStringLine(thumbProj));
   mblog("Thumb Proj Pos Pixels = "+VectorToQStringLine(ScreenSpaceToPixels(thumbProj)));
   meshOp->ChangeCamera(viewCam);
-  if(meshOp->SelectFaces(l,ScreenSpaceToPixels(thumbProj),10.0f,10)) {
-    mb::Vector dirNorm = leapReader->getMotionDirection(THUMB,l);
+  if(meshOp->SelectFaces(lr,ScreenSpaceToPixels(thumbProj),10.0f,brushSize/4)) {
+    mb::Vector dirNorm = leapReader->getMotionDirection(THUMB,lr);
     mblog("Normalised Direction = "+VectorToQStringLine(dirNorm));
-    mb::Vector dist = dirNorm*thumbMoveStrength;
-    meshOp->MoveVertices(l,dist);
-
-    hand_l->SetVisi(true);
-    return true;
+    mblog("Brush Strength= "+QString::number(brushStrength));
+    mb::Vector dist = dirNorm*brushStrength;
+    meshOp->MoveVertices(lr,dist);
   }
-  hand_l->SetVisi(true);
-  return false;
+  if(lr == l) 
+    hand_l->SetVisi(true);
+  else
+    hand_r->SetVisi(true);
 }
 
 __inline void Leap_Updater::SetHandAndFingerPositions() {
@@ -642,15 +646,15 @@ void Leap_Updater::BrushSize() {
   //include a deadzone
   const float scalefactor = 0.5;
   if(PosDifference.y > 0.1f) {
-    brushSize = MAX(brushSize - (PosDifference.y-0.05)*scalefactor,0);
+    brushSize = MAX(brushSize - (PosDifference.y-0.05)*scalefactor,0.1);
   } else if(PosDifference.y < 0.1f) {
-    brushSize = MAX(brushSize - (PosDifference.y+0.05)*scalefactor,0);
+    brushSize = MAX(brushSize - (PosDifference.y+0.05)*scalefactor,0.1);
   } else {
     return;
   }
   mb::Kernel()->Interface()->HUDMessageHide();
   mbhud("Brush size = "+QString::number(brushSize));
-  float relativeSize = brushSize/mb::Kernel()->ViewPort()->Height();
+  float relativeSize = brushSize/mb::Kernel()->ViewPort()->Height()*4;
   mblog("Relative size = "+QString::number(relativeSize)+"\n");
   menuFilter->SetSize(relativeSize);
 }
@@ -666,15 +670,15 @@ void Leap_Updater::BrushStrength() {
   const float scalefactor = 0.5;
   //include a deadzone
   if(PosDifference.y > 0.1f) {
-    brushStrength = MAX(brushStrength - (PosDifference.y-0.01)*scalefactor,0);
+    brushStrength = MAX(brushStrength - (PosDifference.y-0.01)*scalefactor,0.1);
   } else if(PosDifference.y < 0.1f) {
-    brushStrength = MAX(brushStrength - (PosDifference.y+0.01)*scalefactor,0);
+    brushStrength = MAX(brushStrength - (PosDifference.y+0.01)*scalefactor,0.1);
   } else {
     return;
   }
   mb::Kernel()->Interface()->HUDMessageHide();
-  mbhud("Brush strength = "+QString::number(brushSize));
-  float relativeSize = brushSize/mb::Kernel()->ViewPort()->Height();
+  mbhud("Brush strength = "+QString::number(brushStrength));
+  float relativeSize = brushStrength/mb::Kernel()->ViewPort()->Height();
   mblog("Relative size = "+QString::number(relativeSize)+"\n");
   menuFilter->SetSize(relativeSize);
 }
@@ -755,6 +759,8 @@ __inline void Leap_Updater::checkMenuGesture() {
   if(leapReader->isCircleCW_R) {
     if(leapReader->CheckFingerExtensions(r,false,true,true,false,false)) {
       menuStartSpace = GetRelativeScreenSpaceFromWorldPos(hand_r->GetFingerPos(INDEX));
+      mbhud("MenuSpace "+VectorToQStringLine(menuStartSpace));
+      mbstatus("MenuSpace "+VectorToQStringLine(menuStartSpace));
       menuFilter->SetCentre(menuStartSpace);
       menuFilter->SetVisible(true);
       inMenu_R = true;
@@ -763,6 +769,8 @@ __inline void Leap_Updater::checkMenuGesture() {
   if(leapReader->isCircleCW_L) {
     if(leapReader->CheckFingerExtensions(l,false,true,true,false,false)) {
       menuStartSpace = GetRelativeScreenSpaceFromWorldPos(hand_l->GetFingerPos(INDEX));
+      mbhud("MenuSpace "+VectorToQStringLine(menuStartSpace));
+      mbstatus("MenuSpace "+VectorToQStringLine(menuStartSpace));
       menuFilter->SetCentre(menuStartSpace);
       menuFilter->SetVisible(true);
       inMenu_L = true;
@@ -796,14 +804,15 @@ __inline void Leap_Updater::checkUndoGesture() {
 
 __inline void Leap_Updater::checkGrabbingGesture() {
   if(thumbGrabModeToggle) {
-    if((meshOp->CheckTouching(hand_l->GetFingerBoundingBox(THUMB,TIP)))) {
+    if((meshOp->CheckIntersection(hand_l->GetFingerBoundingBox(THUMB,TIP)))) {
       if(meshOp->firstUse) {
         meshOp->firstUse = false;
       }
       if(stickyMovement)
         ThumbSelect();
       else
-        ThumbSmoothMove();
+        ThumbSmoothMove(l);
+        ThumbSmoothMove(r);
     } else {
       meshOp->firstUse = true;
       if(facesAreSelected_L){
@@ -888,7 +897,7 @@ void Leap_Updater::ToolSmoothMove() {
     facesAreSelected_Tool = true;
     mb::Vector dirNorm = leapReader->getToolMotionDirection();
     mblog("Normalised Direction = "+VectorToQStringLine(dirNorm));
-    mb::Vector dist = dirNorm*thumbMoveStrength;
+    mb::Vector dist = dirNorm*brushStrength;
     meshOp->MoveVertices(r,dist);
   }
   tool->SetVisi(true);

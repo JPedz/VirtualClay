@@ -70,11 +70,11 @@ class Leap_Updater : public mb::Node {
   bool SceneNavigationToggle;
   bool pivotHandsOnMesh;
   bool moveObjectMode;
-  bool ThumbSmoothMove();
-  float thumbMoveStrength;
   mb::Vector menuStartSpace;
   Leap_HUD *menuFilter;
   
+  void ThumbSmoothMove(LR lr);
+
   bool ThumbSelect();
   float brushSize;
   mb::Vector brushSizeStartFingerStartPos;

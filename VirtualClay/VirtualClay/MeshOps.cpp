@@ -828,6 +828,12 @@ void MeshOps::refreshMesh(void) {
   t->restart();
   mb::Kernel()->ViewPort()->Redraw();
   mblog("Redraw Time: "+QString::number(t->elapsed())+"\n");
+
+  t->restart();
+  mb::SubdivisionLevel *subdiv = MeshGeo->ActiveLevel();
+  subdiv->RecreateUVs(true);
+  subdiv->ApplyChanges();
+  mblog("Apply Changes Time: "+QString::number(t->elapsed())+"\n");
 }
 
 
@@ -975,28 +981,30 @@ bool MeshOps::SelectFaces(LR lr, mb::Vector centrePoint, float widthHeight, floa
     midV->pos = mb::Vector(0,0,0);
     midV->vI = 0;
     mblog("SelectingBox\n");
-    boxSelect(lr,vS,vE);
-    if(faces->size() > 0) {
+    boxSelect(lr,vS,vE,widthHeight,dropOffRate);
+    if(vertices->size() > 0) {
       mbstatus(QString("Polygon SELECTED"+QString::number(points->size())));
       mblog("box selected");
       for(int i = 0 ; i < faces->size() ; i++) {
-        mb::Kernel()->Log(QString::number(i)+" "+QString::number(faces->at(i))+"\n");
+        mb::Kernel()->Log("Face: "+QString::number(i)+" "+QString::number(faces->at(i))+"\n");
         pMesh->SetFaceSelected(faces->at(i));
-      }
-      if(linearDropoff) {
-        for(int i = 0 ; i < vertices->size() ; i++) {
-          float dist = midV->pos.DistanceFrom(pMesh->VertexPosition(vertices->at(i).vI));
-          vertices->at(i).strength = MIN(pow(1-(dist/widthHeight)),1); //restrict to 1 strength
-          if(vertices->at(i).strength < 0.0001)
-            vertices->at(i).strength = 0;
-        }
       }
       if(firstUse) {
         /*MeshGeo->ChangeActiveLevel(MeshGeo->LowestLevel());
         MeshGeo->ChangeActiveLevel(MeshGeo->HighestLevel());*/
-        StoreUndoQueue(r);
+        StoreUndoQueue(lr);
       } else {
-        AddToUndoQueue(r);
+        AddToUndoQueue(lr);
+      }
+      if(linearDropoff) {
+        for(int i = 0 ; i < vertices->size() ; i++) {
+          float dist = midV->pos.DistanceFrom(pMesh->VertexPosition(vertices->at(i).vI));
+          
+          mb::Kernel()->Log("Vertex: "+QString::number(i)+" "+QString::number(dist)+"\n");
+          vertices->at(i).strength = MIN(1-(dist/widthHeight),1); //restrict to 1 strength
+          if(vertices->at(i).strength < 0.0001)
+            vertices->at(i).strength = 0;
+        }
       }
       return true;
     }
@@ -1147,6 +1155,7 @@ void MeshOps::boxSelect(LR lr, mb::Vector &v1,mb::Vector &v2,float maxDist, floa
       faces->push_back(p.FaceIndex());
       mblog("facesPushBack\n");
       midPos = p.WorldPosition();
+      midV->pos = midPos;
       QTime *t = new QTime();
       t->start();
 #pragma omp parallel for private(bpVector,vMI,dist,vA,fi) firstprivate(faces,vertices,pMesh,meshLayer,basePlane,lr,maxDist)
@@ -1297,7 +1306,7 @@ void MeshOps::boxSelect(LR lr, mb::Vector centrePoint, Leap_Tool *tool) {
         QTime *t = new QTime();
         t->start();
         lastMidPosition = midPos;
-        #pragma omp parallel for private(bpVector,vMI,dist,vA,fi,uvSpace) firstprivate(faces,vertices,basePlane,midPos,worldPoint,tool,pMesh,meshLayer,basePlane,lr,height)
+        //#pragma omp parallel for private(bpVector,vMI,dist,vA,fi,uvSpace) firstprivate(faces,vertices,basePlane,midPos,worldPoint,tool,pMesh,meshLayer,basePlane,lr,height)
         for( unsigned int i = 0 ; i < pMesh->VertexCount() ; i++) {
           worldPoint = pMesh->VertexPosition(i);
           dist = worldPoint.DistanceFrom(midPos);
