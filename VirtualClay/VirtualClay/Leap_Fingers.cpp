@@ -189,7 +189,7 @@ void Leap_Fingers::BuildGeo() {
 }
 
 mb::AxisAlignedBoundingBox Leap_Fingers::GetBoundingBox() {
-  return mb::AxisAlignedBoundingBox(TNode->Position(),3.0f);
+  return mb::AxisAlignedBoundingBox(TNode->Position(),4.0f);
 }
 
 //Old rotation matrix stuff;

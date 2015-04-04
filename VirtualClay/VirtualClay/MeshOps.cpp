@@ -806,17 +806,18 @@ void MeshOps::Tesselate() {
 //  mb::Kernel()->Interface()->RefreshUI();
 //}
 
-void MeshOps::refreshMesh(void) {
+void MeshOps::refreshMesh(bool update) {
   //MeshGeo->ChangeActiveLevel(MeshGeo->LowestLevel());
   //MeshGeo->ChangeActiveLevel(MeshGeo->HighestLevel());
   mblog("Mesh Layer Count = "+QString::number(meshLayer->VertexCount())+"\n");
   QTime *t = new QTime();
   t->start();
-  mb::LayerMeshData *lmd = pMesh->AddLayer();
+  if(update)
+    mb::LayerMeshData *lmd = pMesh->AddLayer();
   mblog("Add Layer Time: "+QString::number(t->elapsed())+"\n");
   
   t->restart();
-  int lvi = lmd->LayerVertexIndex(1);
+  int lvi = meshLayer->LayerVertexIndex(1);
   mblog("Add Vertex Index Time: "+QString::number(t->elapsed())+"\n");
   
   t->restart();
@@ -1306,7 +1307,7 @@ void MeshOps::boxSelect(LR lr, mb::Vector centrePoint, Leap_Tool *tool) {
         QTime *t = new QTime();
         t->start();
         lastMidPosition = midPos;
-        //#pragma omp parallel for private(bpVector,vMI,dist,vA,fi,uvSpace) firstprivate(faces,vertices,basePlane,midPos,worldPoint,tool,pMesh,meshLayer,basePlane,lr,height)
+        #pragma omp parallel for private(bpVector,vMI,dist,vA,fi,uvSpace) firstprivate(faces,vertices,basePlane,midPos,worldPoint,tool,pMesh,meshLayer,basePlane,lr,height)
         for( unsigned int i = 0 ; i < pMesh->VertexCount() ; i++) {
           worldPoint = pMesh->VertexPosition(i);
           dist = worldPoint.DistanceFrom(midPos);
@@ -1460,8 +1461,10 @@ bool MeshOps::CheckIntersection(mb::AxisAlignedBoundingBox box1) {
   }
 }
 
-void MeshOps::MoveVertices(LR lr, mb::Vector v) {
+void MeshOps::MoveVertices(LR lr, mb::Vector v, bool update) {
   //Move distance of the vector and in vector direction.
+  QTime *t = new QTime();
+  t->start();
   int vi;
   int lvi;
   float strength;
@@ -1472,22 +1475,26 @@ void MeshOps::MoveVertices(LR lr, mb::Vector v) {
     vertices = vertices_L;
   else 
     vertices = vertices_R;
+#pragma omp parallel for private(i,vi,lvi,strength,curDelta) firstprivate(vertices,meshLayer)
   for(int i = 0 ; i < vertices->size(); i++) {
     vi = vertices->at(i).vI;
     lvi = vertices->at(i).lVI;
     strength = vertices->at(i).strength;
-    mblog("Moving Vertex "+QString::number(i)+"by "+VectorToQStringLine(v*strength));
+    //mblog("Moving Vertex "+QString::number(i)+"by "+VectorToQStringLine(v*strength));
     //mb::Kernel()->Log(QString::number(vi)+ " " + QString::number(v.x)+"\n");
     curDelta = meshLayer->VertexDelta(lvi);
-    mblog("Current Delta = "+VectorToQStringLine(curDelta));
+    //mblog("Current Delta = "+VectorToQStringLine(curDelta));
     meshLayer->SetVertexDelta(lvi,vi,curDelta+(v*strength),true);
+    meshLayer->SetTransparency(1.0f);
+    meshLayer->SetVisible(true,true);
     //pMesh->AddVertexPosition(vi,v*strength);
     //strokeID = pMesh->VertexStrokeID(vi);
     //pMesh->SetVertexStrokeID(vi,strokeID++);
     //mb::Kernel()->Log(QString::number(vi)+ " " + QString::number(v2.x)+"\n"); 
   }
+  mblog("Move Vertices Time\n");
   if(MeshGeo != NULL) {
-    refreshMesh();
+    refreshMesh(update);
     //pMesh->RecalculateNormals();
   }
 }

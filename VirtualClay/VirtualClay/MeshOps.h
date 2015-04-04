@@ -61,7 +61,7 @@ class MeshOps {
   
   mb::Vector cumulativeMove;
 
-  void refreshMesh(void);
+  void refreshMesh(bool update = true);
   bool checkUniqueInFaceList(std::vector<int> *faces, int fi);
   bool checkUniqueInVertexList(std::vector<VertexModifyInfo> *vertices, int fi);
   void StoreUndoQueue(LR lr);
@@ -93,7 +93,7 @@ public:
   void addVertex(LR lr, int fi);
   void SetMesh(mb::Mesh *m);
   void ChangeCamera(cameraWrapper *cam);
-  void MoveVertices(LR lr, mb::Vector v);
+  void MoveVertices(LR lr, mb::Vector v, bool update = true);
   void MoveVertices(LR lr, float dist);
   bool CheckIntersection(mb::AxisAlignedBoundingBox box1);
   bool CheckTouching(mb::AxisAlignedBoundingBox box1);

@@ -254,8 +254,8 @@ void Leap_Updater::ThumbSmoothMove(LR lr) {
     mb::Vector dirNorm = leapReader->getMotionDirection(THUMB,lr);
     mblog("Normalised Direction = "+VectorToQStringLine(dirNorm));
     mblog("Brush Strength= "+QString::number(brushStrength));
-    mb::Vector dist = dirNorm*brushStrength;
-    meshOp->MoveVertices(lr,dist);
+    mb::Vector dist = dirNorm*3;
+    meshOp->MoveVertices(lr,dist,false);
   }
   if(lr == l) 
     hand_l->SetVisi(true);
