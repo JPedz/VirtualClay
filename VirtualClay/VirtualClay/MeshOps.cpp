@@ -986,7 +986,7 @@ bool MeshOps::SelectFaces(LR lr, mb::Vector centrePoint, float widthHeight, floa
       if(linearDropoff) {
         for(int i = 0 ; i < vertices->size() ; i++) {
           float dist = midV->pos.DistanceFrom(pMesh->VertexPosition(vertices->at(i).vI));
-          vertices->at(i).strength = MIN(pow(widthHeight,-dist),1); //restrict to 1 strength
+          vertices->at(i).strength = MIN(pow(1-(dist/widthHeight)),1); //restrict to 1 strength
           if(vertices->at(i).strength < 0.0001)
             vertices->at(i).strength = 0;
         }
@@ -1020,8 +1020,8 @@ bool MeshOps::SelectFaces(LR lr, float size, float strength) {
     }
     int midW = mb::Kernel()->ViewPort()->Width()/2;
     int midH = mb::Kernel()->ViewPort()->Height()/2;
-    mb::Vector vS = mb::Vector(midW-40,midH-40,0);
-    mb::Vector vE = mb::Vector(midW + 40, midH + 40, 0);
+    mb::Vector vS = mb::Vector(midW-size,midH-size,0);
+    mb::Vector vE = mb::Vector(midW + size, midH + size, 0);
     faces->clear();
     vertices->clear();
     points->clear();
@@ -1035,10 +1035,10 @@ bool MeshOps::SelectFaces(LR lr, float size, float strength) {
     if(faces->size() > 0) {
       mbstatus(QString("Polygon SELECTED"+QString::number(points->size())));
       mblog("box selected");
-      for(int i = 0 ; i < faces->size() ; i++) {
-        mb::Kernel()->Log(QString::number(i)+" "+QString::number(faces->at(i))+"\n");
-        pMesh->SetFaceSelected(faces->at(i));
-      }
+      //for(int i = 0 ; i < faces->size() ; i++) {
+      //  mb::Kernel()->Log(QString::number(i)+" "+QString::number(faces->at(i))+"\n");
+      //  pMesh->SetFaceSelected(faces->at(i));
+      //}
       //refreshMesh();
       StoreUndoQueue(lr);
       //MeshGeo->ChangeActiveLevel(MeshGeo->LowestLevel());
@@ -1070,10 +1070,10 @@ bool MeshOps::ToolManip(mb::Vector centrePoint, float widthHeight, Leap_Tool *to
     if(faces_R->size() > 0) {
       mbstatus(QString("Polygon SELECTED"+QString::number(points_R->size())));
       mblog("box selected\n");
-      for(int i = 0 ; i < faces_R->size() ; i++) {
-        //mblog(QString::number(i)+" "+QString::number(faces_R->at(i))+"\n");
-        pMesh->SetFaceSelected(faces_R->at(i));
-      }
+      //for(int i = 0 ; i < faces_R->size() ; i++) {
+      //  //mblog(QString::number(i)+" "+QString::number(faces_R->at(i))+"\n");
+      //  pMesh->SetFaceSelected(faces_R->at(i));
+      //}
       /*MeshGeo->ChangeActiveLevel(MeshGeo->LowestLevel());
       MeshGeo->ChangeActiveLevel(MeshGeo->HighestLevel());*/
 
@@ -1169,7 +1169,7 @@ void MeshOps::boxSelect(LR lr, mb::Vector &v1,mb::Vector &v2,float maxDist, floa
             //}
             vMI.lVI = meshLayer->LayerVertexIndex(i);
               //mblog("int lvi = "+QString::number(vMI.lVI)+"\n");
-            vMI.strength = MIN(pow(maxDist,1/dist),1);
+            vMI.strength = MIN((1-(dist/maxDist)),1);
             vertices->push_back(vMI);
             mblog("here\n");
             vA = pMesh->VertexAdjacency(i);
@@ -1528,14 +1528,14 @@ void MeshOps::MoveVertices(LR lr, float dist) {
     strength = vertices->at(i).strength;
     if(strength > 0) {
       strength *=dist;
-    }
-    v = pMesh->VertexNormal(vi);
+      v = pMesh->VertexNormal(vi).Normalize();
     //mblog("Vertex Normal = "+VectorToQStringLine(v));
     //mblog("Moving Vertex "+QString::number(i)+"by "+VectorToQStringLine(v*dist));
     //mb::Kernel()->Log(QString::number(vi)+ " " + QString::number(v.x)+"\n");
     
     //mblog("Moving Vertex "+QString::number(i)+" "+QString::number(lvi)+"by "+VectorToQStringLine(v*strength));
-    meshLayer->SetVertexDelta(lvi,vi,v*strength,true);
+      meshLayer->SetVertexDelta(lvi,vi,v*strength,true);
+    }
     //pMesh->AddVertexPosition(vi,v*strength*dist);
     //strokeID = pMesh->VertexStrokeID(vi);
     //pMesh->SetVertexStrokeID(vi,strokeID++);
