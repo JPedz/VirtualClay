@@ -6,6 +6,9 @@ namespace mb = mudbox;
 Leap_Updater::Leap_Updater(ID_List *idl,Leap_Hand *l,Leap_Hand *r)
   :frameEvent(this)
 {
+  uniqueMiss = 0;
+  uniqueMissBool = true;
+  missCounter = 0;
   //To resize the image, use Image.GenerateUpscaledImage(*targetImg,factor);
   mblog("Creating texture\n");
   idList = idl;
@@ -689,10 +692,16 @@ void Leap_Updater::Extrusion(LR LorR) {
     if(!facesAreSelected_L){
       if(!reqIntersectionForSelection || (countIntersectingFingers(l) > 3)) {
         if(selectMesh(l) ) {
+          uniqueMissBool = true;
           facesAreSelected_L= true;
           firstmoveswitch = true;
           mblog("Succesfully Selected\n");
         } else {
+          if(uniqueMissBool) {
+            uniqueMissBool = false;
+            uniqueMiss++;
+          }
+          missCounter++;
           mbhud("Failed To Select L_Hand, Have you selected the Mesh?");
           mblog("Failed to select\n");
         }
@@ -712,10 +721,16 @@ void Leap_Updater::Extrusion(LR LorR) {
     if(!facesAreSelected_R) {
       if(!reqIntersectionForSelection || (countIntersectingFingers(r) > 3)) {
         if(selectMesh(r) ) {
+          uniqueMissBool = true;
           facesAreSelected_R = true;
           firstmoveswitch_R = true;
           mblog("Succesfully Selected\n");
         } else {
+          if(uniqueMissBool) {
+            uniqueMissBool = false;
+            uniqueMiss++;
+          }
+          missCounter++;
           mbhud("Failed To Select with R_Hand, Have you selected the Mesh?");
           mblog("Failed to select\n");
         }
@@ -837,6 +852,7 @@ __inline void Leap_Updater::checkGrabbingGesture() {
         mblog("going to deselect faces");
         //meshOp_R->DeselectAllFaces();
       }
+      uniqueMissBool = true;
       firstmoveswitch = true;
       facesAreSelected_R = false;
       facesAreSelected_L= false;
@@ -1054,5 +1070,7 @@ void Leap_Updater::OnEvent(const mb::EventGate &cEvent) {
       }
     }
   }
+  mblog("Misses = "+QString::number(missCounter)+"\n");
+  mblog("Unique Misses = "+QString::number(uniqueMiss)+"\n");
   //mblog("Full Loop Time: "+QString::number(overall->elapsed())+"\n");
 }

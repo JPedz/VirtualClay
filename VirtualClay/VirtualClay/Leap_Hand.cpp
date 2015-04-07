@@ -16,6 +16,27 @@ Leap_Hand::Leap_Hand(ID_List *idl,LR lOrR)
   idList = idl;
   AddHand();
   AddLeap_Fingers();
+  fingertips = false;
+  palmOnly = false;
+
+  if(fingertips || palmOnly) {
+    if(fingertips) {
+      TNode->SetVisible(false);
+      for(int i = 0 ; i < 5 ; i++) {
+        for(int j = 1 ; j < 4 ; j++) {
+          fings.at(i).at(j)->SetVisi(false);
+        }
+      }
+    } else if(palmOnly) {
+      TNode->SetVisible(true);
+      for(int i = 0 ; i < 5 ; i++) {
+        for(int j = 0 ; j < 4 ; j++) {
+          fings.at(i).at(j)->SetVisi(false);
+        }
+      }
+    }
+  }
+  
 }
 
 Leap_Hand::Leap_Hand(ID_List *idl,LR lOrR,Leap_Hand *copyHand)
@@ -32,6 +53,27 @@ Leap_Hand::Leap_Hand(ID_List *idl,LR lOrR,Leap_Hand *copyHand)
   idList = idl;
   CopyHand(copyHand);
   AddLeap_Fingers();
+
+  
+  fingertips = false;
+  palmOnly = false;
+  if(fingertips || palmOnly) {
+    if(fingertips) {
+      TNode->SetVisible(false);
+      for(int i = 0 ; i < 5 ; i++) {
+        for(int j = 1 ; j < 4 ; j++) {
+          fings.at(i).at(j)->SetVisi(false);
+        }
+      }
+    } else if(palmOnly) {
+      TNode->SetVisible(true);
+      for(int i = 0 ; i < 5 ; i++) {
+        for(int j = 0 ; j < 4 ; j++) {
+          fings.at(i).at(j)->SetVisi(false);
+        }
+      }
+    }
+  }
 }
 
 void Leap_Hand::CopyHand(Leap_Hand *copyHand) {
@@ -40,7 +82,8 @@ void Leap_Hand::CopyHand(Leap_Hand *copyHand) {
   idList->storeHandID(id,lr);
   TNode = palm->getTNode();
   TNode->SetName("Palm"+QString::number(id));
-  palm->SetScale(mb::Vector(0.07f,0.02f,0.07f));
+  palm->SetScale(mb::Vector(0.5f,0.05f,0.5f));
+  //palm->SetScale(mb::Vector(0.07f,0.02f,0.07f));
 }
 
 void Leap_Hand::AddHand(void) {
@@ -49,7 +92,7 @@ void Leap_Hand::AddHand(void) {
   idList->storeHandID(id,lr);
   TNode = palm->getTNode();
   TNode->SetName("Palm"+QString::number(id));
-  palm->SetScale(mb::Vector(0.07f,0.02f,0.07f));
+  palm->SetScale(mb::Vector(0.5f,0.05f,0.5f));
 }
 
 Leap_Fingers *Leap_Hand::GetPalm() {
@@ -116,7 +159,7 @@ void Leap_Hand::AddLeap_Fingers(void) {
         idList->storeFingerID(id,fingerEnum(i),jointEnum(j),lr);
         //TODO: Store ID's
         if(j > 0) {
-          fings.at(i).at(j)->SetScale(mb::Vector(0.03f,0.03f,0.06f));
+          fings.at(i).at(j)->SetScale(mb::Vector(0.03f,0.03f,0.1f));
         } else {
           fings.at(i).at(j)->SetScale(mb::Vector(0.03f,0.03f,0.03f));
         }
@@ -199,27 +242,45 @@ void Leap_Hand::SetPos(mb::Vector &v) {
 }
 
 void Leap_Hand::SetVisi(bool vis) {
-  if(FullHands) {
-    if(vis != TNode->Visible()) {
-      TNode->SetVisible(vis);
-      for(int i = 0 ; i < 5 ; i++) {
-        for(int j = 0 ; j < 4 ; j++) {
-          //TODO: Remove finger tip limitation #Code:111
-    //      if(j <= 1) {
-          fings.at(i).at(j)->SetVisi(vis);
-    //      }
+  if(fingertips || palmOnly) {
+    if(curVis != vis) {
+      curVis = vis;
+      if(fingertips) {
+          for(int i = 0 ; i < 5 ; i++) {
+            for(int j = 0 ; j < 1 ; j++) {
+              fings.at(i).at(j)->SetVisi(vis);
+            }
+          }
+      } else if(palmOnly) {
+        if(vis != TNode->Visible()) {
+          TNode->SetVisible(vis);
         }
       }
+
     }
   } else {
-    if(vis != TNode->Visible()) {
-      TNode->SetVisible(vis);
-      for(int i = 0 ; i < 5 ; i++) {
-        for(int j = 0 ; j < 4 ; j++) {
-          if(j <= 1) {
-          fings.at(i).at(j)->SetVisi(vis);
-          } else {
-            fings.at(i).at(j)->SetVisi(false);
+    if(FullHands) {
+      if(vis != TNode->Visible()) {
+        TNode->SetVisible(vis);
+        for(int i = 0 ; i < 5 ; i++) {
+          for(int j = 0 ; j < 4 ; j++) {
+            //TODO: Remove finger tip limitation #Code:111
+      //      if(j <= 1) {
+            fings.at(i).at(j)->SetVisi(vis);
+      //      }
+          }
+        }
+      }
+    } else {
+      if(vis != TNode->Visible()) {
+        TNode->SetVisible(vis);
+        for(int i = 0 ; i < 5 ; i++) {
+          for(int j = 0 ; j < 4 ; j++) {
+            if(j <= 1) {
+            fings.at(i).at(j)->SetVisi(vis);
+            } else {
+              fings.at(i).at(j)->SetVisi(false);
+            }
           }
         }
       }

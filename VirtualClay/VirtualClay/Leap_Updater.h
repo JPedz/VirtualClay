@@ -101,6 +101,11 @@ class Leap_Updater : public mb::Node {
   Leap_Tool *tool;
   void ToolSmoothMove();
   void ToolStampMove();
+
+
+  long missCounter;
+  unsigned int uniqueMiss;
+  bool uniqueMissBool;
 public:
   Leap_Updater(ID_List *idl,Leap_Hand *l,Leap_Hand *r);
   void OnEvent(const mb::EventGate &cEvent);

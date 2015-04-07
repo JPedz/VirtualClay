@@ -1044,14 +1044,16 @@ bool MeshOps::SelectFaces(LR lr, float size, float strength) {
     if(faces->size() > 0) {
       mbstatus(QString("Polygon SELECTED"+QString::number(points->size())));
       mblog("box selected");
-      //for(int i = 0 ; i < faces->size() ; i++) {
-      //  mb::Kernel()->Log(QString::number(i)+" "+QString::number(faces->at(i))+"\n");
-      //  pMesh->SetFaceSelected(faces->at(i));
-      //}
+      for(int i = 0 ; i < faces->size() ; i++) {
+        mblog("Faces selected:\n");
+        mblog("Face:"+QString::number(i)+" : "+QString::number(faces->at(i))+"\n");
+        pMesh->SetFaceSelected(faces->at(i));
+      }
       //refreshMesh();
       StoreUndoQueue(lr);
-      //MeshGeo->ChangeActiveLevel(MeshGeo->LowestLevel());
-      //MeshGeo->ChangeActiveLevel(MeshGeo->HighestLevel());
+      mb::SubdivisionLevel *subdiv = MeshGeo->ActiveLevel();
+      MeshGeo->ChangeActiveLevel(MeshGeo->LowestLevel());
+      MeshGeo->ChangeActiveLevel(subdiv);
       return true;
     } else {
       mblog("No faces\n");

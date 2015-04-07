@@ -16,6 +16,10 @@ class Leap_Hand
   mb::Geometry *GeoNode;
   mb::Mesh *MNode;
   ID_List *idList;
+  
+  bool curVis;
+  bool palmOnly;
+  bool fingertips;
 public:
   Leap_Hand(ID_List *idl,LR lOrR);
   Leap_Hand(ID_List *idl,LR lOrR,Leap_Hand *copyHand);
