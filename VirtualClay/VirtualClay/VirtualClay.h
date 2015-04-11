@@ -8,6 +8,7 @@
 
 #ifndef VirtualClay_VirtualClay_h
 #define VirtualClay_VirtualClay_h
+#include <cmath>
 #include "cameraWrapper.h"
 #include "MenuUI.h"
 

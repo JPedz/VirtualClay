@@ -1044,9 +1044,11 @@ bool MeshOps::SelectFaces(LR lr, float size, float strength) {
     if(faces->size() > 0) {
       mbstatus(QString("Polygon SELECTED"+QString::number(points->size())));
       mblog("box selected");
+      mblog("Faces selected:\n");
       for(int i = 0 ; i < faces->size() ; i++) {
-        mblog("Faces selected:\n");
-        mblog("Face:"+QString::number(i)+" : "+QString::number(faces->at(i))+"\n");
+//        mblog("Face:"+QString::number(i)+" : "+QString::number(faces->at(i))+"\n");
+        mblog(QString::number(faces->at(i))+"\n");
+
         pMesh->SetFaceSelected(faces->at(i));
       }
       //refreshMesh();
@@ -1158,6 +1160,7 @@ void MeshOps::boxSelect(LR lr, mb::Vector &v1,mb::Vector &v2,float maxDist, floa
       faces->push_back(p.FaceIndex());
       mblog("facesPushBack\n");
       midPos = p.WorldPosition();
+      mblog("Mid Position: "+VectorToQStringLine(midPos));
       midV->pos = midPos;
       QTime *t = new QTime();
       t->start();

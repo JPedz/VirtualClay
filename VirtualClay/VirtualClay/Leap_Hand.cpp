@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "Leap_Hand.h"
 
-static const bool FullHands = true;
 Leap_Hand::Leap_Hand(ID_List *idl,LR lOrR)
 {
   lr = lOrR;
@@ -16,10 +15,13 @@ Leap_Hand::Leap_Hand(ID_List *idl,LR lOrR)
   idList = idl;
   AddHand();
   AddLeap_Fingers();
+  
+  fingertipsandPalm = true;
   fingertips = false;
   palmOnly = false;
+  FullHands = !fingertipsandPalm;
 
-  if(fingertips || palmOnly) {
+  if(fingertips || palmOnly || fingertipsandPalm) {
     if(fingertips) {
       TNode->SetVisible(false);
       for(int i = 0 ; i < 5 ; i++) {
@@ -31,6 +33,13 @@ Leap_Hand::Leap_Hand(ID_List *idl,LR lOrR)
       TNode->SetVisible(true);
       for(int i = 0 ; i < 5 ; i++) {
         for(int j = 0 ; j < 4 ; j++) {
+          fings.at(i).at(j)->SetVisi(false);
+        }
+      }
+    } else if(fingertipsandPalm || fingertipsandPalm) {
+      TNode->SetVisible(true);
+      for(int i = 0 ; i < 5 ; i++) {
+        for(int j = 1 ; j < 4 ; j++) {
           fings.at(i).at(j)->SetVisi(false);
         }
       }
@@ -53,10 +62,13 @@ Leap_Hand::Leap_Hand(ID_List *idl,LR lOrR,Leap_Hand *copyHand)
   idList = idl;
   CopyHand(copyHand);
   AddLeap_Fingers();
-
   
+  fingertipsandPalm = true;
   fingertips = false;
   palmOnly = false;
+  FullHands = !fingertipsandPalm;
+  
+
   if(fingertips || palmOnly) {
     if(fingertips) {
       TNode->SetVisible(false);
@@ -72,6 +84,13 @@ Leap_Hand::Leap_Hand(ID_List *idl,LR lOrR,Leap_Hand *copyHand)
           fings.at(i).at(j)->SetVisi(false);
         }
       }
+    } else if(fingertipsandPalm) {
+      TNode->SetVisible(true);
+      for(int i = 0 ; i < 5 ; i++) {
+        for(int j = 1 ; j < 4 ; j++) {
+          fings.at(i).at(j)->SetVisi(false);
+        }
+      }
     }
   }
 }
@@ -82,8 +101,7 @@ void Leap_Hand::CopyHand(Leap_Hand *copyHand) {
   idList->storeHandID(id,lr);
   TNode = palm->getTNode();
   TNode->SetName("Palm"+QString::number(id));
-  palm->SetScale(mb::Vector(0.5f,0.05f,0.5f));
-  //palm->SetScale(mb::Vector(0.07f,0.02f,0.07f));
+  palm->SetScale(mb::Vector(0.1f,0.02f,0.1f));
 }
 
 void Leap_Hand::AddHand(void) {
@@ -92,7 +110,7 @@ void Leap_Hand::AddHand(void) {
   idList->storeHandID(id,lr);
   TNode = palm->getTNode();
   TNode->SetName("Palm"+QString::number(id));
-  palm->SetScale(mb::Vector(0.5f,0.05f,0.5f));
+  palm->SetScale(mb::Vector(0.1f,0.02f,0.1f));
 }
 
 Leap_Fingers *Leap_Hand::GetPalm() {
@@ -276,7 +294,7 @@ void Leap_Hand::SetVisi(bool vis) {
         TNode->SetVisible(vis);
         for(int i = 0 ; i < 5 ; i++) {
           for(int j = 0 ; j < 4 ; j++) {
-            if(j <= 1) {
+            if(j < 1) {
             fings.at(i).at(j)->SetVisi(vis);
             } else {
               fings.at(i).at(j)->SetVisi(false);
@@ -346,9 +364,11 @@ mb::AxisAlignedBoundingBox Leap_Hand::getCollisionBox() {
 }
 
 void Leap_Hand::SetAllFingerJointRots() {
-  for(int i = 0 ; i < 5 ; i++) {
-    for(int j = 1 ; j < 4 ; j++) {
-      fings.at(i).at(j)->SetRot(GetAimRotation(fings.at(i).at(j)->GetPos(),fings.at(i).at(j-1)->GetPos()));
+  if(!fingertipsandPalm) {
+    for(int i = 0 ; i < 5 ; i++) {
+      for(int j = 1 ; j < 4 ; j++) {
+        fings.at(i).at(j)->SetRot(GetAimRotation(fings.at(i).at(j)->GetPos(),fings.at(i).at(j-1)->GetPos()));
+      }
     }
   }
 }

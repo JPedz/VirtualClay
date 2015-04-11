@@ -20,6 +20,8 @@ class Leap_Hand
   bool curVis;
   bool palmOnly;
   bool fingertips;
+  bool fingertipsandPalm;
+  bool FullHands;
 public:
   Leap_Hand(ID_List *idl,LR lOrR);
   Leap_Hand(ID_List *idl,LR lOrR,Leap_Hand *copyHand);

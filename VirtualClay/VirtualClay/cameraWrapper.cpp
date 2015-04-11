@@ -67,8 +67,9 @@ void cameraWrapper::setAim(mb::Vector v) {
 }
 
 void cameraWrapper::setRotation(mb::Vector &ypr) {
-  cam->SetAim(mb::Vector(0,0,0));
-  cam->SetTarget(mb::Vector(0,0,0));
+//  cam->SetAim(mb::Vector(0,0,0));
+//  cam->SetTarget(mb::Vector(0,0,0));
+  cam_TNode->SetRotation(ypr);
 }
 
 void cameraWrapper::setTranslation(mb::Vector v) {

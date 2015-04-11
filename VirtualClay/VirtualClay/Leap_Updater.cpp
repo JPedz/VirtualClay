@@ -74,10 +74,12 @@ mb::Vector Leap_Updater::fitToCameraSpace() {
 }
 
 void Leap_Updater::rotateCamera(mb::Vector r) {
-    mb::Vector camPos = viewCam->getTNode()->Position();
-    mb::Vector aimPoint = viewCam->getCamera()->Aim();
-    viewCam->setPosition(RotateVectorAroundPivot(camPos,aimPoint,r));
-    viewCam->getCamera()->SetTarget(aimPoint);
+  mb::Vector camPos = viewCam->getTNode()->Position();
+  mb::Vector aimPoint = viewCam->getCamera()->Aim();
+  mb::Camera *viewCam_Cam = viewCam->getCamera();
+  viewCam->setPosition(RotateVectorAroundPivot(camPos,aimPoint,r));
+  viewCam_Cam->SetAim(aimPoint);
+  viewCam_Cam->SetTarget(mb::Vector(0,0,0),mb::Vector(0,1,0));
 }
 
 void Leap_Updater::ScreenTap(LR lr) {
@@ -134,11 +136,11 @@ bool Leap_Updater::selectMesh(LR lOrR) {
   mb::Vector zeroVector = mb::Vector(0.0f,0.0f,0.0f);
   
   if(lOrR == l) {
-    hand_l->SetVisi(false);
+    //hand_l->SetVisi(false);
     hand_l->SetPos(zeroVector);
       avgSize = hand_l->AvgDistFromThumb();
   } else {
-    hand_r->SetVisi(false);
+    //hand_r->SetVisi(false);
     hand_r->SetPos(zeroVector);
     avgSize = hand_r->AvgDistFromThumb();
   }
@@ -275,6 +277,17 @@ __inline void Leap_Updater::SetHandAndFingerPositions() {
   QTime *t = new QTime();
   t->start();
   mb::Vector camRot = viewCam->getTNode()->Rotation();
+  mb::Vector handOffset = mb::Vector(80,0,0);
+//  if(camRot.z > 0) {
+//    handOffset = -1*handOffset;
+//    camRot = camRot + mb::Vector(180,0,180);
+//  }
+  
+  mb::Vector invertRoll = mb::Vector (1,1,1);
+  if(viewCam->getTNode()->Position().z < 0) {
+    invertRoll = mb::Vector(1,1,-1);
+  }
+  
   hand_l->SetVisi(leapReader->isVisible(l));
   hand_r->SetVisi(leapReader->isVisible(r));
   //mblog(" Set Visi Time: "+QString::number(t->elapsed())+"\n");
@@ -292,32 +305,33 @@ __inline void Leap_Updater::SetHandAndFingerPositions() {
   //mblog(" Step 1 Time: "+QString::number(t->elapsed())+"\n");
   t->restart();
   //Rotate the hands XZY
-  mb::Vector rotation = (mb::Vector(1,1,-1)*camRot) + leapReader->getDirection_L();
+  mb::Vector rotation = (mb::Vector(1,1,1)*camRot) + leapReader->getDirection_L()*invertRoll;
   mb::Matrix rX = createRotateXMatrix(rotation.x);
   mb::Matrix rY = createRotateYMatrix(rotation.y);
   mb::Matrix rZ = createRotateZMatrix(rotation.z);
   mb::Matrix rotationMatrix = rX*rZ*rY;
   hand_l->GetTNode()->SetRotation(rotationMatrix);
 
-  mb::Vector rotation_r = (mb::Vector(-1,1,-1)*camRot) + leapReader->getDirection_R();
+  mb::Vector rotation_r = (mb::Vector(1,1,1)*camRot) + leapReader->getDirection_R()*invertRoll;
   mb::Matrix rX_r = createRotateXMatrix(rotation_r.x);
   mb::Matrix rY_r = createRotateYMatrix(rotation_r.y);
   mb::Matrix rZ_r = createRotateZMatrix(rotation_r.z);
-  mb::Matrix rotationMatrix_r = rZ_r*rX_r*rY_r;
+  mb::Matrix rotationMatrix_r = rX_r*rZ_r*rY_r;
   hand_r->GetTNode()->SetRotation(rotationMatrix_r);
   
   //mblog(" Rotation Matrix Calc Time: "+QString::number(t->elapsed())+"\n");
   t->restart();
+
   hand_l->RotateAroundPivot(-1*camRot,cameraPivot);
   hand_r->RotateAroundPivot(-1*camRot,cameraPivot);
 
   //Setting Cameras to follow Hand;
   cameraWrapper *leftHand = new cameraWrapper(leftCamID);
-  leftHand->getTNode()->SetRotation(hand_l->GetRot()+mb::Vector(80,0,0));
+  leftHand->getTNode()->SetRotation(hand_l->GetRot()+handOffset);
   leftHand->getTNode()->SetPosition(hand_l->GetPos());
   leftHand->MoveForward(-10.0f);
   cameraWrapper *rightHand = new cameraWrapper(rightCamID);
-  rightHand->getTNode()->SetRotation(hand_r->GetRot()+mb::Vector(80,0,0));
+  rightHand->getTNode()->SetRotation(hand_r->GetRot()+handOffset);
   rightHand->getTNode()->SetPosition(hand_r->GetPos());
   rightHand->MoveForward(-20.0f);
   //bool leftColl = false;
@@ -374,7 +388,8 @@ __inline void Leap_Updater::SetHandAndFingerPositions() {
     tool->SetPos(1,tmp);
     tmp = (mb::Vector(-1,1,-1)*camRot)+leapReader->GetToolDirection();
     tool->SetRot( tmp);
-    tool->SetRot(0,GetAimRotation(tool->GetPos(0),mb::Vector(0,0,0)));
+    tmp = GetAimRotation(tool->GetPos(0),mb::Vector(0,0,0));
+    tool->SetRot(0,tmp);
     tmp = (-1*camRot)/2;
     tool->RotateAroundPivot(tmp,cameraPivot);
     tool->RotateAroundPivot(tmp,cameraPivot);
@@ -394,8 +409,8 @@ void Leap_Updater::CameraRotate(LR lOrR) {
     handRot = leapReader->getDirection_L()+mb::Vector(15,0,0);
   }
   mbstatus("HandRot: "+VectorToQString(handRot));
-  if(abs(handRot.x) > deadzone || abs(handRot.y) > deadzone || abs(handRot.z) > deadzone) {
-    if(abs(handRot.x) > abs(handRot.y) && abs(handRot.x) > abs(handRot.z)) {
+  if(std::abs(handRot.x) > deadzone || std::abs(handRot.y) > deadzone || std::abs(handRot.z) > deadzone) {
+    if(std::abs(handRot.x) > std::abs(handRot.y) && std::abs(handRot.x) > std::abs(handRot.z)) {
       //mblog("Pitch\n");
       //mbhud("Rotate Pitch");
       if(handRot.x > 0)
@@ -403,7 +418,7 @@ void Leap_Updater::CameraRotate(LR lOrR) {
       else
         rotateCamera(mb::Vector(-0.5,0,0));
     }
-    if(abs(handRot.y) > abs(handRot.x) && abs(handRot.y) > abs(handRot.z)) {
+    if(std::abs(handRot.y) > std::abs(handRot.x) && std::abs(handRot.y) > std::abs(handRot.z)) {
       //mblog("Roll\n");
       //mbhud("Rotate Roll");
       if(handRot.y > 0)
@@ -411,7 +426,7 @@ void Leap_Updater::CameraRotate(LR lOrR) {
       else
         rotateCamera(mb::Vector(0,-0.5,0));
     }
-    if(abs(handRot.z) > abs(handRot.x) && abs(handRot.z) > abs(handRot.y)) {
+    if(std::abs(handRot.z) > std::abs(handRot.x) && std::abs(handRot.z) > std::abs(handRot.y)) {
       //mblog("Yaw\n");
       //mbhud("Rotate Yaw");
       if(handRot.z > 0)
@@ -433,7 +448,7 @@ void Leap_Updater::CameraZoom(LR lOrR) {
     handRot = leapReader->getPosition_L()+mb::Vector(30,0,0);
   }
   mbstatus("HandRot: "+VectorToQString(handRot));
-  if(abs(handRot.z) > deadzone) {
+  if(std::abs(handRot.z) > deadzone) {
       if(handRot.z > 0) {
         mblog("Forward\n");
         viewCam->getCamera()->MoveForward(mb::Vector(10,0,0));
@@ -448,22 +463,26 @@ void Leap_Updater::CameraZoom(LR lOrR) {
 void Leap_Updater::MenuSettings_R() {
   //https://helpx.adobe.com/illustrator/using/drawing-simple-lines-shapes.html
   mb::Vector PosDifference = menuStartSpace - GetRelativeScreenSpaceFromWorldPos(hand_r->GetFingerPos(INDEX));
+  mbstatus(VectorToQStringLine(PosDifference));
   menuFilter->menuChoice = 5;
   if(PosDifference.y > menuDeadZone) {
     menuFilter->menuChoice = 8;
-    if(PosDifference.y > menuActivateZone)
+    if(PosDifference.y > menuActivateZone) {
       if(PosDifference.x > 0) {
         menuFilter->menuChoice = 19;
-        if(PosDifference.y > menuActivateZone2)
+        if(PosDifference.y > menuActivateZone) {
           menuDown_0 = true;
+        }
       } else {
         menuFilter->menuChoice = 20;
-        if(PosDifference.y > menuActivateZone2)
+        if(PosDifference.y > menuActivateZone2) {
           menuDown_1 = true;
+        }
       }
+    }
   } else if(PosDifference.y < -menuDeadZone) {
     menuFilter->menuChoice = 6;
-    if(PosDifference.y < -menuActivateZone)
+    if(PosDifference.y < -menuActivateZone) {
       if(PosDifference.x > 0) {
         menuFilter->menuChoice = 15;
         if(PosDifference.y < -menuActivateZone2)
@@ -473,8 +492,14 @@ void Leap_Updater::MenuSettings_R() {
         if(PosDifference.y < -menuActivateZone2)
           menuUp_1 = true;
       }
+    }
   }
-  if(abs(PosDifference.x) > abs(PosDifference.y)) {
+  mblog("Abs pos X = "+QString::number(std::abs(PosDifference.x))+"\n");
+  mblog("Abs 0.5f = "+QString::number(std::abs(float(0.5)))+"\n");
+  mblog("Abs 0.5f = "+QString::number(std::abs(float(PosDifference.x)))+"\n");
+  if(std::abs(PosDifference.x) > std::abs(PosDifference.y)) {
+    mbhud("ABS WORKS");
+    mblog("ABS WORKS");
     if(PosDifference.x > menuDeadZone) {
       menuFilter->menuChoice = 9;
       if(PosDifference.x > menuActivateZone) {
@@ -556,7 +581,7 @@ void Leap_Updater::MenuSettings_L() {
       menuDown = true;
   } else if(PosDifference.y < -menuDeadZone) {
     menuFilter->menuChoice = 1;
-    if(PosDifference.y < -menuActivateZone)
+    if(PosDifference.y < -menuActivateZone) {
       if(PosDifference.x > 0) {
         menuFilter->menuChoice = 11;
         if(PosDifference.y < -menuActivateZone2)
@@ -566,8 +591,9 @@ void Leap_Updater::MenuSettings_L() {
         if(PosDifference.y < -menuActivateZone2)
           menuUp_1 = true;
       }
+    }
   }
-  if(abs(PosDifference.x) > abs(PosDifference.y)) {
+  if(std::abs(PosDifference.x) > std::abs(PosDifference.y)) {
     if(PosDifference.x > menuDeadZone) {
       menuFilter->menuChoice = 4;
       if(PosDifference.x > menuActivateZone) {

@@ -199,13 +199,15 @@ void Leap_HUD::Process(mb::ViewPortState &s) {
   case 1:
     currTex = menuUp_L;
     break;
-  case 2:
+    case 2:
+      mblog("MenuRight_L\n");
     currTex = menuRight_L;
     break;
   case 3:
     currTex = menuDown_L;
     break;
-  case 4:
+    case 4:
+      mblog("MenuLeft_L\n");
     currTex = menuLeft_L;
     break;
   case 5:
@@ -215,6 +217,7 @@ void Leap_HUD::Process(mb::ViewPortState &s) {
     currTex = menuUp_R;
     break;
   case 7:
+      mblog("MenuRight_R\n");
     currTex = menuRight_R;
     break;
   case 8:

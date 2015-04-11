@@ -25,7 +25,7 @@ void AirPen_Server::SendMsg(int stage) {
   //LastSent ensures we are not spamming the network.
   //mblog("Conecting\n");
   //mblog("Server socket is valid\n");
-  if(isConnected) 
+    if(isConnected) {
     if((lastSent != 1) && (stage == 1)) {
       server->connectToHost(IP, port);
       server->write("1");
@@ -50,6 +50,7 @@ void AirPen_Server::SendMsg(int stage) {
       server->close();
       mblog("Wrote 2\n");
       lastSent = 2;
+    }
     }// else {
     //  //Ensure something is sent
     //  switch(lastSent) {

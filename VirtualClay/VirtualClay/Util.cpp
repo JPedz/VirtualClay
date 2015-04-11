@@ -38,6 +38,7 @@ mb::Vector RotateVectorAroundPivot(mb::Vector &pos,mb::Vector &pivot, mb::Vector
   mb::Matrix rY = createRotateYMatrix(rotation.y);
   mb::Matrix rZ = createRotateZMatrix(rotation.z);
   mb::Matrix rotationMatrix = rZ*rY*rX;
+//  mb::Matrix rotationMatrix = rX*rZ*rY;
   mb::Vector newPos = rotationMatrix*pos_t;
   newPos = tinv*newPos;
   return newPos;
@@ -75,6 +76,7 @@ Leap::Vector mbVecToLeapVec(mb::Vector v) {
 //  
 //  return mb::Vector(0,0,0);
 //}
+
 __inline mb::Matrix matrixFromVectors(mb::Vector v1,mb::Vector v2,mb::Vector v3) {
   return mb::Matrix(v1.x,v1.y,v1.z,0.0f,v2.x,v2.y,v2.z,0,v3.x,v3.y,v3.z,0.0f,0.0f,0.0f,0.0f,0.0f);
 }
@@ -110,6 +112,6 @@ void LeapSleep(unsigned int ms) {
   #ifdef Q_OS_WIN
     Sleep(ms);
   #else
-    sleep(unsigned int(ms/1000));
+    sleep((unsigned int)(ms/1000));
   #endif
 }
