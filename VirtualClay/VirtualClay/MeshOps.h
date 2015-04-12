@@ -95,6 +95,7 @@ public:
   void ChangeCamera(cameraWrapper *cam);
   void MoveVertices(LR lr, mb::Vector v, bool update = true);
   void MoveVertices(LR lr, float dist);
+  void MoveVerticesNormal(LR lr, float dist, mb::Vector point);
   bool CheckIntersection(mb::AxisAlignedBoundingBox box1);
   bool CheckTouching(mb::AxisAlignedBoundingBox box1);
   void DeselectAllFaces();

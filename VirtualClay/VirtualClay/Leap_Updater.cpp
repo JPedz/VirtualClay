@@ -1076,12 +1076,12 @@ void Leap_Updater::ToolSmoothMove() {
   mblog("Tool Proj Pos = "+VectorToQStringLine(toolProj));
   mblog("Tool Proj Pos Pixels = "+VectorToQStringLine(ScreenSpaceToPixels(toolProj)));
   //meshOp->ChangeCamera(viewCam);
-  if(meshOp->SelectFaces(r,ScreenSpaceToPixels(toolProj),10.0f,10)) {
+  if(meshOp->SelectFaces(r,ScreenSpaceToPixels(toolProj),brushStrength,brushStrength)) {
     facesAreSelected_Tool = true;
     mb::Vector dirNorm = leapReader->getToolMotionDirection();
     mblog("Normalised Direction = "+VectorToQStringLine(dirNorm));
-    mb::Vector dist = dirNorm*brushStrength;
-    meshOp->MoveVertices(r,dist);
+    mb::Vector dist = dirNorm*brushStrength*2;
+    meshOp->MoveVerticesNormal(r,dist,tool->GetPos(0));
   }
   tool->SetVisi(true);
 }

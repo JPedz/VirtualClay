@@ -1577,6 +1577,50 @@ void MeshOps::MoveVertices(LR lr, float dist) {
     mblog("Refresh Mesh time: "+QString::number(t->elapsed())+"\n");
   }
 }
+
+void MeshOps::MoveVerticesNormal(LR lr, float dist, mb::Vector point) {
+  //move in direction of normals
+  mb::Vector inverseScale = mb::Vector(1,1,1);
+  mb::Vector mScale = MeshGeo->Transformation()->Scale();
+  if((mScale.x != 1) || (mScale.y != 1) || (mScale.z != 1)) {
+    inverseScale.x = 1/mScale.x;
+    inverseScale.y = 1/mScale.y;
+    inverseScale.z = 1/mScale.z;
+    dist = dist * inverseScale;
+  }
+  QTime *t = new QTime();
+  t->start();
+  int vi,lvi;
+  float strength;
+  int strokeID;
+  mb::Vector v = mb::Vector(0,0,0);
+  std::vector<VertexModifyInfo> *vertices;
+  if(lr == l) 
+    vertices = vertices_L;
+  else 
+    vertices = vertices_R;
+  for(int i = 0 ; i < vertices->size(); i++) {
+    vi = vertices->at(i).vI;
+    lvi = vertices->at(i).lVI;
+    strength = vertices->at(i).strength;
+    if(strength > 0.0f) {
+      strength *= 10*dist;
+      v = pMesh->VertexPosition(vi) - point;
+      v.Normalize();
+      meshLayer->SetVertexDelta(lvi,vi,v*strength,true);
+    }
+    //pMesh->AddVertexPosition(vi,v*strength*dist);
+    //strokeID = pMesh->VertexStrokeID(vi);
+    //pMesh->SetVertexStrokeID(vi,strokeID++);
+    //mb::Kernel()->Log(QString::number(vi)+ " " + QString::number(v2.x)+"\n"); 
+  }
+  mblog("MoveVertices Normal Version time: "+QString::number(t->elapsed())+"\n");
+  if(MeshGeo != NULL) {
+    t->restart();
+    refreshMesh();
+    mblog("Refresh Mesh time: "+QString::number(t->elapsed())+"\n");
+  }
+}
 //
 //void MeshOps::MoveVertices2(LR lr, float dist) {
 //  //move in direction of normals
