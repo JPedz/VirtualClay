@@ -525,6 +525,7 @@ void Leap_Updater::CameraPan(LR lOrR) {
   const float deadzone = 30.0f;
   mb::Vector handPos;
   mb::Vector difference;
+
   if(lOrR == r) {
     handPos = leapReader->getPosition_R();
     difference = handPos - savedPanHandPosition_R;
@@ -535,23 +536,26 @@ void Leap_Updater::CameraPan(LR lOrR) {
   mbstatus("Difference = "+VectorToQString(difference));
   if(std::abs(difference.x) > std::abs(difference.y)) {
     if(difference.x > deadzone) {
+
+      
+      viewCam->getCamera()->SetAim(viewCam->getCamera()->Aim()+(0.5f*viewCam->getCamera()->Right()));
+      viewCam->setPosition(viewCam->getPosition()+(0.5f*viewCam->getCamera()->Right()));
+
       //viewCam->getCamera()->SetAim(viewCam->getCamera()->Aim()+mb::Vector(0.5,0,0));
       //viewCam->setPosition(viewCam->getPosition()+mb::Vector(0.5,0,0));
-      viewCam->getCamera()->SetPosition2D(viewCam->getCamera()->Position2D()+mb::Vector(0.5,0,0));
     } else if(difference.x < -deadzone) {
       //viewCam->getCamera()->SetAim(viewCam->getCamera()->Aim()+mb::Vector(-0.5,0,0));
-      //viewCam->setPosition(viewCam->getPosition()+mb::Vector(-0.5,0,0
-      viewCam->getCamera()->SetPosition2D(viewCam->getCamera()->Position2D()+mb::Vector(-0.5,0,0));
+      //viewCam->setPosition(viewCam->getPosition()+mb::Vector(-0.5,0,0));
+      viewCam->getCamera()->SetAim(viewCam->getCamera()->Aim()+(-0.5f*viewCam->getCamera()->Right()));
+      viewCam->setPosition(viewCam->getPosition()+(-0.5f*viewCam->getCamera()->Right()));
     }
   } else {  
     if(difference.y > deadzone) {
-      //viewCam->getCamera()->SetAim(viewCam->getCamera()->Aim()+mb::Vector(0,0.5,0));
-      //viewCam->setPosition(viewCam->getPosition()+mb::Vector(0,0.5,0));
-      viewCam->getCamera()->SetPosition2D(viewCam->getCamera()->Position2D()+mb::Vector(0,0.5,0));
+      viewCam->getCamera()->SetAim(viewCam->getCamera()->Aim()+mb::Vector(0,0.5,0));
+      viewCam->setPosition(viewCam->getPosition()+mb::Vector(0,0.5,0));
     } else if(difference.y < -deadzone) {
-      /*viewCam->getCamera()->SetAim(viewCam->getCamera()->Aim()+mb::Vector(0,-0.5,0));
-      viewCam->setPosition(viewCam->getPosition()+mb::Vector(0,-0.5,0));*/
-      viewCam->getCamera()->SetPosition2D(viewCam->getCamera()->Position2D()+mb::Vector(0,-0.5,0));
+      viewCam->getCamera()->SetAim(viewCam->getCamera()->Aim()+mb::Vector(0,-0.5,0));
+      viewCam->setPosition(viewCam->getPosition()+mb::Vector(0,-0.5,0));
     }
   }
   
