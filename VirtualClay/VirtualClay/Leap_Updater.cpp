@@ -32,9 +32,12 @@ Leap_Updater::Leap_Updater(ID_List *idl,Leap_Hand *l,Leap_Hand *r)
   leapReader->SetScale(mb::Vector(1,1,1));
   frameEvent.Connect(mb::Kernel()->ViewPort()->FrameEvent);
   menuFilter = new Leap_HUD();
+  gestureHUD = new GestureHUD();
   mb::Kernel()->ViewPort()->AddFilter(menuFilter);
+  mb::Kernel()->ViewPort()->AddFilter(gestureHUD);
+  gestureHUD->SetVisible(false);
   menuFilter->SetVisible(false);
-  brushSize = 20.0f;
+  brushSize = 30.0f;
   brushStrength = 10.0f;
   inMenu_L = false;
   inMenu_R = false;
@@ -57,14 +60,19 @@ Leap_Updater::Leap_Updater(ID_List *idl,Leap_Hand *l,Leap_Hand *r)
   SceneNavigationToggle = true;
   pivotHandsOnMesh = true;
   moveObjectMode = false;
+  firstPan_L = true;
+  firstPan_R = true;
+  savedPanHandPosition_L = mb::Vector(0,0,0);
+  savedPanHandPosition_R = mb::Vector(0,0,0);
   savedHandPivotPoint = mb::Vector(0,0,0);
   brushStrengthFingerStartPos = mb::Vector(0,0,0);
   brushSizeStartFingerStartPos = mb::Vector(0,0,0);
+  GimbalLockZXYMode = false;
 
 }
 
 mb::Vector Leap_Updater::fitToCameraSpace() {
-  mb::Vector camPos = viewCam->getPosision();
+  mb::Vector camPos = viewCam->getPosition();
   mb::Vector pO = mb::Vector(0,150,300);
   mb::Vector heightOffset = mb::Vector(0,150,0);
   mb::Vector camForward = viewCam->getForward();
@@ -78,8 +86,7 @@ void Leap_Updater::rotateCamera(mb::Vector r) {
   mb::Vector aimPoint = viewCam->getCamera()->Aim();
   mb::Camera *viewCam_Cam = viewCam->getCamera();
   viewCam->setPosition(RotateVectorAroundPivot(camPos,aimPoint,r));
-  viewCam_Cam->SetAim(aimPoint);
-  viewCam_Cam->SetTarget(mb::Vector(0,0,0),mb::Vector(0,1,0));
+  viewCam_Cam->SetTarget(aimPoint);
 }
 
 void Leap_Updater::ScreenTap(LR lr) {
@@ -128,10 +135,8 @@ bool Leap_Updater::selectMeshPinch() {
 bool Leap_Updater::selectMesh(LR lOrR) {
   int handCamID = idList->getCam(lOrR);
   cameraWrapper *handCam = new cameraWrapper(handCamID);
-
-  //handCam->MoveForward(50);
   bool b =false;
-  float avgSize = 5;
+  float avgSize;
   meshOp->ChangeCamera(handCam);
   mb::Vector zeroVector = mb::Vector(0.0f,0.0f,0.0f);
   
@@ -150,7 +155,11 @@ bool Leap_Updater::selectMesh(LR lOrR) {
   mb::Kernel()->ViewPort()->Redraw();  
   mblog("Brush Size = "+QString::number(avgSize));
   b = meshOp->SelectFaces(lOrR,avgSize,brushStrength);
-  hand_l->SetVisi(true);
+  //if(lOrR == l) {
+  //  hand_l->SetVisi(true);
+  //} else {
+  //  hand_r->SetVisi(true);
+  //}
   mb::Kernel()->Scene()->SetActiveCamera(viewCam->getCamera());
   mb::Kernel()->ViewPort()->Redraw();
   return b;
@@ -278,10 +287,7 @@ __inline void Leap_Updater::SetHandAndFingerPositions() {
   t->start();
   mb::Vector camRot = viewCam->getTNode()->Rotation();
   mb::Vector handOffset = mb::Vector(80,0,0);
-//  if(camRot.z > 0) {
-//    handOffset = -1*handOffset;
-//    camRot = camRot + mb::Vector(180,0,180);
-//  }
+
   
   mb::Vector invertRoll = mb::Vector (1,1,1);
   if(viewCam->getTNode()->Position().z < 0) {
@@ -302,28 +308,56 @@ __inline void Leap_Updater::SetHandAndFingerPositions() {
   tmp = cameraPivot + leapReader->getPosition_R();
   hand_r->SetPos(tmp);
   
+  hand_l->RotateAroundPivot(-1*camRot,cameraPivot);
+  hand_r->RotateAroundPivot(-1*camRot,cameraPivot);
   //mblog(" Step 1 Time: "+QString::number(t->elapsed())+"\n");
   t->restart();
   //Rotate the hands XZY
-  mb::Vector rotation = (mb::Vector(1,1,1)*camRot) + leapReader->getDirection_L()*invertRoll;
+  mb::Vector rotation = (mb::Vector(1,1,-1)*camRot) + leapReader->getDirection_L()*invertRoll;
   mb::Matrix rX = createRotateXMatrix(rotation.x);
   mb::Matrix rY = createRotateYMatrix(rotation.y);
   mb::Matrix rZ = createRotateZMatrix(rotation.z);
-  mb::Matrix rotationMatrix = rX*rZ*rY;
+  mb::Matrix rotationMatrix;
+  if(!GimbalLockZXYMode) {
+    rotationMatrix = rX*rY*rZ;
+    hand_l->GetTNode()->SetRotation(rotationMatrix);
+    if((hand_l->GetRot().y < 135) && ( hand_l->GetRot().y > 45))
+    {
+     GimbalLockZXYMode = true;
+     rotationMatrix = rZ*rX*rY;
+    }
+    else {
+     rotationMatrix = rX*rY*rZ;
+    }
+    mbhud("GimbalLock ON");
+  } else {
+    rotationMatrix = rZ*rX*rY;
+    hand_l->GetTNode()->SetRotation(rotationMatrix);
+    if(!(hand_l->GetRot().x < 135) && ( hand_l->GetRot().x > 45))
+    {
+     GimbalLockZXYMode = false;
+     rotationMatrix = rX*rY*rZ;
+    }
+    else {
+     rotationMatrix = rZ*rX*rY;
+    }
+    mbhud("GimbalLock OFF");
+  }
   hand_l->GetTNode()->SetRotation(rotationMatrix);
 
-  mb::Vector rotation_r = (mb::Vector(1,1,1)*camRot) + leapReader->getDirection_R()*invertRoll;
+  
+  
+  mb::Vector rotation_r = (mb::Vector(1,1,-1)*camRot) + leapReader->getDirection_R()*invertRoll;
+  //rotation_r = GetAimRotation(hand_r->GetPos(),hand_r->GetFingerPos(INDEX))+mb::Vector(90,0,0);
   mb::Matrix rX_r = createRotateXMatrix(rotation_r.x);
   mb::Matrix rY_r = createRotateYMatrix(rotation_r.y);
   mb::Matrix rZ_r = createRotateZMatrix(rotation_r.z);
-  mb::Matrix rotationMatrix_r = rX_r*rZ_r*rY_r;
+  mb::Matrix rotationMatrix_r = rZ_r*rX_r*rY_r;
   hand_r->GetTNode()->SetRotation(rotationMatrix_r);
   
   //mblog(" Rotation Matrix Calc Time: "+QString::number(t->elapsed())+"\n");
   t->restart();
 
-  hand_l->RotateAroundPivot(-1*camRot,cameraPivot);
-  hand_r->RotateAroundPivot(-1*camRot,cameraPivot);
 
   //Setting Cameras to follow Hand;
   cameraWrapper *leftHand = new cameraWrapper(leftCamID);
@@ -401,7 +435,7 @@ __inline void Leap_Updater::SetHandAndFingerPositions() {
 }
 
 void Leap_Updater::CameraRotate(LR lOrR) {
-  const float deadzone = 20.0f;
+  const float deadzone = 30.0f;
   mb::Vector handRot;
   if(lOrR == r) {
     handRot = leapReader->getDirection_R()+mb::Vector(15,0,0);
@@ -417,7 +451,7 @@ void Leap_Updater::CameraRotate(LR lOrR) {
         rotateCamera(mb::Vector(0.5,0,0));
       else
         rotateCamera(mb::Vector(-0.5,0,0));
-    }
+    } else 
     if(std::abs(handRot.y) > std::abs(handRot.x) && std::abs(handRot.y) > std::abs(handRot.z)) {
       //mblog("Roll\n");
       //mbhud("Rotate Roll");
@@ -425,7 +459,7 @@ void Leap_Updater::CameraRotate(LR lOrR) {
         rotateCamera(mb::Vector(0,0.5,0));
       else
         rotateCamera(mb::Vector(0,-0.5,0));
-    }
+    } else
     if(std::abs(handRot.z) > std::abs(handRot.x) && std::abs(handRot.z) > std::abs(handRot.y)) {
       //mblog("Yaw\n");
       //mbhud("Rotate Yaw");
@@ -441,23 +475,58 @@ void Leap_Updater::CameraRotate(LR lOrR) {
 
 void Leap_Updater::CameraZoom(LR lOrR) {
   const float deadzone = 20.0f;
-  mb::Vector handRot;
+  mb::Vector handPos;
   if(lOrR == r) {
-    handRot = leapReader->getPosition_R()+mb::Vector(30,0,0);
+    handPos = leapReader->getPosition_R();
   } else {
-    handRot = leapReader->getPosition_L()+mb::Vector(30,0,0);
+    handPos = leapReader->getPosition_L();
   }
-  mbstatus("HandRot: "+VectorToQString(handRot));
-  if(std::abs(handRot.z) > deadzone) {
-      if(handRot.z > 0) {
+  mbstatus("HandRot: "+VectorToQString(handPos));
+  if(std::abs(handPos.z) > deadzone) {
+      if(handPos.z > 0) {
         mblog("Forward\n");
-        viewCam->getCamera()->MoveForward(mb::Vector(10,0,0));
+        viewCam->getCamera()->MoveForward(mb::Vector(5,0,0));
       } else {
         mbhud("Backward\n");
-        viewCam->getCamera()->MoveBackward(mb::Vector(10,0,0));
+        viewCam->getCamera()->MoveBackward(mb::Vector(5,0,0));
       }
     }
+
   //viewCam->getTNode()->SetPosition(sceneRotate);
+}
+
+void Leap_Updater::CameraPan(LR lOrR) {
+  const float deadzone = 30.0f;
+  mb::Vector handPos;
+  mb::Vector difference;
+  if(lOrR == r) {
+    handPos = leapReader->getPosition_R();
+    difference = handPos - savedPanHandPosition_R;
+  } else {
+    handPos = leapReader->getPosition_L();
+    difference = handPos - savedPanHandPosition_L;
+  }
+  mbstatus("Difference = "+VectorToQString(difference));
+  if(std::abs(difference.x) > std::abs(difference.y)) {
+    if(difference.x > deadzone) {
+      viewCam->getCamera()->SetAim(viewCam->getCamera()->Aim()+mb::Vector(0.5,0,0));
+      viewCam->setPosition(viewCam->getPosition()+mb::Vector(0.5,0,0));
+    } else if(difference.x < -deadzone) {
+      viewCam->getCamera()->SetAim(viewCam->getCamera()->Aim()+mb::Vector(-0.5,0,0));
+      viewCam->setPosition(viewCam->getPosition()+mb::Vector(-0.5,0,0));
+    }
+  } else {  
+    if(difference.y > deadzone) {
+      viewCam->getCamera()->SetAim(viewCam->getCamera()->Aim()+mb::Vector(0,0.5,0));
+      viewCam->setPosition(viewCam->getPosition()+mb::Vector(0,0.5,0));
+    } else if(difference.y < -deadzone) {
+      viewCam->getCamera()->SetAim(viewCam->getCamera()->Aim()+mb::Vector(0,-0.5,0));
+      viewCam->setPosition(viewCam->getPosition()+mb::Vector(0,-0.5,0));
+    }
+  }
+  
+  mblog("Aim = "+VectorToQStringLine(viewCam->getCamera()->Aim()));
+  viewCam->getCamera()->SetTarget(viewCam->getCamera()->Aim());
 }
 
 void Leap_Updater::MenuSettings_R() {
@@ -781,15 +850,39 @@ __inline void Leap_Updater::checkNavigationGestures() {
     if(leapReader->isVisible(l)) {
       if(leapReader->CheckRotateHandGesture(l)) {
         CameraRotate(l);
+        gestureHUD->menuChoice = 2;
+        gestureHUD->SetVisible(true);
+        firstPan_L = true;
       } else if(leapReader->CheckScaleHandGesture(l)) {
         CameraZoom(l);
+        if(firstPan_L) {
+          savedPanHandPosition_L = leapReader->getPosition_L();
+          firstPan_L = false;
+        }
+        gestureHUD->menuChoice = 3;
+        gestureHUD->SetVisible(true);
+        CameraPan(l);
+      } else {
+        firstPan_L = true;
       }
     }
     if(leapReader->isVisible(r)) {
       if(leapReader->CheckRotateHandGesture(r)) {
         CameraRotate(r);
+        gestureHUD->menuChoice = 2;
+        gestureHUD->SetVisible(true);
+        firstPan_R = true;
       } else if(leapReader->CheckScaleHandGesture(r)) {
         CameraZoom(r);
+        if(firstPan_R) {
+          savedPanHandPosition_R = leapReader->getPosition_R();
+          firstPan_R = false;
+        }
+        gestureHUD->menuChoice = 3;
+        gestureHUD->SetVisible(true);
+        CameraPan(l);
+      } else {
+        firstPan_R = true;
       }
     }
   }
@@ -824,11 +917,17 @@ __inline void Leap_Updater::checkScreenTapGesture() {
   if(leapReader->CheckFingerExtensions(l,false,true,false,false,false)) {
     if(leapReader->isScreenTap_L) {
       mblog("got tap\n");
+      gestureHUD->refresh = true;
+      gestureHUD->menuChoice = 5;
+      gestureHUD->SetVisible(true);
       ScreenTap(l);
     }
-  } else if(leapReader->CheckFingerExtensions(l,false,true,false,false,false)) {
+  } else if(leapReader->CheckFingerExtensions(r,false,true,false,false,false)) {
     if(leapReader->isScreenTap_R) {
       mblog("got tap\n");
+      gestureHUD->refresh = true;
+      gestureHUD->menuChoice = 5;
+      gestureHUD->SetVisible(true);
       ScreenTap(r);
     }
   }
@@ -839,6 +938,9 @@ __inline void Leap_Updater::checkUndoGesture() {
   if(leapReader->isUndo) {
     mb::Kernel()->Interface()->HUDMessageShow("UNDO");
     meshOp->UndoLast();
+    gestureHUD->refresh = true;
+    gestureHUD->menuChoice = 6;
+    gestureHUD->SetVisible(true);
     //meshOp_R->UndoLast();
   }
 }
@@ -869,8 +971,12 @@ __inline void Leap_Updater::checkGrabbingGesture() {
         mbstatus("Right hand grabbing too\n");
         Extrusion(r);
       }
+      gestureHUD->menuChoice = 1;
+      gestureHUD->SetVisible(true);
     } else if(leapReader->isGrabbing_R) {
       Extrusion(r);
+      gestureHUD->menuChoice = 1;
+      gestureHUD->SetVisible(true);
     } else {
       if(facesAreSelected_R || facesAreSelected_L){
         meshOp->DeselectAllFaces();
@@ -878,6 +984,7 @@ __inline void Leap_Updater::checkGrabbingGesture() {
         mblog("going to deselect faces");
         //meshOp_R->DeselectAllFaces();
       }
+      gestureHUD->refresh = true;
       uniqueMissBool = true;
       firstmoveswitch = true;
       facesAreSelected_R = false;
@@ -1022,6 +1129,9 @@ __inline void Leap_Updater::checkUndoMoveGesture() {
   if(leapReader->isUndo) {
     mb::Kernel()->Interface()->HUDMessageShow("UNDO Move");
     meshOp->UndoLastMove();
+    gestureHUD->refresh = true;
+    gestureHUD->menuChoice = 6;
+    gestureHUD->SetVisible(true);
   }
 }
 

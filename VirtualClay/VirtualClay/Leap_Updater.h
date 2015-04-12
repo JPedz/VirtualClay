@@ -5,6 +5,7 @@
 #include "cameraWrapper.h"
 #include "MeshOps.h"
 #include "Leap_HUD.h"
+#include "GestureHUD.h"
 #include <Mudbox/image.h>
 #include "Leap_Tool.h"
 #include <QTCore/QTime>
@@ -24,6 +25,7 @@ class Leap_Updater : public mb::Node {
   void rotateCamera(mb::Vector r);
   void CameraRotate(LR lOrR);
   void CameraZoom(LR lOrR);
+  void CameraPan(LR lOrR);
   mb::aevent frameEvent;
   Leap_Reader *leapReader;
   MeshOps *meshOp;
@@ -72,6 +74,7 @@ class Leap_Updater : public mb::Node {
   bool moveObjectMode;
   mb::Vector menuStartSpace;
   Leap_HUD *menuFilter;
+  GestureHUD *gestureHUD;
   
   void ThumbSmoothMove(LR lr);
 
@@ -95,7 +98,13 @@ class Leap_Updater : public mb::Node {
   void MoveSelectedObject(LR lr);
   bool isFirstGrab;
 
+  bool GimbalLockZXYMode;
+
   mb::Vector cameraPivot;
+  mb::Vector savedPanHandPosition_L;
+  mb::Vector savedPanHandPosition_R;
+  bool firstPan_L;
+  bool firstPan_R;
   mb::Vector savedHandPivotPoint;
   //Tools:
   Leap_Tool *tool;

@@ -160,6 +160,7 @@
   <ItemGroup>
     <ClInclude Include="AirPen_Server.h" />
     <ClInclude Include="cameraWrapper.h" />
+    <ClInclude Include="GestureHUD.h" />
     <ClInclude Include="Leap_Fingers.h" />
     <ClInclude Include="Leap_Hand.h" />
     <ClInclude Include="Leap_HUD.h" />
@@ -179,6 +180,7 @@
   <ItemGroup>
     <ClCompile Include="AirPen_Server.cpp" />
     <ClCompile Include="cameraWrapper.cpp" />
+    <ClCompile Include="GestureHUD.cpp" />
     <ClCompile Include="Leap_Fingers.cpp" />
     <ClCompile Include="ID_List.cpp" />
     <ClCompile Include="Leap_Hand.cpp" />

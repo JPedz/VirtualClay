@@ -68,8 +68,8 @@ Leap_Hand::Leap_Hand(ID_List *idl,LR lOrR,Leap_Hand *copyHand)
   palmOnly = false;
   FullHands = !fingertipsandPalm;
   
-
-  if(fingertips || palmOnly) {
+  
+  if(fingertips || palmOnly || fingertipsandPalm) {
     if(fingertips) {
       TNode->SetVisible(false);
       for(int i = 0 ; i < 5 ; i++) {

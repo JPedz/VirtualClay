@@ -44,7 +44,7 @@ mb::Vector cameraWrapper::getForward(void) {
   return cam->Forward();
 }
 
-mb::Vector cameraWrapper::getPosision() {
+mb::Vector cameraWrapper::getPosition() {
   return cam_TNode->Position();
 }
 

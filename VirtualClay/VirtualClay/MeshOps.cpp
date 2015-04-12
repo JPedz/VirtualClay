@@ -1532,6 +1532,14 @@ void MeshOps::MoveVertices(LR lr, mb::Vector v, bool update) {
 
 void MeshOps::MoveVertices(LR lr, float dist) {
   //move in direction of normals
+  mb::Vector inverseScale = mb::Vector(1,1,1);
+  mb::Vector mScale = MeshGeo->Transformation()->Scale();
+  if((mScale.x != 1) || (mScale.y != 1) || (mScale.z != 1)) {
+    inverseScale.x = 1/mScale.x;
+    inverseScale.y = 1/mScale.y;
+    inverseScale.z = 1/mScale.z;
+    dist = dist * inverseScale;
+  }
   QTime *t = new QTime();
   t->start();
   int vi,lvi;

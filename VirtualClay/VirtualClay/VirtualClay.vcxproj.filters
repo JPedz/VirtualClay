@@ -69,6 +69,9 @@
     <ClInclude Include="AirPen_Server.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GestureHUD.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -117,6 +120,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="AirPen_Server.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GestureHUD.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

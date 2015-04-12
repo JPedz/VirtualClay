@@ -19,7 +19,6 @@ class cameraWrapper {
     void addCameraToScene(void);
     void setAim(mb::Vector v);
     void setTNode(void);
-    mb::Vector getPosision();
     int getID();
     QString getName();
     void deleteCam(void);
@@ -28,6 +27,7 @@ class cameraWrapper {
     void setPosition(mb::Vector &pos);
     void setPosition(mb::Vector pos);
     void MoveForward(float dist);
+    mb::Vector getPosition(void);
 };
 
 #endif
