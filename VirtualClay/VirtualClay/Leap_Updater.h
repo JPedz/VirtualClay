@@ -97,8 +97,9 @@ class Leap_Updater : public mb::Node {
   //Moveing Object:
   void MoveSelectedObject(LR lr);
   bool isFirstGrab;
-
-  bool GimbalLockZXYMode;
+  
+  bool GimbalLockZXYMode_L;
+  bool GimbalLockZXYMode_R;
 
   mb::Vector cameraPivot;
   mb::Vector savedPanHandPosition_L;

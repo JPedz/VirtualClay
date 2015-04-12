@@ -67,7 +67,8 @@ Leap_Updater::Leap_Updater(ID_List *idl,Leap_Hand *l,Leap_Hand *r)
   savedHandPivotPoint = mb::Vector(0,0,0);
   brushStrengthFingerStartPos = mb::Vector(0,0,0);
   brushSizeStartFingerStartPos = mb::Vector(0,0,0);
-  GimbalLockZXYMode = false;
+  GimbalLockZXYMode_L = false;
+  GimbalLockZXYMode_R = false;
 
 }
 
@@ -318,30 +319,30 @@ __inline void Leap_Updater::SetHandAndFingerPositions() {
   mb::Matrix rY = createRotateYMatrix(rotation.y);
   mb::Matrix rZ = createRotateZMatrix(rotation.z);
   mb::Matrix rotationMatrix;
-  if(!GimbalLockZXYMode) {
+  if(!GimbalLockZXYMode_L) {
     rotationMatrix = rX*rY*rZ;
     hand_l->GetTNode()->SetRotation(rotationMatrix);
     if((hand_l->GetRot().y < 135) && ( hand_l->GetRot().y > 45))
     {
-     GimbalLockZXYMode = true;
+     GimbalLockZXYMode_L = true;
      rotationMatrix = rZ*rX*rY;
     }
     else {
      rotationMatrix = rX*rY*rZ;
     }
-    mbhud("GimbalLock ON");
+    //mbhud("GimbalLock ON");
   } else {
     rotationMatrix = rZ*rX*rY;
     hand_l->GetTNode()->SetRotation(rotationMatrix);
     if(!(hand_l->GetRot().x < 135) && ( hand_l->GetRot().x > 45))
     {
-     GimbalLockZXYMode = false;
+     GimbalLockZXYMode_L = false;
      rotationMatrix = rX*rY*rZ;
     }
     else {
      rotationMatrix = rZ*rX*rY;
     }
-    mbhud("GimbalLock OFF");
+    //mbhud("GimbalLock OFF");
   }
   hand_l->GetTNode()->SetRotation(rotationMatrix);
 
@@ -353,6 +354,32 @@ __inline void Leap_Updater::SetHandAndFingerPositions() {
   mb::Matrix rY_r = createRotateYMatrix(rotation_r.y);
   mb::Matrix rZ_r = createRotateZMatrix(rotation_r.z);
   mb::Matrix rotationMatrix_r = rZ_r*rX_r*rY_r;
+   mb::Matrix rotationMatrix;
+  if(!GimbalLockZXYMode_R) {
+    rotationMatrix_r = rX_r*rY_r*rZ_r;
+    hand_r->GetTNode()->SetRotation(rotationMatrix_r);
+    if((hand_r->GetRot().y < 135) && ( hand_r->GetRot().y > 45))
+    {
+     GimbalLockZXYMode_R = true;
+     rotationMatrix_r = rZ_r*rX_r*rY_r;
+    }
+    else {
+     rotationMatrix_r = rX_r*rY_r*rZ_r;
+    }
+    //mbhud("GimbalLock ON");
+  } else {
+    rotationMatrix_r = rZ_r*rX_r*rY_r;
+    hand_r->GetTNode()->SetRotation(rotationMatrix_r);
+    if(!(hand_r->GetRot().x < 135) && ( hand_r->GetRot().x > 45))
+    {
+     GimbalLockZXYMode_R = false;
+     rotationMatrix_r = rX_r*rY_r*rZ_r;
+    }
+    else {
+     rotationMatrix_r = rZ_r*rX_r*rY_r;
+    }
+    //mbhud("GimbalLock OFF");
+  }
   hand_r->GetTNode()->SetRotation(rotationMatrix_r);
   
   //mblog(" Rotation Matrix Calc Time: "+QString::number(t->elapsed())+"\n");
