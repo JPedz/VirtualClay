@@ -24,7 +24,7 @@ void MenuUI::Execute() {
   idList->setViewCam();
   cameraWrapper *viewCam_tmp = new cameraWrapper(idList->getViewCam());
   viewCam_tmp->getTNode()->SetRotation(mb::Vector(0,0,0));
-  viewCam_tmp->getTNode()->SetPosition(mb::Vector(0,0,600));
+  viewCam_tmp->getTNode()->SetPosition(mb::Vector(0,0,500));
   delete viewCam_tmp;
   idList->storeHandCamID(L_Cam->getID(),l);
   idList->storeHandCamID(R_Cam->getID(),r);

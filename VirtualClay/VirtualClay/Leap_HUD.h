@@ -18,10 +18,13 @@ public:
   mb::Vector menuPosition;
   void SetCentre(mb::Vector &c);
   void SetSize(float s);
+  void SetPoints(mb::Vector &p);
   private:
   float cX;
   float size;
   float cY;
+    float pointX;
+    float pointY;
 	//mb::CGcontext m_CGContext;
   mb::Texture* brushSize;
   mb::Texture* brushStrength;

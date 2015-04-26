@@ -360,14 +360,13 @@ mb::Vector Leap_Reader::getPosition_R(void) {
 }
 
 bool Leap_Reader::isFist(LR lr) {
-  Frame f;
   switch(lr) {
     case(l):
-      if(hand_l.grabStrength() > 0.9)
+      if(hand_l.grabStrength() > 0.8)
         return true;
       break;
     case(r):
-      if(hand_r.grabStrength() > 0.9)
+      if(hand_r.grabStrength() > 0.8)
         return true;
       break;
   }

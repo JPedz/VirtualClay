@@ -127,7 +127,7 @@ void GestureHUD::Process(mb::ViewPortState &s) {
       case 6:
         currTex = undoGesture;
         break;
-      defualt:
+      default:
         currTex = NULL;
         break;
     }

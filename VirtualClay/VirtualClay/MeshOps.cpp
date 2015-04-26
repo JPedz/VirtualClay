@@ -37,6 +37,10 @@ MeshOps::MeshOps(mb::Mesh *m) {
   meshLayer->SetTransparency(1.0f);
   meshLayer->SetVisible(true);
   curCam = mb::Kernel()->Scene()->ActiveCamera();
+  mblog("STUDY 2 DATA: Mesh Vertex Pos, Vertex Normal\n");
+  for(int i = 0 ; i < pMesh->VertexCount() ; i++) {
+    mblog(VectorToQString(pMesh->VertexPosition(i))+","+VectorToQString(pMesh->VertexNormal(i))+"\n");
+  }
 }
 
 void MeshOps::SetMesh(mb::Mesh *m) {
@@ -58,6 +62,10 @@ void MeshOps::SetMesh(mb::Mesh *m) {
   if(!pMesh->HasTC()) {
     mb::SubdivisionLevel *subdiv= MeshGeo->ActiveLevel();
     subdiv->RecreateUVs(true);
+  }
+  mblog("STUDY 2 DATA: Mesh Vertex Pos, Vertex Normal\n");
+  for(int i = 0 ; i < pMesh->VertexCount() ; i++) {
+    mblog(VectorToQString(pMesh->VertexPosition(i))+","+VectorToQString(pMesh->VertexNormal(i))+"\n");
   }
   pMesh->RecalculateAdjacency();
   pMesh->RecalculateNormals();
@@ -857,6 +865,27 @@ void MeshOps::SelectObject(cameraWrapper *viewCam, mb::Vector screenPos) {
   } else {
     mbstatus("No ObjectSelected");
   }
+}
+
+mb::Vector MeshOps::FireAtMesh(mb::Vector centrePoint) {
+  if(pMesh != NULL) {
+    
+  int midW = mb::Kernel()->ViewPort()->Width()/2;
+    int midH = mb::Kernel()->ViewPort()->Height()/2;
+    ssp = curCam->GetScreenSpacePicker();
+  mb::SurfacePoint p;
+  int x = midW;
+  int y = midH;
+    mb::Vector worldPos;
+  if(curCam->Pick(x,y,p)) {
+    if(p.Mesh() == pMesh) {
+      return p.WorldPosition();
+    }
+  } else {
+    return mb::Vector(-1,-1,-1);
+  }
+  }
+  return mb::Vector(-1,-1,-1);
 }
 
 void MeshOps::SelectObjectFromHands() {

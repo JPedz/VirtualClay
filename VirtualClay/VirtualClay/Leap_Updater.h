@@ -16,6 +16,8 @@ static const float menuActivateZone2 = 0.6f;
 
 
 class Leap_Updater : public mb::Node {
+    
+  QTime *bigTimer;
   mudbox::Vector dir;
   ID_List *idList;
   Leap_Hand *hand_l;
@@ -64,7 +66,7 @@ class Leap_Updater : public mb::Node {
   bool selectWithBrushSize;
   bool reqIntersectionForSelection;
   bool thumbGrabModeToggle;
-  bool stickyMovement;
+  bool thumbDirectionBasedMovement;
   bool pinchGrab;
   bool toolStamp;
   bool brushSizeMenuToggle;
@@ -75,8 +77,11 @@ class Leap_Updater : public mb::Node {
   mb::Vector menuStartSpace;
   Leap_HUD *menuFilter;
   GestureHUD *gestureHUD;
+  //Leap_HUD *brushIcon;
   
   void ThumbSmoothMove(LR lr);
+  void ThumbDirMove(LR lr);
+  void ThumbPush(LR lr);
 
   bool ThumbSelect();
   float brushSize;

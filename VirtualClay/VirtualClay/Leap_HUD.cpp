@@ -56,6 +56,33 @@ static void drawBrushSize(mb::Texture* const outputTexture,mb::Texture* const ov
 	glEnd();
 }
 
+static void drawFullScreenQuad(mb::Texture* const outputTexture,mb::Texture* const overlay, const float ratio, const float size, const float cX, const float cY) {
+  glMatrixMode( GL_PROJECTION );
+  glLoadIdentity();
+  glMatrixMode( GL_MODELVIEW );
+  glLoadIdentity();
+  glColor3f(1.0f,1.0f,1.0f);
+  if(overlay != NULL)
+    glBindTexture(GL_TEXTURE_2D,overlay->OpenGLName());
+  
+  glBegin( GL_QUADS );
+  
+  glTexCoord2f( 0, 0 );
+  glVertex2f( cX-0.05f, (cY-0.05f)*ratio );
+  
+  glTexCoord2f( 1, 0 );
+  glVertex2f( cX+0.05f, (cY-0.05f)*ratio );
+  
+  glTexCoord2f( 1, 1 );
+  glVertex2f( cX+0.05f, (cY+0.05f)*ratio );
+  
+  glTexCoord2f( 0, 1 );
+  glVertex2f( cX-0.05f, (cY+0.05f)*ratio );
+  
+  glEnd();
+}
+
+
 
 
 // Renders full screens quad to texture specified
@@ -69,6 +96,12 @@ static void gpuTransform(mb::Texture* const outputTexture,mb::Texture* const ove
 	outputTexture->SetAsRenderTarget();
   drawBrushSize(outputTexture,overlay,ratio,size);
 	outputTexture->RestoreRenderTarget();
+}
+
+static void gpuTransform(mb::Texture* const outputTexture,mb::Texture* const overlay, const float ratio,const float size, const float cX, const float cY) {
+  outputTexture->SetAsRenderTarget();
+  drawFullScreenQuad(outputTexture,overlay,ratio,size,cX,cY);
+  outputTexture->RestoreRenderTarget();
 }
 
 void Leap_HUD::OnNodeEvent( const mb::Attribute &cAttribute, mb::NodeEventType eType ) {
@@ -107,6 +140,8 @@ Leap_HUD::Leap_HUD():
     menuChoice.SetValue(0);
     cX = 0;
     cY = 0;
+    pointX = 0;
+    pointY = 0;
     menuMiddle_L = mb::CreateInstance<mb::Texture>();
     menuMiddle_L->CreateFromFile(RESOURCESDIR + QString("menuMiddle_L.png"));
 	  menuMiddle_L->SetLocation( mb::TexturePool::locationGPU );
@@ -181,6 +216,11 @@ void Leap_HUD::SetCentre(mb::Vector &c) {
   cX = MIN(MAX(c.x,-0.5),0.5);
   cY = MIN(MAX(c.y,-0.3),0.3);
   mblog("LEAPHUD "+QString::number(cX)+" "+QString::number(cY)+"\n");
+}
+
+void Leap_HUD::SetPoints(mb::Vector &p) {
+  pointX = p.x;
+  pointY = p.y;
 }
 
 void Leap_HUD::SetSize(float s) {
@@ -261,7 +301,10 @@ void Leap_HUD::Process(mb::ViewPortState &s) {
     break; 
   case 21:
     currTex = brushSize;
-    break; 
+    break;
+  case 22:
+    currTex = brushSize;
+    break;
   }
   if(currTex == NULL) {
     mblog("NULL TEXTURE!");
@@ -277,6 +320,8 @@ void Leap_HUD::Process(mb::ViewPortState &s) {
   glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP);
   if((menuChoice == 10) || (menuChoice == 21)) {
     gpuTransform(s.m_pColor,currTex,cameraAspectRatio,size);
+  }else if(menuChoice == 22){
+    gpuTransform(s.m_pColor,currTex,cameraAspectRatio,size,pointX,pointY);
   } else {
     gpuTransform(s.m_pColor,currTex,cameraAspectRatio,cX,cY);
   }

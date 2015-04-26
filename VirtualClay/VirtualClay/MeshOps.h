@@ -115,6 +115,8 @@ public:
   void Tesselate();
   void FindTesselationFaces(LR lr);
   void SubDivide();
+  
+  mb::Vector FireAtMesh(mb::Vector centrePoint);
 
 };
 

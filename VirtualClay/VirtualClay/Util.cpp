@@ -84,7 +84,7 @@ __inline mb::Matrix matrixFromVectors(mb::Vector v1,mb::Vector v2,mb::Vector v3)
 
 mb::Vector GetAimRotation(mb::Vector constrained,mb::Vector target) {
   mb::Matrix m = AimConstraint(constrained,target);
-  float RD =Leap::RAD_TO_DEG;;
+  float RD = Leap::RAD_TO_DEG;
   mb::Vector rotation;
   rotation.x = asinf(-m._23)* RD;
   rotation.y = atan2f(m._13,m._33)*RD;
