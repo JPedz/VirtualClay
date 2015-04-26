@@ -511,6 +511,8 @@ mb::Vector Leap_Reader::getToolMotionDirection() {
   return dir;
 }
 
+
+
 bool Leap_Reader::CheckFingerExtensions(LR lOrR,bool ext0,bool ext1,bool ext2,bool ext3,bool ext4) {
   std::vector<bool> b;
   if(lOrR == l) {

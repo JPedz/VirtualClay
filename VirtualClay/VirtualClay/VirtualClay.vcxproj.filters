@@ -72,6 +72,9 @@
     <ClInclude Include="GestureHUD.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="UltraHaptics_Output.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -123,6 +126,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GestureHUD.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UltraHaptics_Output.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

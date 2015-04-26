@@ -285,32 +285,7 @@ void Leap_Updater::ThumbDirMove(LR lr) {
     hand_r->SetVisi(true);
 }
 
-//void Leap_Updater::ToolSmoothMove() {
-//  int toolCamID = idList->getToolCam();
-//  cameraWrapper *toolCam= new cameraWrapper(toolCamID);
-//  toolCam->setPosition(tool->GetPos(1));
-//  toolCam->MoveForward(-50);
-//  toolCam->setAim(tool->GetPos(0));
-//  meshOp->ChangeCamera(viewCam);
-//  tool->SetVisi(false);
-//  mb::Vector toolPos = tool->GetPos(0);
-//  mb::Vector toolProj = viewCam->getCamera()->Project(toolPos);
-//  toolProj = toolProj * mb::Vector(1,-1,1);
-//  mblog("ToolSmoothMove\n");
-//  mblog("Tool Proj Pos = "+VectorToQStringLine(toolProj));
-//  mblog("Tool Proj Pos Pixels = "+VectorToQStringLine(ScreenSpaceToPixels(toolProj)));
-//  //meshOp->ChangeCamera(viewCam);
-//  if(meshOp->SelectFaces(r,ScreenSpaceToPixels(toolProj),brushStrength,brushStrength)) {
-//    facesAreSelected_Tool = true;
-//    mb::Vector dirNorm = leapReader->getToolMotionDirection();
-//    mblog("Normalised Direction = "+VectorToQStringLine(dirNorm));
-//    mb::Vector dist = dirNorm*brushStrength*2;
-//    meshOp->MoveVerticesNormal(r,dist,tool->GetPos(0));
-//  }
-//  tool->SetVisi(true);
-//}
-
-void Leap_Updater::ThumbPush(LR lr) {
+void Leap_Updater::ThumbSmoothMove(LR lr) {
   mb::Vector thumbPos;
   if(lr == l) {
     thumbPos = hand_l->GetFingerPos(THUMB,TIP);
@@ -320,22 +295,18 @@ void Leap_Updater::ThumbPush(LR lr) {
     hand_r->SetVisi(false);
   }
   mb::Vector thumbProj = viewCam->getCamera()->Project(thumbPos) * mb::Vector(1,-1,1);
-  mblog("Thumb Proj Pos = "+VectorToQStringLine(thumbProj));
-  mblog("Thumb Proj Pos Pixels = "+VectorToQStringLine(ScreenSpaceToPixels(thumbProj)));
-  meshOp->ChangeCamera(viewCam);
-  if(meshOp->SelectFaces(lr,ScreenSpaceToPixels(thumbProj),10.0f,brushSize/4)) {
-    mb::Vector dirNorm = leapReader->getMotionDirection(THUMB,lr);
-    mblog("Normalised Direction = "+VectorToQStringLine(dirNorm));
-    mblog("Brush Strength= "+QString::number(brushStrength));
-    mb::Vector dist = dirNorm*3;
-    meshOp->MoveVertices(lr,dist,false);
-  }
-  if(lr == l)
-    hand_l->SetVisi(true);
-  else
-    hand_r->SetVisi(true);
-}
 
+  meshOp->ChangeCamera(viewCam);
+  
+  if(meshOp->SelectFaces(lr,ScreenSpaceToPixels(thumbProj),10.0f,brushSize/4)) {
+    facesAreSelected_Tool = true;
+    mb::Vector dirNorm = leapReader->getToolMotionDirection();
+    mblog("Normalised Direction = "+VectorToQStringLine(dirNorm));
+    float dist = brushStrength*2;
+    meshOp->MoveVerticesNormal(r,dist,thumbPos);
+  }
+  tool->SetVisi(true);
+}
 
 __inline void Leap_Updater::SetHandAndFingerPositions() {
   //TODO:
@@ -647,7 +618,6 @@ void Leap_Updater::CameraPan(LR lOrR) {
 }
 
 void Leap_Updater::MenuSettings_R() {
-  //https://helpx.adobe.com/illustrator/using/drawing-simple-lines-shapes.html
   mb::Vector PosDifference = menuStartSpace - GetRelativeScreenSpaceFromWorldPos(hand_r->GetFingerPos(INDEX));
   mbstatus(VectorToQStringLine(PosDifference));
   menuFilter->menuChoice = 5;
@@ -1171,7 +1141,7 @@ void Leap_Updater::ToolSmoothMove() {
     facesAreSelected_Tool = true;
     mb::Vector dirNorm = leapReader->getToolMotionDirection();
     mblog("Normalised Direction = "+VectorToQStringLine(dirNorm));
-    mb::Vector dist = dirNorm*brushStrength*2;
+    float dist = brushStrength*2;
     meshOp->MoveVerticesNormal(r,dist,tool->GetPos(0));
   }
   tool->SetVisi(true);

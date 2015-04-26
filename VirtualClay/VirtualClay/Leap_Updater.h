@@ -9,6 +9,7 @@
 #include <Mudbox/image.h>
 #include "Leap_Tool.h"
 #include <QTCore/QTime>
+#include "UltraHaptics_Output.h"
 namespace mb = mudbox;
 static const float menuDeadZone = 0.15f;
 static const float menuActivateZone = 0.3f;
