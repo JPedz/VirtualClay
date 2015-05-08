@@ -100,6 +100,7 @@ void Leap_Tool::ReleaseStamp() {
 void Leap_Tool::ResizeStamp(float x, float y) {
   if(img != NULL) {
     if(img->width() != x && img->height() != y) {
+      *img = OriginalImg->copy();
       img = new QImage(img->scaled(x,y));
       mblog("NEW IMG HEIGHT"+QString::number(img->height())+"\n");
       stamp->ConvertFromQImage(*img);

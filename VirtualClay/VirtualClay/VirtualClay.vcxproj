@@ -142,7 +142,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_USRDLL;FILEEVENTHANDLER_EXPORTS;MB_USE_QT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\ultrahaptics\include;$(MUDBOX_SDK_DIR)\include;$(LEAP_SDK_DIR)\include\;C:\Program Files\Autodesk\Mudbox 2015\SDK\include\QtCore;C:\Program Files\Autodesk\Mudbox 2015\SDK\include\QtGui;C:\Program Files\Autodesk\Mudbox 2015\SDK\include\QtOpenGL;C:\Program Files\Autodesk\Mudbox 2015\SDK\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files %28x86%29\ultrahaptics\include;C:\Program Files %28x86%29\ultrahaptics\include\ultrahaptics;$(MUDBOX_SDK_DIR)\include;$(LEAP_SDK_DIR)\include\;C:\Program Files\Autodesk\Mudbox 2015\SDK\include\QtCore;C:\Program Files\Autodesk\Mudbox 2015\SDK\include\QtGui;C:\Program Files\Autodesk\Mudbox 2015\SDK\include\QtOpenGL;C:\Program Files\Autodesk\Mudbox 2015\SDK\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
@@ -150,7 +150,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>C:\ultrahaptics\lib;$(MUDBOX_SDK_DIR)\lib;$(LEAP_SDK_DIR)\lib\x64\;C:\Program Files\Autodesk\Mudbox 2015\SDK\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Program Files %28x86%29\ultrahaptics\lib;$(MUDBOX_SDK_DIR)\lib;$(LEAP_SDK_DIR)\lib\x64\;C:\Program Files\Autodesk\Mudbox 2015\SDK\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>Leap.lib;QtGui4.lib;MudboxFramework.lib;QtCore4.lib;QtNetwork4.lib;QtScript4.lib;opengl32.lib;Cg.lib;CgGL.lib;Ultrahaptics.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>

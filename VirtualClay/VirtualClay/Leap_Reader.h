@@ -1,6 +1,8 @@
 #pragma once
 #include "Leap.h"
 #include <QTCore/QTime>
+#include <iostream>
+#include <fstream>
 #include "Leap_Listener.h"
 using namespace Leap;
 namespace mb = mudbox;
@@ -10,6 +12,12 @@ class Leap_Reader {
   void getAndSetHandDirection(Hand &h,LR lr);
   void HandSetup(Frame &f);
   float handConfidenceLevel;
+  bool DEBUGMODEON;
+  bool RECORD;
+  
+  std::ofstream outFile;
+  std::ifstream inFile;
+
   Hand hand_l;
   Hand hand_r;
   Tool tool;
@@ -18,8 +26,10 @@ class Leap_Reader {
   mb::Vector LeapDirectionToMudbox(Leap::Vector dir);
   mb::Vector LeapPositionToMudbox(Leap::Vector dir);
   mb::Vector scale;
-
   QTime *UndoTimeOut;
+  //Frame readInFile();
+  //void writeOutFile(Frame &f);
+
 public:
   bool isConnected;
   bool ishands;

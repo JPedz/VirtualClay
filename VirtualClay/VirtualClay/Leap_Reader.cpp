@@ -4,6 +4,14 @@
 using namespace Leap;
 
 Leap_Reader::Leap_Reader(void) {
+  //DEBUGMODEON = false;
+  //RECORD = false;
+  //
+  //if(RECORD) {
+  //  outFile.open("recordedFrames.data");
+  //} else if (DEBUGMODEON) {
+  //inFile.open("recordedFrames.data", std::fstream::in);
+  //}
   handvisi.resize(2,false);
   controller.addListener(listener);
   controller.enableGesture(Leap::Gesture::TYPE_SCREEN_TAP);
@@ -12,7 +20,7 @@ Leap_Reader::Leap_Reader(void) {
   controller.config().setFloat("Gesture.ScreenTap.MinForwardVelocity", 5.0);
   controller.config().setFloat("Gesture.ScreenTap.HistorySeconds", 1.0f);
   controller.config().setFloat("Gesture.ScreenTap.MinDistance", 10.0f);
-  controller.config().setFloat("Gesture.Swipe.MinLength", 300.0);
+  controller.config().setFloat("Gesture.Swipe.MinLength", 500.0);
   controller.config().setFloat("Gesture.Swipe.MinVelocity", 1000.0);
   controller.config().setFloat("Gesture.Circle.MinRadius", 18.0);
   controller.config().setFloat("Gesture.Circle.MinArc", 3*PI);
@@ -52,10 +60,39 @@ void Leap_Reader::SetScale(mb::Vector s) {
   scale = s;
 }
 
+
 bool Leap_Reader::updateAll(void) {
   if(controller.isConnected()) {
-    isConnected =true;
     Frame f = controller.frame();
+    isConnected =true;
+    //if(DEBUGMODEON) {
+    //    std::string contents;
+    //    if (inFile)
+    //    {
+    //      inFile.seekg(0, std::ios::beg);
+    //      long nextBlockSize = 0;
+    //      inFile >> nextBlockSize;
+
+    //      contents.resize(nextBlockSize);
+    //      inFile.read(&contents[0], nextBlockSize);
+
+    //      f.deserialize(contents);
+
+    //    }
+    //    else if(errno){
+    //        std::cout << "Error: " << errno << std::endl;
+    //        std::cout << "Couldn't open file for reading." << std::endl;
+    //    }
+    //} else {
+    //
+    //  f = controller.frame();
+    //  if(RECORD) {
+    //    Leap::Frame frameToSerialize = controller.frame();
+    //    std::string serialized = frameToSerialize.serialize();
+    //    outFile << (long)serialized.length() << serialized;
+    //  }
+    //  //Record and write from LeapMotion https://developer.leapmotion.com/documentation/cpp/devguide/Leap_Serialization.html
+    //}
     if(f.id() != lastFrameID) {
       HandSetup(f);
       isScreenTap_L = false;
@@ -186,7 +223,7 @@ bool Leap_Reader::updateAll(void) {
     handvisi.at(1) = false;
     isConnected =false;
     return false;
-  }
+  } 
 }
 
 void Leap_Reader::HandSetup(Frame &f) {

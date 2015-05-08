@@ -17,7 +17,7 @@ static const float menuActivateZone2 = 0.6f;
 
 
 class Leap_Updater : public mb::Node {
-    
+  unsigned int frameCounter;
   QTime *bigTimer;
   mudbox::Vector dir;
   ID_List *idList;

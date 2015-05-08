@@ -6,6 +6,7 @@ namespace mb = mudbox;
 Leap_Updater::Leap_Updater(ID_List *idl,Leap_Hand *l,Leap_Hand *r)
   :frameEvent(this)
 {
+  frameCounter = 0;
   uniqueMiss = 0;
   uniqueMissBool = true;
   missCounter = 0;
@@ -312,6 +313,7 @@ __inline void Leap_Updater::SetHandAndFingerPositions() {
   //TODO:
   // Do I need to actually rotate the fingers?? If so, by what metric?
   // hand_l->SetFingerRot(fingerEnum(i),leapReader->getFingerDirection_L(fingerEnum(i)));
+//  frameCounter++;
   QTime *overall = new QTime();
   overall->start();
   QTime *t = new QTime();
@@ -360,11 +362,10 @@ __inline void Leap_Updater::SetHandAndFingerPositions() {
     else {
      rotationMatrix = rX*rY*rZ;
     }
-    mbhud("GimbalLock ON");
   } else {
     rotationMatrix = rZ*rX*rY;
     hand_l->GetTNode()->SetRotation(rotationMatrix);
-    if(!((int(hand_l->GetRot().x)%180 < 135) && ( int(hand_l->GetRot().x)%180 > 45)))
+    if(!((int(hand_l->GetRot().x)%180 < 140) && ( int(hand_l->GetRot().x)%180 > 40)))
     {
      GimbalLockZXYMode_L = false;
      rotationMatrix = rX*rY*rZ;
@@ -372,7 +373,6 @@ __inline void Leap_Updater::SetHandAndFingerPositions() {
     else {
      rotationMatrix = rZ*rX*rY;
     }
-    mbhud("GimbalLock OFF");
   }
   hand_l->GetTNode()->SetRotation(rotationMatrix);
 
@@ -399,7 +399,7 @@ __inline void Leap_Updater::SetHandAndFingerPositions() {
   } else {
     rotationMatrix_r = rZ_r*rX_r*rY_r;
     hand_r->GetTNode()->SetRotation(rotationMatrix_r);
-    if(!((int(hand_r->GetRot().x)%180 < 135) && ( int(hand_r->GetRot().x)%180 > 45)))
+    if(!((int(hand_r->GetRot().x)%180 < 140) && ( int(hand_r->GetRot().x)%180 > 40)))
     {
      GimbalLockZXYMode_R = false;
      rotationMatrix_r = rX_r*rY_r*rZ_r;
@@ -432,10 +432,16 @@ __inline void Leap_Updater::SetHandAndFingerPositions() {
   mb::Vector fingerPos_R = mb::Vector(0,0,0);
   //mblog(" Hand Set Time Calc Time: "+QString::number(t->elapsed())+"\n");
   t->restart();
+//  mblog(QString::number(frameCounter)+" "+"L_Hand,"+VectorToQString(leapReader->getPosition_L())+VectorToQString(leapReader->getDirection_L())+"\n");
+//  mblog(QString::number(frameCounter)+" "+"R_Hand,"+VectorToQString(leapReader->getPosition_R())+VectorToQString(leapReader->getDirection_R())+"\n");
   for(int i = 0 ; i < 5 ; i++) {
     for(int j = 0 ; j < 4 ; j++) {
       fingerPos_L = hand_l->GetFingerPos(fingerEnum(i),jointEnum(j));
+//      mblog(QString::number(frameCounter)+" "+"L_Fing_"+QString::number(i)+QString::number(j)+","+VectorToQString(fingerPos_L)+"\n");
+  
       fingerPos_R = hand_r->GetFingerPos(fingerEnum(i),jointEnum(j));
+//      mblog(QString::number(frameCounter)+" "+"R_Fing_"+QString::number(i)+QString::number(j)+","+VectorToQString(fingerPos_R)+"\n");
+      
       tmp = cameraPivot + leapReader->getFingerPosition(fingerEnum(i),l).at(j);
       hand_l->SetFingerPos(jointEnum(j),fingerEnum(i),tmp);
       hand_l->RotateAroundPivot(jointEnum(j),fingerEnum(i),-1*camRot,cameraPivot);
@@ -465,8 +471,8 @@ __inline void Leap_Updater::SetHandAndFingerPositions() {
       //mblog("Updated Bone Pos\n");
       }
     }
-  hand_l->SetAllFingerJointRots();
-  hand_r->SetAllFingerJointRots();
+  //hand_l->SetAllFingerJointRots();
+  //hand_r->SetAllFingerJointRots();
   //mblog(" Loop for Fingers: "+QString::number(t->elapsed())+"\n");
   t->restart();
   if(leapReader->isTool) {
@@ -650,12 +656,7 @@ void Leap_Updater::MenuSettings_R() {
       }
     }
   }
-  mblog("Abs pos X = "+QString::number(std::abs(PosDifference.x))+"\n");
-  mblog("Abs 0.5f = "+QString::number(std::abs(float(0.5)))+"\n");
-  mblog("Abs 0.5f = "+QString::number(std::abs(float(PosDifference.x)))+"\n");
   if(std::abs(PosDifference.x) > std::abs(PosDifference.y)) {
-    mbhud("ABS WORKS");
-    mblog("ABS WORKS");
     if(PosDifference.x > menuDeadZone) {
       menuFilter->menuChoice = 9;
       if(PosDifference.x > menuActivateZone) {
@@ -847,7 +848,7 @@ void Leap_Updater::BrushSize() {
 void Leap_Updater::BrushStrength() {
   if(leapReader->isScreenTap_L || leapReader->isScreenTap_R) {
     mblog("got tap\n");
-    brushSizeMenuToggle = false;
+    brushStrengthMenuToggle = false;
     menuFilter->SetVisible(false);
     return;
   }
@@ -980,8 +981,8 @@ __inline void Leap_Updater::checkMenuGesture() {
   if(leapReader->isCircleCW_R) {
     if(leapReader->CheckFingerExtensions(r,false,true,true,false,false)) {
       menuStartSpace = GetRelativeScreenSpaceFromWorldPos(hand_r->GetFingerPos(INDEX));
-      mbhud("MenuSpace "+VectorToQStringLine(menuStartSpace));
-      mbstatus("MenuSpace "+VectorToQStringLine(menuStartSpace));
+      //mbhud("MenuSpace "+VectorToQStringLine(menuStartSpace));
+      //mbstatus("MenuSpace "+VectorToQStringLine(menuStartSpace));
       menuFilter->SetCentre(menuStartSpace);
       menuFilter->SetVisible(true);
       inMenu_R = true;
@@ -990,8 +991,8 @@ __inline void Leap_Updater::checkMenuGesture() {
   if(leapReader->isCircleCW_L) {
     if(leapReader->CheckFingerExtensions(l,false,true,true,false,false)) {
       menuStartSpace = GetRelativeScreenSpaceFromWorldPos(hand_l->GetFingerPos(INDEX));
-      mbhud("MenuSpace "+VectorToQStringLine(menuStartSpace));
-      mbstatus("MenuSpace "+VectorToQStringLine(menuStartSpace));
+      //mbhud("MenuSpace "+VectorToQStringLine(menuStartSpace));
+      //mbstatus("MenuSpace "+VectorToQStringLine(menuStartSpace));
       menuFilter->SetCentre(menuStartSpace);
       menuFilter->SetVisible(true);
       inMenu_L = true;
@@ -1107,13 +1108,13 @@ void Leap_Updater::ToolStampMove() {
   meshOp->ChangeCamera(viewCam);
   tool->SetVisi(false);
   mblog("ToolStamp\n");
-  int dist = 5;
+  int dist = 2;
   mb::Vector toolPos = tool->GetPos(0);
   mb::Vector toolProj = viewCam->getCamera()->Project(toolPos);
   mblog("Tool Proj Pos = "+VectorToQStringLine(toolProj));
   toolProj = toolProj * mb::Vector(1,-1,1);
   mblog("Tool Proj Pos Pixels = "+VectorToQStringLine(ScreenSpaceToPixels(toolProj)));
-  tool->ResizeStamp(100,100);
+  tool->ResizeStamp(brushSize,brushSize);
   if(meshOp->ToolManip(ScreenSpaceToPixels(toolProj),brushSize,tool)) {
     facesAreSelected_Tool = true;
     mblog("Moving vertices maybe?\n");
@@ -1141,7 +1142,7 @@ void Leap_Updater::ToolSmoothMove() {
     facesAreSelected_Tool = true;
     mb::Vector dirNorm = leapReader->getToolMotionDirection();
     mblog("Normalised Direction = "+VectorToQStringLine(dirNorm));
-    float dist = brushStrength*2;
+    float dist = brushStrength/2;
     meshOp->MoveVerticesNormal(r,dist,tool->GetPos(0));
   }
   tool->SetVisi(true);
@@ -1215,7 +1216,7 @@ __inline void Leap_Updater::checkMoveObjGesture() {
       meshOp->StoreLastMoveUndoQueue();
       isFirstGrab = true;
       meshOp->DeselectAllFaces();
-      mblog("Mesh Moved");
+     // mblog("Mesh Moved");
     }
   }
 }
@@ -1303,8 +1304,8 @@ void Leap_Updater::OnEvent(const mb::EventGate &cEvent) {
     }
   }
   mb::Kernel()->ViewPort()->Redraw();
-  mblog("Misses = "+QString::number(missCounter)+"\n");
+  /*mblog("Misses = "+QString::number(missCounter)+"\n");
   mblog("Unique Misses = "+QString::number(uniqueMiss)+"\n");
-  mblog("Current Time = "+QString::number(bigTimer->elapsed()));
+  mblog("Current Time = "+QString::number(bigTimer->elapsed()));*/
   //mblog("Full Loop Time: "+QString::number(overall->elapsed())+"\n");
 }

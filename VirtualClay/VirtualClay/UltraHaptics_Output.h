@@ -3,7 +3,7 @@
 #include "ultrahaptics\Ultrahaptics.hpp"
 class UltraHaptics_Output
 {
-  Ultrahaptics::Emitter *emitter;
+  //Ultrahaptics::Emitter *emitter;
   float frequency;
   float intensity;
   Ultrahaptics::Vector3 MbVectorToUltraHapticsVector(mb::Vector v1);
