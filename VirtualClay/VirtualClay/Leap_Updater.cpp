@@ -1210,9 +1210,12 @@ __inline void Leap_Updater::checkToolIntersection() {
       }
     } else {
         tool->SendToServer(0);
+        
+        meshOp->firstUse = true;
     }
   } else {
     tool->SendToServer(0);
+        meshOp->firstUse = true;
   }
 }
 
