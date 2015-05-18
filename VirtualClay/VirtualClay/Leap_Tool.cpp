@@ -69,7 +69,7 @@ float Leap_Tool::GetStampStrength(mb::Vector &uv) {
   } else if(v >= stamp->Height()) {
     v = stamp->Height()-1;
   }
-  //mblog("Getting stamp co-ordinates "+QString::number(u)+" "+QString::number(v)+" = "+QString::number(stamp->ColorAt(u,v).Luminance())+"\n");
+  mblog("Getting stamp co-ordinates "+QString::number(u)+" "+QString::number(v)+" = "+QString::number(stamp->ColorAt(u,v).Luminance())+"\n");
   return stamp->ColorAt(u,v).Luminance();
 }
 

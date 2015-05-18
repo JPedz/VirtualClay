@@ -1069,6 +1069,9 @@ void MeshOps::SubDivide() {
     pMesh->RecalculateAdjacency();
     pMesh->RecalculateNormals();
     pMesh->RecalculateVertexAdjacency();
+    while(undoQueue.size() > 0) {
+      undoQueue.clear();
+    }
   } else {
     mbhud("No Mesh Selected\n");
   }
@@ -1131,6 +1134,9 @@ void MeshOps::boxSelect(LR lr, mb::Vector &v1,mb::Vector &v2,float maxDist, floa
             vMI.lVI = meshLayer->LayerVertexIndex(i);
               //mblog("int lvi = "+QString::number(vMI.lVI)+"\n");
             vMI.strength = MIN((1-(dist/(MAX(strength,0)))),1);
+            if(vMI.strength < 0.00001) {
+              vMI.strength = 0;
+            }
             vertices->push_back(vMI);
             //mblog("here\n");
             vA = pMesh->VertexAdjacency(i);
@@ -1193,7 +1199,7 @@ void MeshOps::boxSelect(LR lr, mb::Vector centrePoint, Leap_Tool *tool) {
       midTCPoint = p.TextureCoordinate();
       //mblog("mid pos = "+VectorToQStringLine(midPos));
       //mblog("Last mid pos = "+VectorToQStringLine(lastMidPosition));
-      if(midPos.DistanceFrom(lastMidPosition) > height+10) {
+      if(midPos.DistanceFrom(lastMidPosition) > height*2) {
         QTime *t = new QTime();
         t->start();
         lastMidPosition = midPos;
@@ -1201,7 +1207,7 @@ void MeshOps::boxSelect(LR lr, mb::Vector centrePoint, Leap_Tool *tool) {
         for( unsigned int i = 0 ; i < pMesh->VertexCount() ; i++) {
           worldPoint = pMesh->VertexPosition(i);
           dist = worldPoint.DistanceFrom(midPos);
-          if(dist < height) {
+          if(dist < height*2) {
             //mblog("Vertex in range\n");
             if(checkUniqueInVertexList(vertices,i)) {
               //mblog("MID POINT COORDINATES = "+VectorToQStringLine(midPos));

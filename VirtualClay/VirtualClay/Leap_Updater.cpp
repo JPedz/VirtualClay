@@ -42,8 +42,8 @@ Leap_Updater::Leap_Updater(ID_List *idl,Leap_Hand *l,Leap_Hand *r)
   gestureHUD->SetVisible(false);
   menuFilter->SetVisible(false);
   //brushIcon->SetVisible(true);
-  brushSize = 30.0f;
-  brushStrength = 10.0f;
+  brushSize = 40.0f;
+  brushStrength = 30.0f;
   inMenu_L = false;
   inMenu_R = false;
   menuLeft = false;
@@ -56,7 +56,7 @@ Leap_Updater::Leap_Updater(ID_List *idl,Leap_Hand *l,Leap_Hand *r)
   menuDown_1 = false;
   reqIntersectionForSelection = false;
   thumbGrabModeToggle = false;
-  thumbDirectionBasedMovement = true;
+  thumbDirectionBasedMovement = false;
   //stickyMovement = false;
   selectWithBrushSize = true;
   pinchGrab = true;
@@ -290,10 +290,10 @@ void Leap_Updater::ThumbSmoothMove(LR lr) {
   mb::Vector thumbPos;
   if(lr == l) {
     thumbPos = hand_l->GetFingerPos(THUMB,TIP);
-    hand_l->SetVisi(false);
+    //hand_l->SetVisi(false);
   } else {
     thumbPos = hand_r->GetFingerPos(THUMB,TIP);
-    hand_r->SetVisi(false);
+    //hand_r->SetVisi(false);
   }
   mb::Vector thumbProj = viewCam->getCamera()->Project(thumbPos) * mb::Vector(1,-1,1);
 
@@ -303,10 +303,10 @@ void Leap_Updater::ThumbSmoothMove(LR lr) {
     facesAreSelected_Tool = true;
     mb::Vector dirNorm = leapReader->getToolMotionDirection();
     mblog("Normalised Direction = "+VectorToQStringLine(dirNorm));
-    float dist = brushStrength*2;
+    float dist = 1;
     meshOp->MoveVerticesNormal(r,dist,thumbPos);
   }
-  tool->SetVisi(true);
+  //tool->SetVisi(true);
 }
 
 __inline void Leap_Updater::SetHandAndFingerPositions() {
@@ -513,7 +513,7 @@ __inline void Leap_Updater::SetHandAndFingerPositions() {
 }
 
 void Leap_Updater::CameraRotate(LR lOrR) {
-  const float deadzone = 20.0f;
+  const float deadzone = 30.0f;
   mb::Vector handRot;
   if(lOrR == r) {
     handRot = leapReader->getDirection_R()+mb::Vector(15,0,0);
@@ -582,7 +582,7 @@ void Leap_Updater::CameraZoom(LR lOrR) {
 }
 
 void Leap_Updater::CameraPan(LR lOrR) {
-  const float deadzone = 20.0f;
+  const float deadzone = 30.0f;
   mb::Vector handPos;
   mb::Vector difference;
 
@@ -1109,12 +1109,28 @@ void Leap_Updater::ToolStampMove() {
   tool->SetVisi(false);
   mblog("ToolStamp\n");
   int dist = 2;
+  if(brushStrength > 10) {
+    dist = 1;
+    if(brushStrength > 20) {
+      dist = 2;
+      if(brushStrength > 30) {
+        dist = 3;
+        if(brushStrength > 50) {
+          dist = 4;
+          if(brushStrength > 50) {
+            dist = 5;
+          }
+        }
+      }
+    }
+  }
   mb::Vector toolPos = tool->GetPos(0);
   mb::Vector toolProj = viewCam->getCamera()->Project(toolPos);
   mblog("Tool Proj Pos = "+VectorToQStringLine(toolProj));
   toolProj = toolProj * mb::Vector(1,-1,1);
   mblog("Tool Proj Pos Pixels = "+VectorToQStringLine(ScreenSpaceToPixels(toolProj)));
-  tool->ResizeStamp(brushSize,brushSize);
+  float stampsize = std::sqrtf(brushSize*brushSize)+5;
+  tool->ResizeStamp(stampsize,stampsize);
   if(meshOp->ToolManip(ScreenSpaceToPixels(toolProj),brushSize,tool)) {
     facesAreSelected_Tool = true;
     mblog("Moving vertices maybe?\n");
@@ -1134,6 +1150,22 @@ void Leap_Updater::ToolSmoothMove() {
   mb::Vector toolPos = tool->GetPos(0);
   mb::Vector toolProj = viewCam->getCamera()->Project(toolPos);
   toolProj = toolProj * mb::Vector(1,-1,1);
+  float dist = 2;
+  if(brushStrength > 10) {
+    dist = 0.5;
+    if(brushStrength > 20) {
+      dist = 1;
+      if(brushStrength > 30) {
+        dist = 1.5;
+        if(brushStrength > 50) {
+          dist = 2;
+          if(brushStrength > 50) {
+            dist = 2.5;
+          }
+        }
+      }
+    }
+  }
   mblog("ToolSmoothMove\n");
   mblog("Tool Proj Pos = "+VectorToQStringLine(toolProj));
   mblog("Tool Proj Pos Pixels = "+VectorToQStringLine(ScreenSpaceToPixels(toolProj)));
@@ -1142,7 +1174,6 @@ void Leap_Updater::ToolSmoothMove() {
     facesAreSelected_Tool = true;
     mb::Vector dirNorm = leapReader->getToolMotionDirection();
     mblog("Normalised Direction = "+VectorToQStringLine(dirNorm));
-    float dist = brushStrength/2;
     meshOp->MoveVerticesNormal(r,dist,tool->GetPos(0));
   }
   tool->SetVisi(true);
@@ -1160,13 +1191,14 @@ __inline void Leap_Updater::checkToolIntersection() {
        // mblog("Test Tool bounding box Pos = "+VectorToQStringLine(mb::AxisAlignedBoundingBox(tool->GetPos(0),0.2f).Center()));
         //http://www.sciencedirect.com/science/article/pii/S0010448512002734
         //Set the undo list to iterate on.
-        if(meshOp->firstUse) {
-          meshOp->firstUse = false;
-        }
+
         if(toolStamp) {
           ToolStampMove();
         } else {
           ToolSmoothMove();
+        }
+        if(meshOp->firstUse) {
+          meshOp->firstUse = false;
         }
       } else {
         if(facesAreSelected_Tool) {
